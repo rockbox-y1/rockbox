@@ -52,13 +52,13 @@ jobs:
       id: create_release
       uses: shogo82148/actions-create-release@v1
       with:
-        release_name: ${{ github.sha }}
-        tag_name: ${{ github.run_id }}
+        release_name: 360p-${{ github.sha }}
+        tag_name: 360p-${{ github.run_id }}
         prerelease: true
     - name: upload apk
       uses: shogo82148/actions-upload-release-asset@v1
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
         asset_path: ./android/build/rockbox.apk
-        asset_name: rockbox-${{ github.sha }}.apk
+        asset_name: rockbox-360p-${{ github.sha }}.apk
         asset_content_type: application/vnd.android.package-archive        
