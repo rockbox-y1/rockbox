@@ -70,7 +70,7 @@ sed -i '/key 108   DPAD_DOWN/c\key 106   DPAD_DOWN' Generic.kl
 sed -i '/key 105   DPAD_LEFT/c\key 103   MEDIA_PREVIOUS' Generic.kl
 sed -i '/key 106   DPAD_RIGHT/c\key 108   MEDIA_NEXT' Generic.kl
 sed -i '/key 163   MEDIA_NEXT/c\key 163   DPAD_RIGHT' Generic.kl
-sed -i '/key 165   MEDIA_NEXT/c\key 165   DPAD_LEFT' Generic.kl
+sed -i '/key 165   MEDIA_PREVIOUS/c\key 165   DPAD_LEFT' Generic.kl
 adb push Generic.kl /system/usr/keylayout/Generic.kl
 adb shell chmod 644 /system/usr/keylayout/Generic.kl
 adb reboot
