@@ -196,20 +196,19 @@ Java_org_rockbox_RockboxFramebuffer_buttonHandler(JNIEnv*env, jclass class,
 JNIEXPORT void JNICALL
 Java_org_rockbox_RockboxFramebuffer_triggerVibrationNative(JNIEnv* env, jclass class, jint baseDuration, jint boostDuration)
 {
-    (void)env;
     (void)class;
     
     /* Call the Java method to trigger vibration with base duration and boost */
-    if (env_ptr && RockboxService_instance) {
-        jclass framebuffer_class = (*env_ptr)->FindClass(env_ptr, "org/rockbox/RockboxFramebuffer");
+    if (env && RockboxService_instance) {
+        jclass framebuffer_class = (*env)->FindClass(env, "org/rockbox/RockboxFramebuffer");
         if (framebuffer_class) {
-            jmethodID trigger_vibration_method = (*env_ptr)->GetStaticMethodID(env_ptr, framebuffer_class, 
+            jmethodID trigger_vibration_method = (*env)->GetStaticMethodID(env, framebuffer_class, 
                 "triggerVibration", "(Landroid/content/Context;II)V");
             if (trigger_vibration_method) {
-                (*env_ptr)->CallStaticVoidMethod(env_ptr, framebuffer_class, trigger_vibration_method, RockboxService_instance, baseDuration, boostDuration);
+                (*env)->CallStaticVoidMethod(env, framebuffer_class, trigger_vibration_method, RockboxService_instance, baseDuration, boostDuration);
                 /* Clear any JNI exceptions that might have occurred */
-                if ((*env_ptr)->ExceptionCheck(env_ptr)) {
-                    (*env_ptr)->ExceptionClear(env_ptr);
+                if ((*env)->ExceptionCheck(env)) {
+                    (*env)->ExceptionClear(env);
                 }
             }
         }
@@ -281,14 +280,15 @@ Java_org_rockbox_RockboxFramebuffer_forceFullRedraw(JNIEnv* env, jobject thiz)
 
 void button_init_device(void)
 {
-    JNIEnv e = *env_ptr;
-    jclass class = e->FindClass(env_ptr, "org/rockbox/monitors/HeadphoneMonitor");
-    jmethodID constructor =     e->GetMethodID(env_ptr, class,
-                                                "<init>",
-                                                "(Landroid/content/Context;)V");
-    e->NewObject(env_ptr, class,         
-                        constructor,
-                        RockboxService_instance);
+    if (env_ptr) {
+        jclass class = (*env_ptr)->FindClass(env_ptr, "org/rockbox/monitors/HeadphoneMonitor");
+        jmethodID constructor = (*env_ptr)->GetMethodID(env_ptr, class,
+                                                    "<init>",
+                                                    "(Landroid/content/Context;)V");
+        (*env_ptr)->NewObject(env_ptr, class,         
+                            constructor,
+                            RockboxService_instance);
+    }
     /* when reaching this point, rockbox can be considered ready because the
      * input system (button.c) is initialized. This implies the kernel and threading
      * is up and running */
