@@ -2398,7 +2398,7 @@ const struct settings_list settings[] = {
 #endif
 #if (CONFIG_PLATFORM & PLATFORM_ANDROID)
     CHOICE_SETTING(0, android_screen_timeout, LANG_ANDROID_SCREEN_TIMEOUT, -1,
-                   "android screen timeout", "15,30,60,120,300,never", android_screen_timeout_callback, 7,
+                   "android screen timeout", "15,30,60,120,300,never", android_screen_timeout_callback, 6,
                    "15 seconds", "30 seconds", "1 minute", "2 minutes", "5 minutes", ID2P(LANG_NEVER)),
 #endif
 };
