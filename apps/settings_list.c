@@ -857,26 +857,26 @@ void android_screen_timeout_callback(int timeout)
     /* Convert choice index to actual timeout value */
     int timeout_seconds;
     switch (timeout) {
-        case 0: /* system */
-            timeout_seconds = -1;
-            break;
-        case 1: /* 15 seconds */
+        case 0: /* 15 seconds */
             timeout_seconds = 15;
             break;
-        case 2: /* 30 seconds */
+        case 1: /* 30 seconds */
             timeout_seconds = 30;
             break;
-        case 3: /* 1 minute */
+        case 2: /* 1 minute */
             timeout_seconds = 60;
             break;
-        case 4: /* 2 minutes */
+        case 3: /* 2 minutes */
             timeout_seconds = 120;
             break;
-        case 5: /* 5 minutes */
+        case 4: /* 5 minutes */
             timeout_seconds = 300;
             break;
-        case 6: /* never */
-            timeout_seconds = 0;
+        case 5: /* 10 minutes */
+            timeout_seconds = 600;
+            break;
+        case 6: /* 30 minutes */
+            timeout_seconds = 1800;
             break;
         default:
             timeout_seconds = -1;
@@ -2398,8 +2398,8 @@ const struct settings_list settings[] = {
 #endif
 #if (CONFIG_PLATFORM & PLATFORM_ANDROID)
     CHOICE_SETTING(0, android_screen_timeout, LANG_ANDROID_SCREEN_TIMEOUT, -1,
-                   "android screen timeout", "15,30,60,120,300,never", android_screen_timeout_callback, 6,
-                   "15 seconds", "30 seconds", "1 minute", "2 minutes", "5 minutes", ID2P(LANG_NEVER)),
+                   "android screen timeout", "15,30,60,120,300,600,1800", android_screen_timeout_callback, 7,
+                   "15 seconds", "30 seconds", "1 minute", "2 minutes", "5 minutes", "10 minutes", "30 minutes"),
 #endif
 };
 
