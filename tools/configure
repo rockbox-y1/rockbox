@@ -811,7 +811,8 @@ androidcc () {
         echo "versions newer than r17 are not supported because they do not contain GCC."
         exit
     fi
-    make_toolchain="${make_toolchain} --system=linux-x86_64"
+
+    make_toolchain="${make_toolchain} --system=$(uname | tr "[:upper:]" "[:lower:]")-x86_64"
 
     # the prebuilt android NDK only supports x86_64 architecture anyway, so we can take shortcuts
     buildhost=$(uname | tr "[:upper:]" "[:lower:]")-x86_64
