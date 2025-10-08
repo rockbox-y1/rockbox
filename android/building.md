@@ -12,11 +12,6 @@ Your best options are to use either <u>WSL</u>, <u>Docker</u>, or a <u>Linux VM<
 - Make
 - openjdk-17-jdk
 
-- Android Platform Tools: (`brew install --cask android-platform-tools`)
-- GCC
-- Make
-- openjdk-17-jdk (`brew install openjdk@17`)
-
 1. With a copy of https://github.com/rockbox-y1/rockbox.git navigate to `android/`
 
 2. Run `./installToolchain.sh`
