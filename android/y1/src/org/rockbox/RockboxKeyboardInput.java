@@ -38,7 +38,7 @@ public class RockboxKeyboardInput
     public void kbd_input(final String text, final String ok, final String cancel)
     {
         final Activity c = RockboxService.getInstance().getActivity();
-        MediaButtonReceiver.setDpadMode(true);
+        MediaButtonReceiver.setDpadMode(2);
 
         c.runOnUiThread(new Runnable() {
             public void run()
@@ -59,7 +59,7 @@ public class RockboxKeyboardInput
                                                     .findViewById(R.id.KbdInput);
                             Editable s = input.getText();
                             put_result(true, s.toString());
-                            MediaButtonReceiver.setDpadMode(false);
+                            MediaButtonReceiver.setDpadMode(0);
                         }
                     })
                     .setNegativeButton(cancel, new DialogInterface.OnClickListener()
@@ -67,13 +67,13 @@ public class RockboxKeyboardInput
                         public void onClick(DialogInterface dialog, int whichButton)
                         {
                             put_result(false, "");
-                            MediaButtonReceiver.setDpadMode(false);
+                            MediaButtonReceiver.setDpadMode(0);
                         }
                     });
                 final AlertDialog dialog = builder.create();
                 dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
                     public void onDismiss(DialogInterface dialogInterface) {
-                        MediaButtonReceiver.setDpadMode(false);
+                        MediaButtonReceiver.setDpadMode(0);
                     }
                 });
                 

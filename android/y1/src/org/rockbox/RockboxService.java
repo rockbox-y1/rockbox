@@ -120,7 +120,7 @@ public class RockboxService extends Service
     {
         /* Handle media buttons as usual until context changes accordingly */
         prefs = getSharedPreferences("app_state", Context.MODE_PRIVATE);
-        prefs.edit().putBoolean("dpad_mode", false).apply();
+        prefs.edit().putInt("dpad_mode", 0).apply();
 
         instance = this;
         pm = (PowerManager) this.getSystemService(Context.POWER_SERVICE);
@@ -597,8 +597,8 @@ public class RockboxService extends Service
             @Override
             public void run() {
                 if (showDialog == 1){
-                    Log.d("RockboxService", "set dpad mode: false");
-                    prefs.edit().putBoolean("dpad_mode", true).apply();
+                    Log.d("RockboxService", "set dpad mode: 2");
+                    prefs.edit().putInt("dpad_mode", 2).apply();
                     AlertDialog.Builder builder = new AlertDialog.Builder(activity)
                         .setTitle("Shutdown Device")
                         .setMessage("Are you sure you want to shut down the device?")
@@ -608,8 +608,8 @@ public class RockboxService extends Service
                                 // Run shutdown in background thread
                                 new Thread(new Runnable() {
                                     public void run() {
-                                        Log.d("RockboxService", "set dpad mode: false");
-                                        prefs.edit().putBoolean("dpad_mode", false).apply();
+                                        Log.d("RockboxService", "set dpad mode: 0");
+                                        prefs.edit().putInt("dpad_mode", 0).apply();
                                         try {
                                             Log.d("RockboxService", "Attempting device shutdown...");
                                             java.lang.Process proc = Runtime.getRuntime().exec(new String[]{"input", "keyevent", "KEYCODE_MEDIA_STOP"});
@@ -630,8 +630,8 @@ public class RockboxService extends Service
                     dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
                         @Override
                         public void onDismiss(DialogInterface dialogInterface) {
-                            Log.d("RockboxService", "set dpad mode: false");
-                            prefs.edit().putBoolean("dpad_mode", false).apply();
+                            Log.d("RockboxService", "set dpad mode: 0");
+                            prefs.edit().putInt("dpad_mode", 0).apply();
                         }
                     });
 
