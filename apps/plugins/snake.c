@@ -53,7 +53,7 @@ dir is the current direction of the snake - 0=up, 1=right, 2=down, 3=left;
 
 #elif (CONFIG_KEYPAD == IPOD_4G_PAD) || \
       (CONFIG_KEYPAD == IPOD_3G_PAD) || \
-      (CONFIG_KEYPAD == IPOD_1G2G_PAD)
+      (CONFIG_KEYPAD == IPOD_1G2G_PAD)  || (CONFIG_KEYPAD == INNIOASIS_Y1_PAD)
 #define SNAKE_QUIT (BUTTON_SELECT|BUTTON_REPEAT)
 #define SNAKE_LEFT BUTTON_LEFT
 #define SNAKE_RIGHT BUTTON_RIGHT

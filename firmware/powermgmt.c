@@ -141,15 +141,19 @@ int _battery_level(void) { return -1; }
 static int percent_now; /* Cached to avoid polling too often */
 
 #if !(CONFIG_BATTERY_MEASURE & TIME_MEASURE)
+#ifndef PLATFORM_INNIOASIS_Y1
 int _battery_time(void) { return -1; }
 #else
 static int time_now; /* Cached to avoid polling too often */
 #endif
+#endif
 
 #ifdef HAVE_TIME_ESTIMATION
 static int time_now;     /* reported time in minutes */
+#ifndef PLATFORM_INNIOASIS_Y1
 static int64_t time_cnt; /* reported time in seconds */
 static int64_t time_err; /* error... it's complicated */
+#endif
 #endif
 
 #if !(CONFIG_BATTERY_MEASURE & VOLTAGE_MEASURE)
@@ -186,7 +190,7 @@ int battery_level(void)
  * on the battery level and the actual current usage. */
 int battery_time(void)
 {
-#if (CONFIG_BATTERY_MEASURE & TIME_MEASURE) || defined(HAVE_TIME_ESTIMATION)
+#if (CONFIG_BATTERY_MEASURE & TIME_MEASURE) || defined(HAVE_TIME_ESTIMATION) || defined(PLATFORM_INNIOASIS_Y1)
     return time_now;
 #else
     return -1;
@@ -399,7 +403,7 @@ static void battery_status_update(void)
     int level = -1;
 #endif
 
-#if CONFIG_BATTERY_MEASURE & TIME_MEASURE
+#if (CONFIG_BATTERY_MEASURE & TIME_MEASURE) || defined(PLATFORM_INNIOASIS_Y1)
     time_now = _battery_time();
 #elif defined(HAVE_TIME_ESTIMATION)
     /* TODO: This is essentially a bad version of coloumb counting,
@@ -1111,6 +1115,7 @@ static void sys_shutdown_common(void)
 }
 #endif /* BOOTLOADER */
 
+#ifndef PLATFORM_INNIOASIS_Y1
 void sys_poweroff(void)
 {
 #ifndef BOOTLOADER
@@ -1119,6 +1124,7 @@ void sys_poweroff(void)
     queue_broadcast(SYS_POWEROFF, 0);
 #endif
 }
+#endif
 
 /* not to be confused with system_reboot... :( */
 void sys_reboot(void)

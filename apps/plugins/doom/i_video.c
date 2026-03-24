@@ -168,6 +168,15 @@ void I_ShutdownGraphics(void)
 #define DOOMBUTTON_ENTER      BUTTON_SELECT
 #define DOOMBUTTON_OPEN       BUTTON_MENU
 
+#elif (CONFIG_KEYPAD == INNIOASIS_Y1_PAD)
+#define DOOMBUTTON_UP         BUTTON_MENU
+#define DOOMBUTTON_WEAPON     BUTTON_SELECT
+#define DOOMBUTTON_LEFT       BUTTON_LEFT
+#define DOOMBUTTON_RIGHT      BUTTON_RIGHT
+#define DOOMBUTTON_SHOOT      BUTTON_PLAY
+#define DOOMBUTTON_ENTER      BUTTON_SELECT
+#define DOOMBUTTON_OPEN       BUTTON_MENU
+
 #elif CONFIG_KEYPAD == IAUDIO_X5M5_PAD
 #define DOOMBUTTON_UP      BUTTON_UP
 #define DOOMBUTTON_DOWN    BUTTON_DOWN
@@ -659,6 +668,7 @@ void I_ShutdownGraphics(void)
 #error Keymap not defined!
 #endif
 
+#ifndef PLATFORM_INNIOASIS_Y1
 #ifdef HAVE_TOUCHSCREEN
 #ifndef DOOMBUTTON_UP
 #define DOOMBUTTON_UP      BUTTON_TOPMIDDLE
@@ -686,6 +696,7 @@ void I_ShutdownGraphics(void)
 #endif
 #ifndef DOOMBUTTON_WEAPON
 #define DOOMBUTTON_WEAPON  BUTTON_BOTTOMLEFT
+#endif
 #endif
 #endif
 

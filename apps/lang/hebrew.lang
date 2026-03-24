@@ -409,15 +409,15 @@
   user: core
   <source>
     *: none
-    radio: "FM Radio"
+    radio,innioasisy1: "FM Radio"
   </source>
   <dest>
     *: none
-    radio: "FM רדיו"
+    radio,innioasisy1: "FM רדיו"
   </dest>
   <voice>
     *: none
-    radio: "FM רדיו"
+    raradio,innioasisy1dio: "FM רדיו"
   </voice>
 </phrase>
 <phrase>
@@ -11732,15 +11732,15 @@
   user: core
   <source>
     *: none
-    touchscreen: "OK"
+    touchscreen,innioasisy1: "OK"
   </source>
   <dest>
     *: none
-    touchscreen: "אישור"
+    touchscreen,innioasisy1: "אישור"
   </dest>
   <voice>
     *: none
-    touchscreen: "אישור"
+    touchscreen,innioasisy1: "אישור"
   </voice>
 </phrase>
 <phrase>
@@ -11865,15 +11865,15 @@
   user: core
   <source>
     *: none
-    touchscreen: "Del"
+    touchscreen,innioasisy1: "Del"
   </source>
   <dest>
     *: none
-    touchscreen: "מחק"
+    touchscreen,innioasisy1: "מחק"
   </dest>
   <voice>
     *: none
-    touchscreen: "מחק"
+    touchscreen,innioasisy1: "מחק"
   </voice>
 </phrase>
 <phrase>
@@ -12012,15 +12012,15 @@
   user: core
   <source>
     *: none
-    touchscreen: "Cancel"
+    touchscreen,innioasisy1: "Cancel"
   </source>
   <dest>
     *: none
-    touchscreen: "ביטול"
+    touchscreen,innioasisy1: "ביטול"
   </dest>
   <voice>
     *: none
-    touchscreen: "ביטול"
+    touchscreen,innioasisy1: "ביטול"
   </voice>
 </phrase>
 <phrase>

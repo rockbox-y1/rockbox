@@ -72,7 +72,8 @@ enum {
 
 #elif (CONFIG_KEYPAD == IPOD_4G_PAD) || \
       (CONFIG_KEYPAD == IPOD_3G_PAD) || \
-      (CONFIG_KEYPAD == IPOD_1G2G_PAD)
+      (CONFIG_KEYPAD == IPOD_1G2G_PAD) || \
+      (CONFIG_KEYPAD == INNIOASIS_Y1_PAD)
 #define BJACK_SELECT_NAME    "SELECT"
 #define BJACK_STAY_NAME     "RIGHT"
 #define BJACK_RESUME_NAME   "PLAY"
@@ -1213,6 +1214,8 @@ static signed int blackjack_get_amount(const char *message,
       (CONFIG_KEYPAD == SANSA_E200_PAD) || \
       (CONFIG_KEYPAD == SANSA_FUZE_PAD) || \
       (CONFIG_KEYPAD == SANSA_CONNECT_PAD) || \
+      (CONFIG_KEYPAD == ANDROID_PAD) || \
+      (CONFIG_KEYPAD == INNIOASIS_Y1_PAD) || \
       (CONFIG_KEYPAD == MPIO_HD300_PAD)
     rb->lcd_putsxy(LCD_WIDTH/2 - 9*w, LCD_HEIGHT/2 - h-2, " >>|:     +1");
     rb->lcd_putsxy(LCD_WIDTH/2 - 9*w, LCD_HEIGHT/2 - 1, " |<<:     -1");

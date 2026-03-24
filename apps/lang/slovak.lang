@@ -398,15 +398,15 @@
   user: core
   <source>
     *: none
-    radio: "FM Radio"
+    radio,innioasisy1: "FM Radio"
   </source>
   <dest>
     *: none
-    radio: "FM rádio"
+    radio,innioasisy1: "FM rádio"
   </dest>
   <voice>
     *: none
-    radio: "FM rádio"
+    radio,innioasisy1: "FM rádio"
   </voice>
 </phrase>
 <phrase>
@@ -10995,15 +10995,15 @@
   user: core
   <source>
     *: none
-    touchscreen: "OK"
+    touchscreen,innioasisy1: "OK"
   </source>
   <dest>
     *: none
-    touchscreen: "~OK"
+    touchscreen,innioasisy1: "~OK"
   </dest>
   <voice>
     *: none
-    touchscreen: "~OK"
+    touchscreen,innioasisy1: "~OK"
   </voice>
 </phrase>
 <phrase>
@@ -11026,15 +11026,15 @@
   user: core
   <source>
     *: none
-    touchscreen: "Del"
+    touchscreen,innioasisy1: "Del"
   </source>
   <dest>
     *: none
-    touchscreen: "~Del"
+    touchscreen,innioasisy1: "~Del"
   </dest>
   <voice>
     *: none
-    touchscreen: "~Del"
+    touchscreen,innioasisy1: "~Del"
   </voice>
 </phrase>
 <phrase>
@@ -11043,15 +11043,15 @@
   user: core
   <source>
     *: none
-    touchscreen: "Cancel"
+    touchscreen,innioasisy1: "Cancel"
   </source>
   <dest>
     *: none
-    touchscreen: "Zrušiť"
+    touchscreen,innioasisy1: "Zrušiť"
   </dest>
   <voice>
     *: none
-    touchscreen: "Zrušiť"
+    touchscreen,innioasisy1: "Zrušiť"
   </voice>
 </phrase>
 <phrase>

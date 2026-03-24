@@ -119,7 +119,8 @@
 
 #elif (CONFIG_KEYPAD == IPOD_4G_PAD) || \
       (CONFIG_KEYPAD == IPOD_3G_PAD) || \
-      (CONFIG_KEYPAD == IPOD_1G2G_PAD)
+      (CONFIG_KEYPAD == IPOD_1G2G_PAD) || \
+      (CONFIG_KEYPAD == INNIOASIS_Y1_PAD)
 #define SOKOBAN_LEFT BUTTON_LEFT
 #define SOKOBAN_RIGHT BUTTON_RIGHT
 #define SOKOBAN_UP BUTTON_MENU
@@ -1668,7 +1669,8 @@ static int sokoban_menu(void)
                 rb->lcd_putsxy(3, 56, "[PLAY+UP] Next Level");
 #elif (CONFIG_KEYPAD == IPOD_4G_PAD) || \
       (CONFIG_KEYPAD == IPOD_3G_PAD) || \
-      (CONFIG_KEYPAD == IPOD_1G2G_PAD)
+      (CONFIG_KEYPAD == IPOD_1G2G_PAD) || \
+      (CONFIG_KEYPAD == INNIOASIS_Y1_PAD)
                 rb->lcd_putsxy(3,  6, "[SELECT+MENU] Menu");
                 rb->lcd_putsxy(3, 16, "[SELECT] Undo");
                 rb->lcd_putsxy(3, 26, "[SELECT+PLAY] Redo");
