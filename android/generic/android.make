@@ -10,7 +10,7 @@
 PACKAGE=org.rockbox
 PACKAGE_PATH=org/rockbox
 BINLIB_DIR=$(BUILDDIR)/libs/$(ANDROID_ARCH)
-ANDROID_DIR=$(ROOTDIR)/android
+ANDROID_DIR=$(ROOTDIR)/android/generic
 
 # this is a glibc compatibility hack to provide a get_nprocs() replacement.
 # The NDK ships cpu-features.c which has a compatible function android_getCpuCount()

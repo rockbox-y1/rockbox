@@ -47,7 +47,7 @@ static long max_cycle;
 #define MIN_ARGH_DIST 5
 
 #if (CONFIG_KEYPAD == IPOD_4G_PAD) || (CONFIG_KEYPAD == IPOD_3G_PAD) || \
-    (CONFIG_KEYPAD == IPOD_1G2G_PAD)
+    (CONFIG_KEYPAD == IPOD_1G2G_PAD) || (CONFIG_KEYPAD == INNIOASIS_Y1_PAD)
 
 #define BTN_DIR_UP BUTTON_MENU
 #define BTN_DIR_DOWN BUTTON_PLAY
@@ -516,7 +516,8 @@ CONFIG_KEYPAD == MROBE500_PAD
 #elif ((LCD_WIDTH == 240) && (LCD_HEIGHT == 240)) || \
     ((LCD_WIDTH == 320) && (LCD_HEIGHT == 240)) || \
     ((LCD_WIDTH == 240) && ((LCD_HEIGHT == 320) || (LCD_HEIGHT == 400))) || \
-    ((LCD_WIDTH == 360) && (LCD_HEIGHT == 400))
+    ((LCD_WIDTH == 360) && (LCD_HEIGHT == 400)) || \
+    ((LCD_WIDTH == 480) && (LCD_HEIGHT == 360))
 #define FOOD_SIZE 7
 #define ARGH_SIZE 8
 #define SPEED 4

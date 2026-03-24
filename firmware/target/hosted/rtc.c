@@ -34,6 +34,40 @@
 
 #include "config.h"
 
+#ifdef PLATFORM_INNIOASIS_Y1
+#include <jni.h>
+#define _SYSTEM_WITH_JNI
+#include "system-target.h"
+#include <pthread.h>
+#include <stdio.h>
+static struct tm pending_tm;
+static int pending_tm_valid = 0;
+
+void android_rtc_set_pending_time(const struct tm* tm) {
+    if (tm) {
+        pending_tm = *tm;
+        pending_tm_valid = 1;
+    } else {
+        pending_tm_valid = 0;
+    }
+}
+
+void android_rtc_commit_pending_time(void) {
+    if (!pending_tm_valid) return;
+    char datecmd[32];
+    snprintf(datecmd, sizeof(datecmd), "%04d%02d%02d.%02d%02d%02d",
+        pending_tm.tm_year + 1900, pending_tm.tm_mon + 1, pending_tm.tm_mday,
+        pending_tm.tm_hour, pending_tm.tm_min, pending_tm.tm_sec);
+    JNIEnv* env = getJavaEnvironment();
+    jclass cls = (*env)->FindClass(env, "org/rockbox/RockboxService");
+    jmethodID mid = (*env)->GetStaticMethodID(env, cls, "setSystemTimeAsRoot", "(Ljava/lang/String;)V");
+    jstring jdatestr = (*env)->NewStringUTF(env, datecmd);
+    (*env)->CallStaticVoidMethod(env, cls, mid, jdatestr);
+    (*env)->DeleteLocalRef(env, jdatestr);
+    pending_tm_valid = 0;
+}
+#endif
+
 void rtc_init(void)
 {
   tzset();

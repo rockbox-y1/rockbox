@@ -420,15 +420,15 @@
   user: core
   <source>
     *: none
-    radio: "FM Radio"
+    radio,innioasisy1: "FM Radio"
   </source>
   <dest>
     *: none
-    radio: "UKW-Radio"
+    radio,innioasisy1: "UKW-Radio"
   </dest>
   <voice>
     *: none
-    radio: "UKW-Radio"
+    radio,innioasisy1: "UKW-Radio"
   </voice>
 </phrase>
 <phrase>
@@ -10990,15 +10990,15 @@
   user: core
   <source>
     *: none
-    touchscreen: "OK"
+    touchscreen,innioasisy1: "OK"
   </source>
   <dest>
     *: none
-    touchscreen: "~OK"
+    touchscreen,innioasisy1: "~OK"
   </dest>
   <voice>
     *: none
-    touchscreen: "Okay"
+    touchscreen,innioasisy1: "Okay"
   </voice>
 </phrase>
 <phrase>
@@ -11007,15 +11007,15 @@
   user: core
   <source>
     *: none
-    touchscreen: "Del"
+    touchscreen,innioasisy1: "Del"
   </source>
   <dest>
     *: none
-    touchscreen: "Entf"
+    touchscreen,innioasisy1: "Entf"
   </dest>
   <voice>
     *: none
-    touchscreen: "Entf"
+    touchscreen,innioasisy1: "Entf"
   </voice>
 </phrase>
 <phrase>
@@ -11024,15 +11024,15 @@
   user: core
   <source>
     *: none
-    touchscreen: "Cancel"
+    touchscreen,innioasisy1: "Cancel"
   </source>
   <dest>
     *: none
-    touchscreen: "Abbrechen"
+    touchscreen,innioasisy1: "Abbrechen"
   </dest>
   <voice>
     *: none
-    touchscreen: "Abbrechen"
+    touchscreen,innioasisy1: "Abbrechen"
   </voice>
 </phrase>
 <phrase>

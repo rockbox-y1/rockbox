@@ -206,15 +206,15 @@
   user: core
   <source>
     *: none
-    radio: "FM Radio"
+    radio,innioasisy1: "FM Radio"
   </source>
   <dest>
     *: none
-    radio: "FM-radio"
+    radio,innioasisy1: "FM-radio"
   </dest>
   <voice>
     *: none
-    radio: "FM-radio"
+    radio,innioasisy1: "FM-radio"
   </voice>
 </phrase>
 <phrase>

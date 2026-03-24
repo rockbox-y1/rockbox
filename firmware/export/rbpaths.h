@@ -68,8 +68,12 @@
 #define HOME_DIR "<HOME>" /* replaced at runtime */
 #define HAVE_SPECIAL_DIRS
 
+#if !PLATFORM_INNIOASIS_Y1
 #define PLUGIN_DIR          ROCKBOX_LIBRARY_PATH "/rockbox/rocks"
-#if (CONFIG_PLATFORM & PLATFORM_ANDROID)
+#else
+#define PLUGIN_DIR          ROCKBOX_LIBRARY_PATH "/.rockbox/rocks"
+#endif
+#if ((CONFIG_PLATFORM & PLATFORM_ANDROID) || PLATFORM_INNIOASIS_Y1)
 #define CODECS_DIR          ROCKBOX_BINARY_PATH
 #else
 #define CODECS_DIR          ROCKBOX_LIBRARY_PATH "/rockbox/codecs"
@@ -88,7 +92,8 @@
 #if defined(APPLICATION) && \
         !(defined(SAMSUNG_YPR0) || defined(SAMSUNG_YPR1) || \
           defined(DX50) || defined(DX90) || defined(SONY_NWZ_LINUX) || \
-          defined(HIBY_LINUX) || defined(FIIO_M3K_LINUX) || defined(CTRU))
+          defined(HIBY_LINUX) || defined(FIIO_M3K_LINUX) || defined(CTRU) || \
+          defined(PLATFORM_INNIOASIS_Y1))
 
 #define PLUGIN_DATA_DIR          ROCKBOX_DIR "/rocks.data"
 #define PLUGIN_GAMES_DATA_DIR    PLUGIN_DATA_DIR

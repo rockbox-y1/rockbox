@@ -66,7 +66,8 @@
 
 #elif (CONFIG_KEYPAD == IPOD_1G2G_PAD) \
    || (CONFIG_KEYPAD == IPOD_3G_PAD) \
-   || (CONFIG_KEYPAD == IPOD_4G_PAD)
+   || (CONFIG_KEYPAD == IPOD_4G_PAD) \
+   || (CONFIG_KEYPAD == INNIOASIS_Y1_PAD)
 #define  GBN_BUTTON_UP                 BUTTON_MENU
 #define  GBN_BUTTON_DOWN               BUTTON_PLAY
 #define  GBN_BUTTON_LEFT               BUTTON_LEFT

@@ -3,19 +3,79 @@
 #include "SOURCES"
 #else
 /* plugins common to all models */
+#ifdef PLATFORM_INNIOASIS_Y1
+db_folder_select.c
+tagcache/tagcache.c
+chessclock.c
+#endif
 chopper.c
 clix.c
 credits.c
+#ifdef PLATFORM_INNIOASIS_Y1
+cube.c
+cue_playlist.c
+dart_scorer.c
+dict.c
+file_picker.c
+jackpot.c
+keybox.c
+keyremap.c
+bounce.c
+demystify.c
+dice.c
+fire.c
+fireworks.c
+logo.c
+lrcplayer.c
+matrix.c
+main_menu_config.c
+#ifdef PLATFORM_INNIOASIS_Y1
+podcast_downloader.c
+#endif
+mosaique.c
+pitch_screen.c
+plasma.c
+rocklife.c
+rockblox.c
+snow.c
+starfield.c
+#endif
 properties.c
+#ifdef PLATFORM_INNIOASIS_Y1
+playing_time.c
+#endif
 random_folder_advance_config.c
 search.c
 sort.c
+#ifdef PLATFORM_INNIOASIS_Y1
+settings_dumper.c
+stats.c
+#endif
 theme_remove.c
 vbrfix.c
 view_text.c
+#ifdef PLATFORM_INNIOASIS_Y1
+lastfm_scrobbler.c
+lastfm_scrobbler_viewer.c
+#endif
 #if PLUGIN_BUFFER_SIZE >= 0x80000
 boomshine.lua
 stopwatch.lua
+#endif
+#ifdef PLATFORM_INNIOASIS_Y1
+theme_remove.c
+disktidy.c
+flipit.c
+shopper.c
+resistor.c
+otp.c
+windows_lnk.c
+lamp.c
+mp3_encoder.c
+wav2wv.c
+alarmclock.c
+zxbox.c
+chessbox.c
 #endif
 
 

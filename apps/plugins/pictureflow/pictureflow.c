@@ -70,7 +70,8 @@ static fb_data *lcd_fb;
 #if (CONFIG_KEYPAD != IPOD_1G2G_PAD) \
     && (CONFIG_KEYPAD != IPOD_3G_PAD) \
     && (CONFIG_KEYPAD != IPOD_4G_PAD) \
-    && (CONFIG_KEYPAD != FIIO_M3K_PAD)
+    && (CONFIG_KEYPAD != FIIO_M3K_PAD) \
+    && (CONFIG_KEYPAD == INNIOASIS_Y1_PAD)
 #define USE_CORE_PREVNEXT
 #endif
 #endif
@@ -95,7 +96,8 @@ const struct button_mapping pf_context_album_scroll[] =
 #elif (CONFIG_KEYPAD == IPOD_1G2G_PAD) \
     || (CONFIG_KEYPAD == IPOD_3G_PAD) \
     || (CONFIG_KEYPAD == IPOD_4G_PAD) \
-    || (CONFIG_KEYPAD == FIIO_M3K_PAD)
+    || (CONFIG_KEYPAD == FIIO_M3K_PAD) \
+    || (CONFIG_KEYPAD == INNIOASIS_Y1_PAD)
     {PF_JMP_PREV,     BUTTON_LEFT,                BUTTON_NONE},
     {PF_JMP_PREV,     BUTTON_LEFT|BUTTON_REPEAT,  BUTTON_NONE},
     {PF_JMP,          BUTTON_RIGHT,               BUTTON_NONE},
@@ -152,7 +154,8 @@ const struct button_mapping pf_context_buttons[] =
     {PF_QUIT,         BUTTON_POWER,               BUTTON_NONE},
 #elif (CONFIG_KEYPAD == IPOD_1G2G_PAD) \
     || (CONFIG_KEYPAD == IPOD_3G_PAD) \
-    || (CONFIG_KEYPAD == IPOD_4G_PAD)
+    || (CONFIG_KEYPAD == IPOD_4G_PAD) \
+    || (CONFIG_KEYPAD == INNIOASIS_Y1_PAD)
     {PF_MENU,         BUTTON_MENU|BUTTON_REPEAT,  BUTTON_MENU},
     {PF_QUIT,         BUTTON_MENU|BUTTON_REL,     BUTTON_MENU},
     {PF_SORTING_NEXT, BUTTON_SELECT|BUTTON_MENU,  BUTTON_NONE},

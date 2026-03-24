@@ -209,15 +209,15 @@
   user: core
   <source>
     *: none
-    radio: "FM Radio"
+    radio,innioasisy1: "FM Radio"
   </source>
   <dest>
     *: none
-    radio: "收聽 FM 廣播"
+    raradio,innioasisy1dio: "收聽 FM 廣播"
   </dest>
   <voice>
     *: none
-    radio: "收聽 FM 廣播"
+    radio,innioasisy1: "收聽 FM 廣播"
   </voice>
 </phrase>
 <phrase>

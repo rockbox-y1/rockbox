@@ -49,6 +49,12 @@
 #include "wps.h"
 #include "skin_buffer.h"
 #include "disk.h"
+#ifdef PLATFORM_INNIOASIS_Y1
+#include "../firmware/target/hosted/android/brightness-android.h"
+#include "../firmware/target/hosted/android/shutdown-android.h"
+#include "../firmware/target/hosted/android/reset-bluetooth-android.h"
+#include "../firmware/target/hosted/android/update-android.h"
+#endif
 
 static const struct browse_folder_info config = {ROCKBOX_DIR, SHOW_CFG};
 static int show_info(void);
@@ -110,6 +116,31 @@ MAKE_MENU(manage_settings, ID2P(LANG_MANAGE_MENU), NULL, Icon_Config,
           &save_settings_item, &save_sound_item, &save_theme_item);
 /*    MANAGE SETTINGS MENU        */
 /**********************************/
+
+#ifdef PLATFORM_INNIOASIS_Y1
+/***********************************/
+/*    BlUETOOTH SETTINGS MENU      */
+static int bluetooth_settings_func(void)
+{
+    system("am start -a android.settings.BLUETOOTH_SETTINGS");
+    return 0;
+}
+
+static int android_reset_bluetooth_func(void)
+{
+    android_reset_bluetooth();
+    return 0;
+}
+
+MENUITEM_FUNCTION(bluetooth_settings_item, 0, ID2P(LANG_BLUETOOTH_SETTINGS),
+                  bluetooth_settings_func, NULL, Icon_Config);
+MENUITEM_FUNCTION(android_reset_bluetooth_item, 0, ID2P(LANG_BLUETOOTH_RESET),
+                  android_reset_bluetooth_func, NULL, Icon_NOICON);
+MAKE_MENU(bluetooth_menu, ID2P(LANG_BLUETOOTH_SETTINGS), NULL, Icon_Config,
+          &bluetooth_settings_item, &android_reset_bluetooth_item);
+/*    BlUETOOTH SETTINGS MENU     */
+/**********************************/
+#endif
 
 /***********************************/
 /*      INFO MENU                  */
@@ -489,26 +520,79 @@ MENUITEM_FUNCTION(debug_menu_item, 0, ID2P(LANG_DEBUG),
 MENUITEM_FUNCTION(show_legal_item, 0, ID2P(LANG_LEGAL_NOTICES),
                   show_legal, NULL, Icon_NOICON);
 
+#ifdef PLATFORM_INNIOASIS_Y1
+
+static int android_restart_func(void)
+{
+    list_stop_handler();
+    sleep(1);
+    system("am force-stop org.rockbox");
+    system("monkey -p org.rockbox -c android.intent.category.LAUNCHER 1");
+
+    return 0;
+}
+
+static int android_update_func(void)
+{
+    android_update();
+    return 0;
+}
+
+static int system_menu_func(void)
+{
+    system("am start -a android.settings.SETTINGS");
+
+    return 0;
+}
+
+static int android_switch_firmware_func(void)
+{
+    android_switch_firmware();
+    return 0;
+}
+
+MENUITEM_FUNCTION(android_restart_item, 0, ID2P(LANG_RESTART_ROCKBOX),
+                  android_restart_func, NULL, Icon_NOICON);
+MENUITEM_FUNCTION(android_update_item, 0, ID2P(LANG_UPDATE_ROCKBOX),
+                  android_update_func, NULL, Icon_NOICON);
+MENUITEM_FUNCTION(system_menu_item, 0, ID2P(LANG_SYSTEM_SETTINGS),
+                  system_menu_func, NULL, Icon_NOICON);
+MENUITEM_FUNCTION(android_switch_firmware_item, 0, ID2P(LANG_SWITCH_FIRMWARE),
+                  android_switch_firmware_func, NULL, Icon_NOICON);
+
+MAKE_MENU(info_menu, ID2P(LANG_SYSTEM), 0, Icon_System_menu,
+            &android_switch_firmware_item, &android_update_item,
+            &show_info_item, &show_credits_item,
+            &show_runtime_item, &show_legal_item,
+            &debug_menu_item, &android_restart_item);
+#else
 MAKE_MENU(info_menu, ID2P(LANG_SYSTEM), 0, Icon_System_menu,
           &show_info_item, &show_credits_item,
           &show_runtime_item, &show_legal_item, &debug_menu_item);
+#endif
+
 /*      INFO MENU                  */
 /***********************************/
 
+#ifndef PLATFORM_INNIOASIS_Y1
 static int main_menu_config(void)
 {
     plugin_load(PLUGIN_APPS_DIR "/main_menu_config.rock", NULL);
     return 0;
 }
-
 MENUITEM_FUNCTION(main_menu_config_item, 0, ID2P(LANG_MAIN_MENU),
                   main_menu_config, NULL, Icon_Rockbox);
+#endif
 
 /***********************************/
 /*    MAIN MENU                    */
 
 MAKE_MENU(main_menu_, ID2P(LANG_SETTINGS), NULL,
         Icon_Submenu_Entered,
+#ifdef PLATFORM_INNIOASIS_Y1
+        &bluetooth_menu,
+        &system_menu_item,
+#endif
         &sound_settings,
         &playback_settings,
         &settings_menu_item, &theme_menu,
@@ -518,7 +602,9 @@ MAKE_MENU(main_menu_, ID2P(LANG_SETTINGS), NULL,
 #if CONFIG_RTC
         &timedate_item,
 #endif
+#ifndef PLATFORM_INNIOASIS_Y1
         &main_menu_config_item,
+#endif
         &manage_settings,
         );
 /*    MAIN MENU                    */

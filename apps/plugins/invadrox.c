@@ -104,7 +104,8 @@
 
 #elif (CONFIG_KEYPAD == IPOD_4G_PAD) || \
       (CONFIG_KEYPAD == IPOD_3G_PAD) || \
-      (CONFIG_KEYPAD == IPOD_1G2G_PAD)
+      (CONFIG_KEYPAD == IPOD_1G2G_PAD) || \
+      (CONFIG_KEYPAD == INNIOASIS_Y1_PAD)
 
 #define QUIT BUTTON_MENU
 #define LEFT BUTTON_LEFT
@@ -681,7 +682,7 @@ CONFIG_KEYPAD == MROBE500_PAD
 #define LIVES_X 8
 #define MAX_Y 15
 
-#elif (LCD_WIDTH == 360) && (LCD_HEIGHT == 400)
+#elif ((LCD_WIDTH == 360) && (LCD_HEIGHT == 400)) || ((LCD_WIDTH == 480) && (LCD_HEIGHT == 360))
 
 /* Shanling Q1
  */
