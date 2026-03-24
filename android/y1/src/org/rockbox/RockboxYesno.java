@@ -40,7 +40,7 @@ public class RockboxYesno
         @Override
         public void onClick(DialogInterface dialog, int which)
         {
-            MediaButtonReceiver.setDpadMode(false);
+            MediaButtonReceiver.setDpadMode(0);
             
             result = (which == DialogInterface.BUTTON_POSITIVE);
         }
@@ -52,7 +52,7 @@ public class RockboxYesno
         @Override
         public void onDismiss(DialogInterface dialog)
         {
-            MediaButtonReceiver.setDpadMode(false);
+            MediaButtonReceiver.setDpadMode(0);
             put_result(result);
         }
     }
@@ -61,7 +61,7 @@ public class RockboxYesno
     {
         final Activity c = RockboxService.getInstance().getActivity();
         
-        MediaButtonReceiver.setDpadMode(false);
+        MediaButtonReceiver.setDpadMode(0);
         c.runOnUiThread(new Runnable() {
             public void run()
             {

@@ -75,9 +75,9 @@ public class MediaButtonReceiver
         }
     }
 
-    public static void setDpadMode(boolean enabled) {
-        prefs.edit().putBoolean("dpad_mode", enabled).apply();
-        Log.d("MediaButtonReceiver", "dpad_mode set to: " + enabled);
+    public static void setDpadMode(int mode) {
+        prefs.edit().putInt("dpad_mode", mode).apply();
+        Log.d("MediaButtonReceiver", "dpad_mode set to: " + mode);
     }
 
     public void register()
@@ -99,7 +99,7 @@ public class MediaButtonReceiver
             c.startService(baseIntent);
         }
 
-        private static int mediaToDpad(int keyCode) {
+        private static int mediaToDpad(int keyCode, int repeatCount) {
             switch (keyCode) {
                 case KeyEvent.KEYCODE_MEDIA_NEXT: return KeyEvent.KEYCODE_DPAD_RIGHT;
                 case KeyEvent.KEYCODE_MEDIA_PREVIOUS: return KeyEvent.KEYCODE_DPAD_LEFT;
@@ -109,6 +109,29 @@ public class MediaButtonReceiver
                 default: return KeyEvent.KEYCODE_DPAD_RIGHT;
             }
         }
+
+        private static int mediaToFMDpad(int keyCode, int repeatCount) {
+            if (repeatCount > 0){
+                switch (keyCode) {
+                    case KeyEvent.KEYCODE_MEDIA_NEXT: return KeyEvent.KEYCODE_DPAD_RIGHT;
+                    case KeyEvent.KEYCODE_MEDIA_PREVIOUS: return KeyEvent.KEYCODE_DPAD_LEFT;
+                    case KeyEvent.KEYCODE_MEDIA_PLAY: return KeyEvent.KEYCODE_VOLUME_DOWN;
+                    case KeyEvent.KEYCODE_MEDIA_PAUSE: return KeyEvent.KEYCODE_VOLUME_UP;
+                    case KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE: return KeyEvent.KEYCODE_DPAD_UP; // long press PLAY = Up
+                    default: return KeyEvent.KEYCODE_DPAD_RIGHT;
+                }
+            } else {
+                switch (keyCode) {
+                    case KeyEvent.KEYCODE_MEDIA_NEXT: return KeyEvent.KEYCODE_DPAD_RIGHT;
+                    case KeyEvent.KEYCODE_MEDIA_PREVIOUS: return KeyEvent.KEYCODE_DPAD_LEFT;
+                    case KeyEvent.KEYCODE_MEDIA_PLAY: return KeyEvent.KEYCODE_VOLUME_DOWN;
+                    case KeyEvent.KEYCODE_MEDIA_PAUSE: return KeyEvent.KEYCODE_VOLUME_UP;
+                    case KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE: return KeyEvent.KEYCODE_DPAD_DOWN;
+                    default: return KeyEvent.KEYCODE_DPAD_RIGHT;
+                }
+            }
+        }
+
 
         private static void injectKeyEvent(Context context, KeyEvent event) {
             try {
@@ -125,15 +148,22 @@ public class MediaButtonReceiver
         @Override
         public void onReceive(Context context, Intent intent)
         {
-            boolean dpad_mode = prefs.getBoolean("dpad_mode", false);
-            if (dpad_mode){
+            int dpad_mode = prefs.getInt("dpad_mode", 0);
+            if (dpad_mode > 0){
                 if (Intent.ACTION_MEDIA_BUTTON.equals(intent.getAction())) {
                     KeyEvent key = (KeyEvent) intent.getParcelableExtra(Intent.EXTRA_KEY_EVENT);
                     if (key == null) return;
 
                     int action = key.getAction();
                     int mediaCode = key.getKeyCode();
-                    int dpadCode = mediaToDpad(mediaCode);
+                    int remapRepeatCount = prefs.getInt("remap_repeat_count", 0);
+                    int dpadCode;
+                    if (dpad_mode == 2){
+                        dpadCode = mediaToDpad(mediaCode, remapRepeatCount);
+                    } else {
+                        dpadCode = mediaToFMDpad(mediaCode, remapRepeatCount);
+                    }
+                    prefs.edit().putInt("remap_repeat_count", key.getRepeatCount()).apply();
 
                     long now = SystemClock.uptimeMillis();
 
@@ -149,7 +179,6 @@ public class MediaButtonReceiver
                         abortBroadcast();
                     }
                 }
-
             } else{
                 if (Intent.ACTION_MEDIA_BUTTON.equals(intent.getAction()))
                 {

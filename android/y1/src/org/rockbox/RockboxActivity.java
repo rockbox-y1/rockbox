@@ -34,6 +34,8 @@ import android.widget.Toast;
 import android.content.Context;
 import android.os.PowerManager;
 import android.util.Log;
+import android.app.ActivityManager;
+import java.util.List;
 
 public class RockboxActivity extends Activity 
 {
@@ -158,14 +160,33 @@ public class RockboxActivity extends Activity
         PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
         boolean screenOn = pm.isScreenOn();
         if (hasFocus) {
-            MediaButtonReceiver.setDpadMode(false);
+            MediaButtonReceiver.setDpadMode(0);
             Log.d("RockboxActivity", "back in Rockbox, disable dpad mode");
         }
         /* also check if the screen is on since the activity also loose focus if screen is off while in Rockbox */
         else if (!hasFocus && screenOn) {
-            MediaButtonReceiver.setDpadMode(true);
-            Log.d("RockboxActivity", "outside of Rockbox, enable dpad mode");
+            String foregroundPackage = getForegroundPackageName(this);
+            if (foregroundPackage.equals("com.mediatek.FMRadio")){
+                MediaButtonReceiver.setDpadMode(1); // fm specific remapping
+            } else {
+                MediaButtonReceiver.setDpadMode(2); // other menus
+            }
         }
+    }
+
+    private String getForegroundPackageName(Context context) {
+        ActivityManager am = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+
+        try {
+            List<ActivityManager.RunningTaskInfo> tasks = am.getRunningTasks(1);
+            if (tasks != null && !tasks.isEmpty()) {
+                return tasks.get(0).baseActivity.getPackageName();
+            }
+        } catch (Exception e) {
+            Log.e("RockboxActivity", "Error getting foreground package", e);
+        }
+
+        return "unknown";
     }
 
     /* call native method to trigger key lock */
