@@ -46,6 +46,9 @@
 #include "viewport.h"
 #include "statusbar.h" /* statusbar_vals enum*/
 #include "rbunicode.h"
+#ifdef PLATFORM_INNIOASIS_Y1
+#include "../firmware/target/hosted/android/screen-timeout-android.h"
+#endif
 
 #ifdef HAVE_BACKLIGHT
 static int selectivebacklight_callback(int action,
@@ -181,6 +184,9 @@ MENUITEM_SETTING(lcd_sleep_after_backlight_off,
 #ifdef HAVE_BACKLIGHT_BRIGHTNESS
 MENUITEM_SETTING(brightness_item, &global_settings.brightness, NULL);
 #endif
+#ifdef PLATFORM_INNIOASIS_Y1
+MENUITEM_SETTING(android_screen_timeout, &global_settings.android_screen_timeout, NULL);
+#endif
 #endif /* HAVE_BACKLIGHT */
 #ifdef HAVE_LCD_CONTRAST
 MENUITEM_SETTING(contrast, &global_settings.contrast, NULL);
@@ -196,6 +202,10 @@ MENUITEM_SETTING(flip_display, &global_settings.flip_display, flipdisplay_callba
 MAKE_MENU(lcd_settings,ID2P(LANG_LCD_MENU),
             NULL, Icon_Display_menu
 #ifdef HAVE_BACKLIGHT
+#ifdef PLATFORM_INNIOASIS_Y1
+            ,&android_screen_timeout
+#endif
+#ifndef PLATFORM_INNIOASIS_Y1
             ,&backlight_timeout
 # if CONFIG_CHARGING
             ,&backlight_timeout_plugged
@@ -211,6 +221,7 @@ MAKE_MENU(lcd_settings,ID2P(LANG_LCD_MENU),
 # ifdef HAVE_LCD_SLEEP_SETTING
             ,&lcd_sleep_after_backlight_off
 # endif
+#endif
 # ifdef HAVE_BACKLIGHT_BRIGHTNESS
             ,&brightness_item
 # endif
@@ -612,7 +623,9 @@ MENUITEM_SETTING(codepage_setting, &global_settings.default_codepage, codepage_c
 
 MAKE_MENU(display_menu, ID2P(LANG_DISPLAY),
             NULL, Icon_Display_menu,
+#ifdef HAVE_BACKLIGHT
             &lcd_settings,
+#endif /* CONFIG_PLATFORM & PLATFORM_ANDROID */
 #ifdef HAVE_REMOTE_LCD
             &lcd_remote_settings,
 #endif

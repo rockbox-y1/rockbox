@@ -31,7 +31,12 @@ void audiohw_set_volume(int volume)
 
 void audiohw_set_balance(int balance)
 {
+#ifdef PLATFORM_INNIOASIS_Y1
+    extern void pcm_set_balance(int);
+    pcm_set_balance(balance);
+#else
     (void)balance;
+#endif
 }
 
 void audiohw_close(void)

@@ -403,15 +403,15 @@
   user: core
   <source>
     *: none
-    radio: "FM Radio"
+    radio,innioasisy1: "FM Radio"
   </source>
   <dest>
     *: none
-    radio: "FM Радио"
+    radio,innioasisy1: "FM Радио"
   </dest>
   <voice>
     *: none
-    radio: "FM Радио"
+    radio,innioasisy1: "FM Радио"
   </voice>
 </phrase>
 <phrase>
@@ -11014,15 +11014,15 @@
   user: core
   <source>
     *: none
-    touchscreen: "OK"
+    touchscreen,innioasisy1: "OK"
   </source>
   <dest>
     *: none
-    touchscreen: "ОК"
+    touchscreen,innioasisy1: "ОК"
   </dest>
   <voice>
     *: none
-    touchscreen: "окей"
+    touchscreen,innioasisy1: "окей"
   </voice>
 </phrase>
 <phrase>
@@ -11031,15 +11031,15 @@
   user: core
   <source>
     *: none
-    touchscreen: "Del"
+    touchscreen,innioasisy1: "Del"
   </source>
   <dest>
     *: none
-    touchscreen: "~Del"
+    touchscreen,innioasisy1: "~Del"
   </dest>
   <voice>
     *: none
-    touchscreen: "изтриване"
+    touchscreen,innioasisy1: "изтриване"
   </voice>
 </phrase>
 <phrase>
@@ -11048,15 +11048,15 @@
   user: core
   <source>
     *: none
-    touchscreen: "Cancel"
+    touchscreen,innioasisy1: "Cancel"
   </source>
   <dest>
     *: none
-    touchscreen: "Отказ"
+    touchscreen,innioasisy1: "Отказ"
   </dest>
   <voice>
     *: none
-    touchscreen: "Отказ"
+    touchscreen,innioasisy1: "Отказ"
   </voice>
 </phrase>
 <phrase>

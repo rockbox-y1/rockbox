@@ -269,11 +269,12 @@ int view_text(const char *title, const char *text)
         case PLA_UP:
 #if (CONFIG_KEYPAD == IPOD_1G2G_PAD) \
     || (CONFIG_KEYPAD == IPOD_3G_PAD) \
-    || (CONFIG_KEYPAD == IPOD_4G_PAD)
+    || (CONFIG_KEYPAD == IPOD_4G_PAD) \
+    || (CONFIG_KEYPAD == INNIOASIS_Y1_PAD) 
             return PLUGIN_OK;
 #endif
         case PLA_UP_REPEAT:
-#ifdef HAVE_SCROLLWHEEL
+#if defined(HAVE_SCROLLWHEEL) || defined(PLATFORM_INNIOASIS_Y1)
         case PLA_SCROLL_BACK:
         case PLA_SCROLL_BACK_REPEAT:
 #endif
@@ -281,7 +282,7 @@ int view_text(const char *title, const char *text)
             break;
         case PLA_DOWN:
         case PLA_DOWN_REPEAT:
-#ifdef HAVE_SCROLLWHEEL
+#if defined(HAVE_SCROLLWHEEL) || defined(PLATFORM_INNIOASIS_Y1)
         case PLA_SCROLL_FWD:
         case PLA_SCROLL_FWD_REPEAT:
 #endif
@@ -290,7 +291,8 @@ int view_text(const char *title, const char *text)
         case PLA_LEFT:
 #if (CONFIG_KEYPAD == IPOD_1G2G_PAD) \
     || (CONFIG_KEYPAD == IPOD_3G_PAD) \
-    || (CONFIG_KEYPAD == IPOD_4G_PAD)
+    || (CONFIG_KEYPAD == IPOD_4G_PAD) \
+    || (CONFIG_KEYPAD == INNIOASIS_Y1_PAD) 
             return PLUGIN_OK;
 #endif
             scroll_up(&info, info.display_lines);

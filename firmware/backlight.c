@@ -45,6 +45,10 @@
 #include "lcd-remote.h"
 #endif
 
+#ifdef PLATFORM_INNIOASIS_Y1
+#include "brightness-android.h"
+#endif
+
 #ifndef SIMULATOR
 /*
     Device specific implementation:

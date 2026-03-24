@@ -7186,15 +7186,15 @@
   user: core
   <source>
     *: none
-    radio: "FM Radio"
+    radio,innioasisy1: "FM Radio"
   </source>
   <dest>
     *: none
-    radio: "Radio FM"
+    radio,innioasisy1: "Radio FM"
   </dest>
   <voice>
     *: none
-    radio: "Radio efem"
+    radio,innioasisy1: "Radio efem"
   </voice>
 </phrase>
 <phrase>
@@ -9966,15 +9966,15 @@
   user: core
   <source>
     *: none
-    touchscreen: "Cancel"
+    touchscreen,innioasisy1: "Cancel"
   </source>
   <dest>
     *: none
-    touchscreen: "Anulare"
+    touchscreen,innioasisy1: "Anulare"
   </dest>
   <voice>
     *: none
-    touchscreen: "Anulare"
+    touchscreen,innioasisy1: "Anulare"
   </voice>
 </phrase>
 <phrase>
@@ -10259,15 +10259,15 @@
   user: core
   <source>
     *: none
-    touchscreen: "OK"
+    touchscreen,innioasisy1: "OK"
   </source>
   <dest>
     *: none
-    touchscreen: "~OK"
+    touchscreen,innioasisy1: "~OK"
   </dest>
   <voice>
     *: none
-    touchscreen: "~OK"
+    touchscreen,innioasisy1: "~OK"
   </voice>
 </phrase>
 <phrase>
@@ -10653,15 +10653,15 @@
   user: core
   <source>
     *: none
-    touchscreen: "Del"
+    touchscreen,innioasisy1: "Del"
   </source>
   <dest>
     *: none
-    touchscreen: "Șterge"
+    touchscreen,innioasisy1: "Șterge"
   </dest>
   <voice>
     *: none
-    touchscreen: "Șterge"
+    touchscreen,innioasisy1: "Șterge"
   </voice>
 </phrase>
 <phrase>

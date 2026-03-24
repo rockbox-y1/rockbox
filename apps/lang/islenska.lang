@@ -210,15 +210,15 @@
   user: core
   <source>
     *: none
-    radio: "FM Radio"
+    radio,innioasisy1: "FM Radio"
   </source>
   <dest>
     *: none
-    radio: "FM útvarp"
+    radio,innioasisy1: "FM útvarp"
   </dest>
   <voice>
     *: none
-    radio: "FM Radio"
+    radio,innioasisy1: "FM Radio"
   </voice>
 </phrase>
 <phrase>

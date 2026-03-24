@@ -1,0 +1,36 @@
+This folder contains the java parts needed to build an Rockbox as an
+application for android.
+
+* Prerequisites
+
+Download and install the Android SDK[1] and NDK r10e[2], or run installToolchain.sh.
+After you extracted the SDK, you need to run the SDKManager in order to
+install the actual platform sdk from the available packages tab (SDK Platform
+Android 4.4 should work).
+In the virtual devices tab you can also setup a emulator.
+
+
+Then, make sure you have the ANDROID_SDK_PATH and ANDROID_NDK_PATH (pointing to
+the each's root directory) environment variables set up, otherwise configure will fail to find the compiler and
+compiling the java files will fail. The installToolchain.sh script will provide reasonable values.
+
+* Build instructions
+
+1. Create a separate build folder. Do not build in this source directory.
+
+2. Run "../tools/configure". Choose the "Android" target and input your
+   screen resolution.
+
+3. Run "make"
+
+4. Run "make zip". This has to be run the first time, and any time themes
+   or plugins have changed. Otherwise you may skip it.
+
+5. Run "make apk"
+
+6. Optional. Install on your target/emulator, using the following command:
+   "$ANDROID_SDK_PATH/tools/adb install -r rockbox.apk"
+
+
+[1]: https://developer.android.com/studio
+[2]: https://github.com/android/ndk/wiki/Unsupported-Downloads

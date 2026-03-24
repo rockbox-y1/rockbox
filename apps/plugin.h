@@ -1025,9 +1025,19 @@ struct plugin_api {
 
     /* new stuff at the end, sort into place next time
        the API gets incompatible */
+#ifdef PLATFORM_INNIOASIS_Y1
+    bool (*upload_scrobble)(const char *artist, const char *track, const char *album, int timestamp, long length);
+    char** (*android_podcast_get_episode_list)(int podcast_num);
+    const char* (*android_podcast_get_episode_path)(int podcast_num, int num);
+    char** (*android_podcast_get_podcast_names)(void);
+    int (*android_podcast_get_list_count)(char** array);
+    int (*android_podcast_delete_episode)(int podcast_num, int num);
+    int (*android_podcast_download_episode)(int podcast_num, int num);
+    const char* (*android_podcast_connect_wifi)(void);
+    int (*android_podcast_disconnect_wifi)(void);
+    void (*free_array)(char** array);
+#endif
 };
-
-/* plugin header */
 struct plugin_header {
     struct lc_header lc_hdr; /* must be the first */
     enum plugin_status(*entry_point)(const void*);

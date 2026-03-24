@@ -746,7 +746,7 @@ static inline void action_code_lookup(action_last_t *last, action_cur_t *cur)
 * on user selection it will be locked
 * or unlocked as well
 */
-static inline void do_key_lock(bool lock)
+void do_key_lock(bool lock)
 {
     action_last.keys_locked = lock;
     action_last.button = BUTTON_NONE;

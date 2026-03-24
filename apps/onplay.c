@@ -990,7 +990,15 @@ static bool set_databasedir(void)
     struct tagcache_stat *tc_stat = tagcache_get_stat();
     if (strcasecmp(selected_file.path, tc_stat->db_path))
     {
+#ifdef PLATFORM_INNIOASIS_Y1
+        splash(HZ, "Restarting Rockbox to apply...");
+        list_stop_handler();
+        sleep(1);
+        system("am force-stop org.rockbox");
+        system("monkey -p org.rockbox -c android.intent.category.LAUNCHER 1");
+#else
         splash(HZ, ID2P(LANG_PLEASE_REBOOT));
+#endif
     }
 
     set_dir_helper(global_settings.tagcache_db_path,

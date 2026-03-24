@@ -239,15 +239,15 @@
   user: core
   <source>
     *: none
-    radio: "FM Radio"
+    radio,innioasisy1: "FM Radio"
   </source>
   <dest>
     *: none
-    radio: "FM广播"
+    radio,innioasisy1: "FM广播"
   </dest>
   <voice>
     *: none
-    radio: "FM广播"
+    radio,innioasisy1: "FM广播"
   </voice>
 </phrase>
 <phrase>
@@ -10673,15 +10673,15 @@
   user: core
   <source>
     *: none
-    touchscreen: "OK"
+    touchscreen,innioasisy1: "OK"
   </source>
   <dest>
     *: none
-    touchscreen: "完成"
+    touchscreen,innioasisy1: "完成"
   </dest>
   <voice>
     *: none
-    touchscreen: "提交并退出重命名"
+    touchscreen,innioasisy1: "提交并退出重命名"
   </voice>
 </phrase>
 <phrase>
@@ -10772,15 +10772,15 @@
   user: core
   <source>
     *: none
-    touchscreen: "Del"
+    touchscreen,innioasisy1: "Del"
   </source>
   <dest>
     *: none
-    touchscreen: "删除"
+    touchscreen,innioasisy1: "删除"
   </dest>
   <voice>
     *: none
-    touchscreen: "删除"
+    touchscreen,innioasisy1: "删除"
   </voice>
 </phrase>
 <phrase>
@@ -10868,15 +10868,15 @@
   user: core
   <source>
     *: none
-    touchscreen: "Cancel"
+    touchscreen,innioasisy1: "Cancel"
   </source>
   <dest>
     *: none
-    touchscreen: "取消"
+    touchscreen,innioasisy1: "取消"
   </dest>
   <voice>
     *: none
-    touchscreen: "放弃并退出重命名"
+    touchscreen,innioasisy1: "放弃并退出重命名"
   </voice>
 </phrase>
 <phrase>

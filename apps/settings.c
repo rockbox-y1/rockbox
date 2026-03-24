@@ -112,6 +112,11 @@ static long lasttime = 0;
 #include "usb-ibasso.h"
 #endif
 
+#ifdef PLATFORM_INNIOASIS_Y1
+#include "../firmware/target/hosted/android/brightness-android.h"
+#include "../firmware/target/hosted/android/screen-timeout-android.h"
+#endif
+
 #if (defined(HIBY_R3PROII) || defined(HIBY_R1))
 #include "usb-hiby-gadget.h"
 #endif

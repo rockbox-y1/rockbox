@@ -470,15 +470,15 @@
   user: core
   <source>
     *: none
-    radio: "FM Radio"
+    radio,innioasisy1: "FM Radio"
   </source>
   <dest>
     *: none
-    radio: "FM Radio"
+    radio,innioasisy1: "FM Radio"
   </dest>
   <voice>
     *: none
-    radio: "FM Radio"
+    radio,innioasisy1: "FM Radio"
   </voice>
 </phrase>
 <phrase>
@@ -9369,6 +9369,20 @@
   </voice>
 </phrase>
 <phrase>
+  id: LANG_TAPTIC_ENGINE_MODE
+  desc: in keyclick settings menu
+  user: core
+  <source>
+    *: "Taptic Engine Mode"
+  </source>
+  <dest>
+    *: "Taptic Engine Mode"
+  </dest>
+  <voice>
+    *: "Taptic Engine Mode"
+  </voice>
+</phrase>
+<phrase>
   id: LANG_ACCESSORY_SUPPLY
   desc: in system settings menu
   user: core
@@ -11306,15 +11320,15 @@
   user: core
   <source>
     *: none
-    touchscreen: "OK"
+    touchscreen,innioasisy1: "OK"
   </source>
   <dest>
     *: none
-    touchscreen: "OK"
+    touchscreen,innioasisy1: "OK"
   </dest>
   <voice>
     *: none
-    touchscreen: "OK"
+    touchscreen,innioasisy1: "OK"
   </voice>
 </phrase>
 <phrase>
@@ -11323,15 +11337,15 @@
   user: core
   <source>
     *: none
-    touchscreen: "Del"
+    touchscreen,innioasisy1: "Del"
   </source>
   <dest>
     *: none
-    touchscreen: "Del"
+    touchscreen,innioasisy1: "Del"
   </dest>
   <voice>
     *: none
-    touchscreen: "Del"
+    touchscreen,innioasisy1: "Del"
   </voice>
 </phrase>
 <phrase>
@@ -11340,15 +11354,15 @@
   user: core
   <source>
     *: none
-    touchscreen: "Cancel"
+    touchscreen,innioasisy1: "Cancel"
   </source>
   <dest>
     *: none
-    touchscreen: "Cancel"
+    touchscreen,innioasisy1: "Cancel"
   </dest>
   <voice>
     *: none
-    touchscreen: "Cancel"
+    touchscreen,innioasisy1: "Cancel"
   </voice>
 </phrase>
 <phrase>
@@ -17010,6 +17024,104 @@
   </dest>
   <voice>
     *: "sort playlists"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_WHEEL_VIBRATIONS
+  desc: wheel vibration settings 
+  user: core
+  <source>
+    *: "Wheel Vibration Intensity"
+  </source>
+  <dest>
+    *: "Wheel Vibration Intensity"
+  </dest>
+  <voice>
+    *: "Wheel vibration intensity"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_RESTART_ROCKBOX
+  desc: Main menu item to restart Rockbox on Android
+  user: core
+  <source>
+    *: "Restart Rockbox"
+  </source>
+  <dest>
+    *: "Restart Rockbox"
+  </dest>
+  <voice>
+    *: "Restart Rockbox"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_UPDATE_ROCKBOX
+  desc: Main menu item to update the firmware on Android
+  user: core
+  <source>
+    *: "Firmware Update"
+  </source>
+  <dest>
+    *: "Firmware Update"
+  </dest>
+  <voice>
+    *: "Firmware Update"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SYSTEM_SETTINGS
+  desc: Menu item to launch system settings
+  user: core
+  <source>
+    *: "Android System Settings"
+  </source>
+  <dest>
+    *: "Android System Settings"
+  </dest>
+  <voice>
+    *: "Android System Settings"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_BLUETOOTH_SETTINGS
+  desc: Bluetooth menu item
+  user: core
+  <source>
+    *: "Bluetooth Settings"
+  </source>
+  <dest>
+    *: "Bluetooth Settings"
+  </dest>
+  <voice>
+    *: "Bluetooth Settings"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_BLUETOOTH_RESET
+  desc: Reset Bluetooth menu item
+  user: core
+  <source>
+    *: "Reset Bluetooth Devices"
+  </source>
+  <dest>
+    *: "Reset Bluetooth Devices"
+  </dest>
+  <voice>
+    *: "Reset Bluetooth Devices"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SWITCH_FIRMWARE
+  desc: Reboot to Stock item
+  user: core
+  <source>
+    *: "Reboot to Stock Firmware"
+  </source>
+  <dest>
+    *: "Reboot to Stock Firmware"
+  </dest>
+  <voice>
+    *: "Reboot to Stock Firmware"
   </voice>
 </phrase>
 <phrase>
