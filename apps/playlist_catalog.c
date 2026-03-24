@@ -48,6 +48,9 @@
 #include "bookmark.h"
 #include "root_menu.h"
 #include "general.h"
+#ifdef PLATFORM_INNIOASIS_Y1
+#include "filesystem-app.h"
+#endif
 
 /* Use for recursive directory search */
 struct add_track_context {
@@ -78,7 +81,19 @@ static size_t get_directory(char* dirbuf, size_t dirbuf_sz)
         pl_dir = global_settings.playlist_catalog_dir;
     }
 
+#ifdef PLATFORM_INNIOASIS_Y1
+    /* Apply path replacement for <HOME> and other special directories */
+    const char *replaced_path = handle_special_dirs(pl_dir, 0, dirbuf, dirbuf_sz);
+    if (replaced_path != dirbuf)
+    {
+        /* If handle_special_dirs didn't use our buffer, copy the result */
+        strlcpy(dirbuf, replaced_path, dirbuf_sz);
+    }
+    
+    return strlen(dirbuf);
+#else
     return path_append(dirbuf, pl_dir, PA_SEP_SOFT, dirbuf_sz);
+#endif
 }
 
 /* Retrieve playlist directory from config file and verify it exists

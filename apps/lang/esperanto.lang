@@ -244,15 +244,15 @@
   user: core
   <source>
     *: none
-    radio: "FM Radio"
+    radio,innioasisy1: "FM Radio"
   </source>
   <dest>
     *: none
-    radio: "FMa Radio"
+    radio,innioasisy1: "FMa Radio"
   </dest>
   <voice>
     *: none
-    radio: "FMa Radio"
+    radio,innioasisy1: "FMa Radio"
   </voice>
 </phrase>
 <phrase>

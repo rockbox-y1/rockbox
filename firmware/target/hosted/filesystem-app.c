@@ -53,7 +53,7 @@
 #endif
 
 #if defined(HAVE_MULTIDRIVE) || defined(HAVE_SPECIAL_DIRS)
-#if (CONFIG_PLATFORM & PLATFORM_ANDROID)
+#if ((CONFIG_PLATFORM & PLATFORM_ANDROID) || PLATFORM_INNIOASIS_Y1)
 static const char rbhome[] = "/sdcard";
 #elif (CONFIG_PLATFORM & PLATFORM_SDL) \
         && !defined(__PCTOOL__)
@@ -128,6 +128,10 @@ void paths_init(void)
     os_mkdir("/sdcard/rockbox" __MKDIR_MODE_ARG);
     os_mkdir("/sdcard/rockbox/rocks.data" __MKDIR_MODE_ARG);
     os_mkdir("/sdcard/rockbox/eqs" __MKDIR_MODE_ARG);
+#elif PLATFORM_INNIOASIS_Y1
+    os_mkdir("/sdcard/.rockbox" __MKDIR_MODE_ARG);
+    os_mkdir("/sdcard/.rockbox/rocks.data" __MKDIR_MODE_ARG);
+    os_mkdir("/sdcard/.rockbox/eqs" __MKDIR_MODE_ARG);
 #else
     char config_dir[MAX_PATH];
 
@@ -172,6 +176,9 @@ static const char* _get_user_file_path(const char *path,
 
 #if (CONFIG_PLATFORM & PLATFORM_ANDROID)
     if (path_append(buf, "/sdcard/rockbox", pos, bufsize) >= bufsize)
+        return NULL;
+#elif PLATFORM_INNIOASIS_Y1
+    if (path_append(buf, "/sdcard/.rockbox", pos, bufsize) >= bufsize)
         return NULL;
 #else
     if (path_append(buf, rbhome, ".config/rockbox.org", bufsize) >= bufsize ||

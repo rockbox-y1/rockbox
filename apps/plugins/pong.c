@@ -57,7 +57,8 @@
 
 #elif (CONFIG_KEYPAD == IPOD_4G_PAD) || \
       (CONFIG_KEYPAD == IPOD_3G_PAD) || \
-      (CONFIG_KEYPAD == IPOD_1G2G_PAD)
+      (CONFIG_KEYPAD == IPOD_1G2G_PAD) || \
+      (CONFIG_KEYPAD == INNIOASIS_Y1_PAD)
 #define PONG_QUIT BUTTON_SELECT
 #define PONG_LEFT_UP BUTTON_MENU
 #define PONG_LEFT_DOWN BUTTON_LEFT
@@ -636,7 +637,7 @@ static int keys(struct pong *p)
 #endif
 
     /* number of ticks this function will loop reading keys */
-#ifndef HAVE_TOUCHSCREEN
+#if !defined(HAVE_TOUCHSCREEN) || defined(PLATFORM_INNIOASIS_Y1)
     int time = 4;
 #else
     int time = 1;

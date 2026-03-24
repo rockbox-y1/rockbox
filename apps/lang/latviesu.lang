@@ -400,15 +400,15 @@
   user: core
   <source>
     *: none
-    radio: "FM Radio"
+    radio,innioasisy1: "FM Radio"
   </source>
   <dest>
     *: none
-    radio: "~FM Radio"
+    radio,innioasisy1: "~FM Radio"
   </dest>
   <voice>
     *: none
-    radio: "~FM Radio"
+    radio,innioasisy1: "~FM Radio"
   </voice>
 </phrase>
 <phrase>
@@ -10994,15 +10994,15 @@
   user: core
   <source>
     *: none
-    touchscreen: "OK"
+    touchscreen,innioasisy1: "OK"
   </source>
   <dest>
     *: none
-    touchscreen: "Labi"
+    touchscreen,innioasisy1: "Labi"
   </dest>
   <voice>
     *: none
-    touchscreen: "Labi"
+    touchscreen,innioasisy1: "Labi"
   </voice>
 </phrase>
 <phrase>
@@ -11011,15 +11011,15 @@
   user: core
   <source>
     *: none
-    touchscreen: "Del"
+    touchscreen,innioasisy1: "Del"
   </source>
   <dest>
     *: none
-    touchscreen: "Izdz"
+    touchscreen,innioasisy1: "Izdz"
   </dest>
   <voice>
     *: none
-    touchscreen: "Izdzēst"
+    touchscreen,innioasisy1: "Izdzēst"
   </voice>
 </phrase>
 <phrase>
@@ -11028,15 +11028,15 @@
   user: core
   <source>
     *: none
-    touchscreen: "Cancel"
+    touchscreen,innioasisy1: "Cancel"
   </source>
   <dest>
     *: none
-    touchscreen: "Atcelt"
+    touchscreen,innioasisy1: "Atcelt"
   </dest>
   <voice>
     *: none
-    touchscreen: "Atcelt"
+    touchscreen,innioasisy1: "Atcelt"
   </voice>
 </phrase>
 <phrase>

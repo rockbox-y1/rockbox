@@ -23,6 +23,9 @@ logo.c
 lrcplayer.c
 mosaique.c
 main_menu_config.c
+#if PLATFORM_INNIOASIS_Y1
+podcast_downloader.c
+#endif
 playing_time.c
 properties.c
 random_folder_advance_config.c

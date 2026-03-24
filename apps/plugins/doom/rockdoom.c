@@ -202,7 +202,7 @@ const unsigned char versions_builtin[7][20] =
    "TNT"
 };
 
-const unsigned char wads_builtin[7][35] =
+const unsigned char wads_builtin[7][40] =
 {
    GAMEBASE"doom1.wad",
    GAMEBASE"doom.wad",

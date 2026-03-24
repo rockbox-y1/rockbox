@@ -29,7 +29,8 @@ struct mpeg_settings settings;
 
 #elif (CONFIG_KEYPAD == IPOD_4G_PAD) || \
       (CONFIG_KEYPAD == IPOD_3G_PAD) || \
-      (CONFIG_KEYPAD == IPOD_1G2G_PAD)
+      (CONFIG_KEYPAD == IPOD_1G2G_PAD) || \
+      (CONFIG_KEYPAD == INNIOASIS_Y1_PAD)
 #define MPEG_START_TIME_SELECT      BUTTON_SELECT
 #define MPEG_START_TIME_LEFT        BUTTON_LEFT
 #define MPEG_START_TIME_RIGHT       BUTTON_RIGHT

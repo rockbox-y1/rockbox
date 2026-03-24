@@ -406,6 +406,10 @@ struct user_settings
     int  beep;              /* system beep volume when changing tracks etc. */
     int  keyclick;          /* keyclick volume */
     int  keyclick_repeats;  /* keyclick on repeats */
+#ifdef PLATFORM_INNIOASIS_Y1
+    int  taptic_mode;       /* taptic engine mode */
+    int  wheel_vibration_intensity; /* Vibration intensity for Innioasis Y1 scroll wheel (0-50ms) */
+#endif
     bool dithering_enabled;
 #ifdef HAVE_PITCHCONTROL
     bool timestretch_enabled;
@@ -928,6 +932,9 @@ struct user_settings
     int hp_lo_select; /* indicates automatic, headphone-only, or lineout-only operation */
 #endif
     bool playback_log; /* ROCKBOX_DIR/playback.log for tracks played */
+#ifdef PLATFORM_INNIOASIS_Y1
+    int android_screen_timeout; /* Android screen timeout in seconds (0=never) */
+#endif
 #if defined(HAVE_GENERAL_PURPOSE_LED)
     bool use_led_indicators;
 #endif

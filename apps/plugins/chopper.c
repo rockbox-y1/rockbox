@@ -55,6 +55,11 @@ Still To do:
 #define ACTION BUTTON_SELECT
 #define ACTIONTEXT "SELECT"
 
+#elif (CONFIG_KEYPAD == INNIOASIS_Y1_PAD)
+#define QUIT BUTTON_SELECT
+#define ACTION BUTTON_MENU
+#define ACTIONTEXT "MENU"
+
 #elif CONFIG_KEYPAD == IAUDIO_X5M5_PAD /* grayscale at the moment */
 
 #define QUIT BUTTON_POWER

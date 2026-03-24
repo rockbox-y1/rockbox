@@ -34,6 +34,9 @@ rbcodec_helpers.c
 menus/main_menu.c
 menus/playback_menu.c
 menus/playlist_menu.c
+#ifdef PLATFORM_INNIOASIS_Y1
+menus/fm_radio_app.c
+#endif
 #ifdef HAVE_RECORDING
 menus/recording_menu.c
 #endif
@@ -82,9 +85,7 @@ gui/line.c
 gui/bitmap/list.c
 gui/bitmap/list-skinned.c
 gui/option_select.c
-#ifdef HAVE_PITCHCONTROL
 gui/pitchscreen.c
-#endif
 #ifdef HAVE_QUICKSCREEN
 gui/quickscreen.c
 #endif
@@ -98,7 +99,7 @@ gui/scrollbar.c
 gui/splash.c
 gui/statusbar.c
 gui/statusbar-skinned.c
-#if (CONFIG_PLATFORM&PLATFORM_ANDROID)
+#if (CONFIG_PLATFORM&PLATFORM_ANDROID)||PLATFORM_INNIOASIS_Y1
 hosted/android/yesno.c
 hosted/android/notification.c
 #else
@@ -122,7 +123,7 @@ gui/backdrop.c
 
 recorder/bmp.c
 recorder/icons.c
-#if (CONFIG_PLATFORM&PLATFORM_ANDROID)
+#if (CONFIG_PLATFORM&PLATFORM_ANDROID)||PLATFORM_INNIOASIS_Y1
 hosted/android/keyboard.c
 #else
 recorder/keyboard.c
@@ -244,6 +245,8 @@ keymaps/keymap-mpio-hd200.c
 keymaps/keymap-mpio-hd300.c
 #elif CONFIG_KEYPAD == ANDROID_PAD
 keymaps/keymap-android.c
+#elif CONFIG_KEYPAD == INNIOASIS_Y1_PAD
+keymaps/keymap-innioasis-y1.c
 #elif CONFIG_KEYPAD == SDL_PAD
 keymaps/keymap-sdl.c
 #elif CONFIG_KEYPAD == SANSA_FUZEPLUS_PAD

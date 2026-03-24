@@ -48,7 +48,8 @@ enum minesweeper_status {
 
 #elif (CONFIG_KEYPAD == IPOD_4G_PAD) || \
       (CONFIG_KEYPAD == IPOD_3G_PAD) || \
-      (CONFIG_KEYPAD == IPOD_1G2G_PAD)
+      (CONFIG_KEYPAD == IPOD_1G2G_PAD) || \
+      (CONFIG_KEYPAD == INNIOASIS_Y1_PAD)
 #   define MINESWP_SCROLLWHEEL
 #   define MINESWP_LEFT       BUTTON_LEFT
 #   define MINESWP_RIGHT      BUTTON_RIGHT

@@ -9224,15 +9224,15 @@
   user: core
   <source>
     *: none
-    radio: "FM Radio"
+    radio,innioasisy1: "FM Radio"
   </source>
   <dest>
     *: none
-    radio: "FM Radio"
+    radio,innioasisy1: "FM Radio"
   </dest>
   <voice>
     *: none
-    radio: "FM Radio"
+    radio,innioasisy1: "FM Radio"
   </voice>
 </phrase>
 <phrase>

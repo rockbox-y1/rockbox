@@ -121,6 +121,15 @@ static void setoptions (void)
         options.START   = BUTTON_SELECT;
         options.SELECT  = BUTTON_NONE;
         options.MENU    = (BUTTON_SELECT | BUTTON_REPEAT);
+#elif CONFIG_KEYPAD == INNIOASIS_Y1_PAD
+        options.UP      = BUTTON_MENU;
+        options.DOWN    = BUTTON_PLAY;
+
+        options.A       = BUTTON_SCROLL_FWD;
+        options.B       = BUTTON_SCROLL_BACK;
+        options.START   = (BUTTON_SELECT | BUTTON_RIGHT);
+        options.SELECT  = (BUTTON_SELECT | BUTTON_LEFT);
+        options.MENU    = (BUTTON_SELECT | BUTTON_REPEAT);
 
 #elif CONFIG_KEYPAD == GIGABEAT_PAD
         options.UP      = BUTTON_UP;

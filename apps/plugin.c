@@ -74,6 +74,18 @@
 static unsigned char pluginbuf[PLUGIN_BUFFER_SIZE];
 void sim_lcd_ex_init(unsigned long (*getpixel)(int, int));
 void sim_lcd_ex_update_rect(int x, int y, int width, int height);
+#ifdef PLATFORM_INNIOASIS_Y1
+bool upload_scrobble(const char *artist, const char *track, const char *album, int timestamp, long length);
+char** android_podcast_get_episode_list(int podcast_num);
+const char* android_podcast_get_episode_path(int podcast_num, int num);
+char** android_podcast_get_podcast_names(void);
+int android_podcast_delete_episode(int podcast_num, int num);
+int android_podcast_download_episode(int podcast_num, int num);
+int android_podcast_get_list_count(char** array);
+const char* android_podcast_connect_wifi(void);
+int android_podcast_disconnect_wifi(void);
+void free_array(char** array);
+#endif
 #else
 extern unsigned char pluginbuf[];
 #include "bitswap.h"
@@ -875,6 +887,18 @@ static const struct plugin_api rockbox_api = {
     gui_synclist_scroll_stop,
     add_event_ex,
     remove_event_ex,
+#ifdef PLATFORM_INNIOASIS_Y1
+    .upload_scrobble = upload_scrobble,
+    .android_podcast_get_podcast_names = android_podcast_get_podcast_names,
+    .android_podcast_get_episode_list = android_podcast_get_episode_list,
+    .android_podcast_get_episode_path = android_podcast_get_episode_path,
+    .android_podcast_get_list_count = android_podcast_get_list_count,
+    .android_podcast_delete_episode = android_podcast_delete_episode,
+    .android_podcast_download_episode = android_podcast_download_episode,
+    .android_podcast_connect_wifi = android_podcast_connect_wifi,
+    .android_podcast_disconnect_wifi = android_podcast_disconnect_wifi,
+    .free_array = free_array,
+#endif
 };
 
 static int plugin_buffer_handle;
@@ -1006,7 +1030,6 @@ int plugin_load(const char* plugin, const void* parameter)
 #ifdef HAVE_TOUCHSCREEN
     touchscreen_set_mode(TOUCHSCREEN_BUTTON);
 #endif
-
     /* allow voice to back off if the plugin needs lots of memory */
     if (!global_settings.talk_menu)
         talk_buffer_set_policy(TALK_BUFFER_LOOSE);
