@@ -399,15 +399,15 @@
   user: core
   <source>
     *: none
-    radio: "FM Radio"
+    radio,innioasisy1: "FM Radio"
   </source>
   <dest>
     *: none
-    radio: "ФМ Радiо"
+    radio,innioasisy1: "ФМ Радiо"
   </dest>
   <voice>
     *: none
-    radio: "ФМ Радiо"
+    radio,innioasisy1: "ФМ Радiо"
   </voice>
 </phrase>
 <phrase>
@@ -10105,15 +10105,15 @@
   user: core
   <source>
     *: none
-    touchscreen: "OK"
+    touchscreen,innioasisy1: "OK"
   </source>
   <dest>
     *: none
-    touchscreen: "~OK"
+    touchscreen,innioasisy1: "~OK"
   </dest>
   <voice>
     *: none
-    touchscreen: "~OK"
+    touchscreen,innioasisy1: "~OK"
   </voice>
 </phrase>
 <phrase>
@@ -10434,15 +10434,15 @@
   user: core
   <source>
     *: none
-    touchscreen: "Del"
+    touchscreen,innioasisy1: "Del"
   </source>
   <dest>
     *: none
-    touchscreen: "Видалити"
+    touchscreen,innioasisy1: "Видалити"
   </dest>
   <voice>
     *: none
-    touchscreen: "Видалити"
+    touchscreen,innioasisy1: "Видалити"
   </voice>
 </phrase>
 <phrase>
@@ -10852,15 +10852,15 @@
   user: core
   <source>
     *: none
-    touchscreen: "Cancel"
+    touchscreen,innioasisy1: "Cancel"
   </source>
   <dest>
     *: none
-    touchscreen: "Скасувати"
+    touchscreen,innioasisy1: "Скасувати"
   </dest>
   <voice>
     *: none
-    touchscreen: "Скасувати"
+    touchscreen,innioasisy1: "Скасувати"
   </voice>
 </phrase>
 <phrase>

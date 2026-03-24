@@ -75,6 +75,10 @@
 #include "usb-ibasso.h"
 #endif
 
+#ifdef PLATFORM_INNIOASIS_Y1
+#include "../firmware/target/hosted/android/screen-timeout-android.h"
+#endif
+
 #define UNUSED {.RESERVED=NULL}
 #define INT(a) {.int_ = a}
 #define UINT(a) {.uint_ = a}
@@ -937,6 +941,41 @@ static void hp_lo_select_apply(int arg)
 }
 #endif
 
+#ifdef PLATFORM_INNIOASIS_Y1
+void android_screen_timeout_callback(int timeout)
+{
+    /* Convert choice index to actual timeout value */
+    int timeout_seconds;
+    switch (timeout) {
+        case 0: /* 15 seconds */
+            timeout_seconds = 15;
+            break;
+        case 1: /* 30 seconds */
+            timeout_seconds = 30;
+            break;
+        case 2: /* 1 minute */
+            timeout_seconds = 60;
+            break;
+        case 3: /* 2 minutes */
+            timeout_seconds = 120;
+            break;
+        case 4: /* 5 minutes */
+            timeout_seconds = 300;
+            break;
+        case 5: /* 10 minutes */
+            timeout_seconds = 600;
+            break;
+        case 6: /* 30 minutes */
+            timeout_seconds = 1800;
+            break;
+        default:
+            timeout_seconds = 30;
+            break;
+    }
+
+    android_screen_timeout_set(timeout_seconds);
+}
+#endif
 #endif /* __PCTOOL__ */
 
 const struct settings_list settings[] = {
@@ -1207,12 +1246,6 @@ const struct settings_list settings[] = {
     INT_SETTING(F_THEMESETTING, scrollbar_width, LANG_SCROLLBAR_WIDTH, 6,
                 "scrollbar width",UNIT_INT, 3, MAX(LCD_WIDTH/10,25), 1,
                 NULL, NULL, NULL),
-#ifdef HAVE_TOUCHSCREEN
-    TABLE_SETTING(F_ALLOW_ARBITRARY_VALS, list_line_padding, LANG_LIST_LINE_PADDING,
-                  -1, "list padding", "auto,off", UNIT_PIXEL, list_pad_formatter,
-                  list_pad_getlang, NULL, 16,
-                  -1,0,2,4,6,8,10,12,16,20,24,28,32,38,44,50),
-#endif
 #if LCD_DEPTH > 1
     TABLE_SETTING(F_ALLOW_ARBITRARY_VALS, list_separator_height, LANG_LIST_SEPARATOR,
                   0, "list separator height", "auto,off", UNIT_PIXEL,
@@ -2207,6 +2240,13 @@ const struct settings_list settings[] = {
                    ID2P(LANG_STRONG)),
     OFFON_SETTING(0, keyclick_repeats, LANG_KEYCLICK_REPEATS, false,
                   "keyclick repeats", NULL),
+#ifdef PLATFORM_INNIOASIS_Y1
+    OFFON_SETTING(0, taptic_mode, LANG_TAPTIC_ENGINE_MODE, false,
+                  "taptic mode", NULL),
+    CHOICE_SETTING(0, wheel_vibration_intensity, LANG_WHEEL_VIBRATIONS, 25,
+                   "wheel vibration intensity", "0,1,2,3,4,5,10,15,20,25,30,35,40,45,50", NULL, 15,
+                   "0ms", "1ms", "2ms", "3ms", "4ms", "5ms", "10ms", "15ms", "20ms", "25ms", "30ms", "35ms", "40ms", "45ms", "50ms"),
+#endif
 #endif
     TEXT_SETTING(0, playlist_catalog_dir, "playlist catalog directory",
                      PLAYLIST_CATALOG_DEFAULT_DIR, NULL, NULL),
@@ -2410,6 +2450,11 @@ const struct settings_list settings[] = {
     ID2P(LANG_AUTO), ID2P(LANG_HEADPHONE), ID2P(LANG_LINEOUT)),
 #endif
     OFFON_SETTING(0, playback_log, LANG_LOGGING, false, "play log", NULL),
+#ifdef PLATFORM_INNIOASIS_Y1
+    CHOICE_SETTING(0, android_screen_timeout, LANG_TIMEOUT, -1,
+                   "android screen timeout", "15,30,60,120,300,600,1800", android_screen_timeout_callback, 7,
+                   "15 seconds", "30 seconds", "1 minute", "2 minutes", "5 minutes", "10 minutes", "30 minutes"),
+#endif
 #if defined(HAVE_GENERAL_PURPOSE_LED)
     OFFON_SETTING(0, use_led_indicators, LANG_USE_LED_INDICATORS, false, "LED indicators", NULL),
 #endif

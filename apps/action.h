@@ -81,6 +81,9 @@ void set_selective_softlock_actions(bool selective, unsigned int mask);
  * also arm autolock if enabled. */
 void action_autosoftlock_init(void);
 
+/* export do_key_lock so we can call it when we lock the screen on android */
+void do_key_lock(bool lock);
+
 #endif /* !defined(HAS_BUTTON_HOLD) */
 
 #if defined(HAVE_BACKLIGHT)

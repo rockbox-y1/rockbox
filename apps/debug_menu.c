@@ -148,6 +148,7 @@
 
 #define SCREEN_MAX_CHARS (LCD_WIDTH / SYSFONT_WIDTH)
 
+#ifndef PLATFORM_INNIOASIS_Y1
 static const char* threads_getname(int selected_item, void *data,
                                    char *buffer, size_t buffer_len)
 {
@@ -266,6 +267,7 @@ static bool dbg_os(void)
     info.get_name = threads_getname;
     return simplelist_show_list(&info);
 }
+#endif
 
 #ifdef __linux__
 #include "cpuinfo-linux.h"
@@ -933,7 +935,7 @@ static bool tsc2100_debug(void)
 #define BAT_TSPACE    20
 #define BAT_YSPACE    (LCD_HEIGHT - BAT_TSPACE)
 
-
+#ifndef PLATFORM_INNIOASIS_Y1
 static bool view_battery(void)
 {
     extern struct battery_tables_t device_battery_tables; /* powermgmt.c */
@@ -1270,6 +1272,7 @@ static bool view_battery(void)
 }
 
 #endif /* (CONFIG_BATTERY_MEASURE != 0)  */
+#endif /* PLATFORM_INNIOASIS_Y1 */
 
 #if (CONFIG_PLATFORM & PLATFORM_NATIVE)
 #if (CONFIG_STORAGE & STORAGE_MMC) || (CONFIG_STORAGE & STORAGE_SD)
@@ -2879,14 +2882,16 @@ static const struct {
 #if defined(CPU_COLDFIRE)
         { "Catch mem accesses", dbg_set_memory_guard },
 #endif
+#ifndef PLATFORM_INNIOASIS_Y1
         { "View OS stacks", dbg_os },
+#endif
 #ifdef __linux__
         { "View CPU stats", dbg_cpuinfo },
 #endif
 #ifdef HIBY_LINUX
         { "View RAM info", view_ram_info },
 #endif
-#if (CONFIG_BATTERY_MEASURE != 0) && !defined(SIMULATOR)
+#if (CONFIG_BATTERY_MEASURE != 0) && !defined(SIMULATOR) && !defined(PLATFORM_INNIOASIS_Y1)
         { "View battery", view_battery },
 #endif
 #ifndef APPLICATION

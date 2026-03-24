@@ -1,4 +1,4 @@
-#if !defined(HAVE_TOUCHSCREEN) || defined(DX50) || defined(DX90) || defined(HIBY_R3PROII) || defined(HIBY_R1)
+#if !defined(HAVE_TOUCHSCREEN) || defined(DX50) || defined(DX90) || defined(HIBY_R3PROII) || defined(HIBY_R1) || defined(PLATFORM_INNIOASIS_Y1)
 /* This is for devices having a keypad, running RockBox as an application */
 #include "SUBDIRS"
 
@@ -18,6 +18,10 @@ reversi
 #ifdef HAVE_TAGCACHE
 pictureflow
 tagcache
+#ifdef PLATFORM_INNIOASIS_Y1
+imageviewer
+doom
+#endif
 #endif
 
 /* For all the swcodec targets */
@@ -25,4 +29,8 @@ tagcache
 mikmod
 #endif
 
+#ifdef PLATFORM_INNIOASIS_Y1
+shortcuts
+text_viewer
+#endif
 #endif /* HAVE_TOUCHSCREEN */

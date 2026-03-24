@@ -135,6 +135,10 @@ static struct scrobbler_cfg
     int  minms;
     int  tracknfo;
     int  remove_dup;
+#ifdef PLATFORM_INNIOASIS_Y1
+    int  timezone;
+    bool  upload;
+#endif
     bool delete_log;
 } gConfig;
 
@@ -159,6 +163,10 @@ static struct configdata config[] =
     {TYPE_BOOL, 0, 1, { .bool_p =  &gConfig.delete_log },          "DeleteLog", NULL},
     {TYPE_INT, 0, 100, { .int_p = &gConfig.savepct },              "SavePct", NULL},
     {TYPE_INT, MIN_ELAPSED_MS, 10000, { .int_p = &gConfig.minms }, "MinMs", NULL},
+#ifdef PLATFORM_INNIOASIS_Y1
+    {TYPE_INT, -12, 12, { .int_p = &gConfig.timezone },            "Timezone", NULL},
+    {TYPE_BOOL, 0, 1, { .bool_p =  &gConfig.upload },              "Upload", NULL},
+#endif
 };
 const int gCfg_sz = sizeof(config)/sizeof(*config);
 static long yield_tick = 0;
@@ -171,6 +179,10 @@ static void config_set_defaults(void)
     gConfig.remove_dup = 0; /* save all*/
     gConfig.delete_log = true;
     gConfig.tracknfo = 0; /* save all */
+#ifdef PLATFORM_INNIOASIS_Y1
+    gConfig.timezone = 0; /* UTC */
+    gConfig.upload = false;
+#endif
 }
 
 static int scrobbler_menu_action(int selection, bool has_log)
@@ -205,9 +217,20 @@ static int scrobbler_menu_action(int selection, bool has_log)
             rb->set_option(ID2P(LANG_TRACK_INFO), &gConfig.tracknfo, RB_INT,
                            tracknfo_option, 3, NULL);
             break;
-        case 5: /* sep */
+#ifdef PLATFORM_INNIOASIS_Y1
+        case 5: /* set time zone */
+            rb->set_int("Timezone", "GMT", UNIT_HOUR,
+                        &gConfig.timezone, NULL, 1, -12, 12, NULL );
             break;
+        case 6: /* set time zone */
+            rb->set_bool("Upload Scrobbles on Export", &gConfig.upload);
+            break;
+        case 7: /* sep */
+            break;
+        case 8: /* view playback log */
+#else
         case 6: /* view playback log */
+#endif
             if (crc != rb->crc_32(&gConfig, sizeof(struct scrobbler_cfg), 0xFFFFFFFF))
             {
                 /* there are changes to save */
@@ -224,7 +247,11 @@ static int scrobbler_menu_action(int selection, bool has_log)
             }
             return view_playback_log();
             break;
+#ifdef PLATFORM_INNIOASIS_Y1
+        case 9: /* set defaults */
+#else
         case 7: /* set defaults */
+#endif
         {
             const struct text_message prompt = {
                 (const char*[]){ ID2P(LANG_AUDIOSCROBBLER),
@@ -236,9 +263,17 @@ static int scrobbler_menu_action(int selection, bool has_log)
             }
             break;
         }
+#ifdef PLATFORM_INNIOASIS_Y1
+        case 10: /*sep*/
+#else
         case 8: /*sep*/
+#endif
             break;
+#ifdef PLATFORM_INNIOASIS_Y1
+        case 11: /* Cancel */
+#else
         case 9: /* Cancel */
+#endif
             has_log = false;
             if (crc != rb->crc_32(&gConfig, sizeof(struct scrobbler_cfg), 0xFFFFFFFF))
             {
@@ -249,7 +284,11 @@ static int scrobbler_menu_action(int selection, bool has_log)
                 }
             }
             /* fallthrough */
+#ifdef PLATFORM_INNIOASIS_Y1
+        case 12: /* Export & exit */
+#else
         case 10: /* Export & exit */
+#endif
         {
             res = configfile_save(CFG_FILE, config, gCfg_sz, CFG_VER);
             if (res >= 0)
@@ -308,6 +347,10 @@ static int scrobbler_menu(bool resume)
                         ID2P(LANG_COMPRESSOR_THRESHOLD),
                         "Minimum elapsed",
                         ID2P(LANG_TRACK_INFO), //Skip tracks without metadata
+#ifdef PLATFORM_INNIOASIS_Y1
+                        "Timezone",
+                        "Upload Scrobbles on Export",
+#endif
                         ID2P(VOICE_BLANK),
                         ID2P(LANG_VIEWLOG),
                         ID2P(LANG_REVERT_TO_DEFAULT_SETTINGS),
@@ -489,6 +532,24 @@ static int sbl_create_entry(struct scrobbler_entry *entry, int output_fd)
                  track_len_rate_timestamp_mbid);
     #undef SEP
     #undef EOL
+
+#ifdef PLATFORM_INNIOASIS_Y1
+    // upload this scrobble entry
+    if (gConfig.upload){
+        bool ret = rb->upload_scrobble(artist, id->title, id->album, timestamp, (long)entry->length);
+        if (ret){
+            return SCROBBLER_LOG_OK;
+        } else {
+            ret = rb->upload_scrobble(artist, id->title, id->album, timestamp, (long)entry->length);
+            if (ret){
+                return SCROBBLER_LOG_OK;
+            } else {
+                rb->splash(HZ, "Upload failed.");
+                return SCROBBLER_LOG_SKIPTRACK;
+            }
+        }
+    }
+#endif
     return SCROBBLER_LOG_OK;
 }
 
@@ -499,8 +560,11 @@ static int sbl_check_or_open(bool check_only)
     char scrobbler_file[MAX_PATH];
     int fd;
     int used;
+#ifdef PLATFORM_INNIOASIS_Y1
+    used = rb->snprintf(scrobbler_file, sizeof(scrobbler_file), "%s", BASE_FILENAME);
+#else
     used = rb->snprintf(scrobbler_file, sizeof(scrobbler_file), "/%s", BASE_FILENAME);
-
+#endif
     if (used <= 0 || used >= (int)sizeof(scrobbler_file))
     {
         logf("%s: not enough buffer space for log filename", __func__);
@@ -530,7 +594,11 @@ static int sbl_check_or_open(bool check_only)
         {
             /* write file header */
             rb->fdprintf(fd, "#AUDIOSCROBBLER/" SCROBBLER_VERSION "\n"
+#ifdef PLATFORM_INNIOASIS_Y1
+                         "#TZ/UTC\n" "#CLIENT/Rockbox "
+#else
                          "#TZ/UNKNOWN\n" "#CLIENT/Rockbox "
+#endif
                          TARGET_NAME SCROBBLER_REVISION
                          HDR_STR_TIMELESS "\n");
             rb->fdprintf(fd, ITEM_HDR);
@@ -596,8 +664,11 @@ static bool pbl_parse_entry(struct scrobbler_entry *entry, const char *begin)
     const char *p_path = rb->strchr(++p_length, ':');
     if (!p_path || *(++p_path) == '\0')
         goto failure;
-
+#ifdef PLATFORM_INNIOASIS_Y1
+    entry->timestamp = pbl_parse_atoul(p_time) + (3600 * gConfig.timezone);
+#else
     entry->timestamp = pbl_parse_atoul(p_time);
+#endif
     entry->elapsed = pbl_parse_atoul(p_elapsed);
     entry->length = pbl_parse_atoul(p_length);
     entry->path = p_path;
@@ -885,6 +956,17 @@ static int sbl_export(void)
     /* Export playbacklog to scrobbler.log */
     rb->lcd_clear_display();
 
+#ifdef PLATFORM_INNIOASIS_Y1
+    if (gConfig.upload){
+        rb->splash(HZ, "Connecting to WiFi...");
+        const char* wifi_ret;
+        wifi_ret = rb->android_podcast_connect_wifi();
+        if (strcmp(wifi_ret, "Success") != 0){
+            rb->splash(HZ, "Failed connecting to WiFi, please check .rockbox/wifi.cfg and make sure the network is available.");
+            return PLUGIN_ERROR;
+        }
+    }
+#endif
     rb->splash(0, ID2P(LANG_WAIT));
 
     static char buf[SCROBBLER_MAXENTRY_LEN];
@@ -969,6 +1051,11 @@ static int sbl_export(void)
 
     clear_display();
     rb->splashf(HZ *5, ID2P(LANG_PLAYLIST_SAVE_COUNT),tracks_saved, buf);
+#ifdef PLATFORM_INNIOASIS_Y1
+    if (gConfig.upload){
+        rb->android_podcast_disconnect_wifi();
+    }
+#endif
     return PLUGIN_OK;
 entry_error:
     if (scrobbler_fd >= 0)
