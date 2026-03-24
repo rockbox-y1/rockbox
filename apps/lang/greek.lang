@@ -409,15 +409,15 @@
   user: core
   <source>
     *: none
-    radio: "FM Radio"
+    radio,innioasisy1: "FM Radio"
   </source>
   <dest>
     *: none
-    radio: "Ραδιόφωνο FM"
+    radio,innioasisy1: "Ραδιόφωνο FM"
   </dest>
   <voice>
     *: none
-    radio: "Ραδιόφωνο Εφ Εμ"
+    radio,innioasisy1: "Ραδιόφωνο Εφ Εμ"
   </voice>
 </phrase>
 <phrase>
@@ -11048,15 +11048,15 @@
   user: core
   <source>
     *: none
-    touchscreen: "OK"
+    touchscreen,innioasisy1: "OK"
   </source>
   <dest>
     *: none
-    touchscreen: "OK"
+    touchscreen,innioasisy1: "OK"
   </dest>
   <voice>
     *: none
-    touchscreen: "OK"
+    touchscreen,innioasisy1: "OK"
   </voice>
 </phrase>
 <phrase>
@@ -11622,15 +11622,15 @@
   user: core
   <source>
     *: none
-    touchscreen: "Del"
+    touchscreen,innioasisy1: "Del"
   </source>
   <dest>
     *: none
-    touchscreen: "Διαγραφή"
+    touchscreen,innioasisy1: "Διαγραφή"
   </dest>
   <voice>
     *: none
-    touchscreen: "Διαγραφή"
+    touchscreen,innioasisy1: "Διαγραφή"
   </voice>
 </phrase>
 <phrase>
@@ -12246,15 +12246,15 @@
   user: core
   <source>
     *: none
-    touchscreen: "Cancel"
+    touchscreen,innioasisy1: "Cancel"
   </source>
   <dest>
     *: none
-    touchscreen: "Ακύρωση"
+    touchscreen,innioasisy1: "Ακύρωση"
   </dest>
   <voice>
     *: none
-    touchscreen: "Ακύρωση"
+    touchscreen,innioasisy1: "Ακύρωση"
   </voice>
 </phrase>
 <phrase>

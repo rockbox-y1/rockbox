@@ -20,8 +20,11 @@
 #include "plugin.h"
 
 
-
+#ifdef PLATFORM_INNIOASIS_Y1
+#define FILENAME "/sdcard/settings_dumper.txt"
+#else
 #define FILENAME "/settings_dumper.txt"
+#endif
 static int setting_count = 0;
 
 static void write_setting(const struct settings_list *setting, int fd, unsigned int group)

@@ -110,6 +110,11 @@ static long lasttime = 0;
 #include "governor-ibasso.h"
 #endif
 
+#ifdef PLATFORM_INNIOASIS_Y1
+#include "../firmware/target/hosted/android/brightness-android.h"
+#include "../firmware/target/hosted/android/screen-timeout-android.h"
+#endif
+
 #ifdef LOGF_ENABLE
 static char *debug_get_flags(uint32_t flags);
 #undef DEBUGF /* allow DEBUGF or logf not both */

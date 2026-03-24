@@ -405,15 +405,15 @@
   user: core
   <source>
     *: none
-    radio: "FM Radio"
+    radio,innioasisy1: "FM Radio"
   </source>
   <dest>
     *: none
-    radio: "FMラジオ"
+    radio,innioasisy1: "FMラジオ"
   </dest>
   <voice>
     *: none
-    radio: "FMラジオ"
+    radio,innioasisy1: "FMラジオ"
   </voice>
 </phrase>
 <phrase>
@@ -11084,15 +11084,15 @@
   user: core
   <source>
     *: none
-    touchscreen: "OK"
+    touchscreen,innioasisy1: "OK"
   </source>
   <dest>
     *: none
-    touchscreen: "よし"
+    touchscreen,innioasisy1: "よし"
   </dest>
   <voice>
     *: none
-    touchscreen: "よし"
+    touchscreen,innioasisy1: "よし"
   </voice>
 </phrase>
 <phrase>
@@ -11101,15 +11101,15 @@
   user: core
   <source>
     *: none
-    touchscreen: "Del"
+    touchscreen,innioasisy1: "Del"
   </source>
   <dest>
     *: none
-    touchscreen: "削除"
+    touchscreen,innioasisy1: "削除"
   </dest>
   <voice>
     *: none
-    touchscreen: "削除"
+    touchscreen,innioasisy1: "削除"
   </voice>
 </phrase>
 <phrase>
@@ -11118,15 +11118,15 @@
   user: core
   <source>
     *: none
-    touchscreen: "Cancel"
+    touchscreen,innioasisy1: "Cancel"
   </source>
   <dest>
     *: none
-    touchscreen: "取り消し"
+    touchscreen,innioasisy1: "取り消し"
   </dest>
   <voice>
     *: none
-    touchscreen: "取り消し"
+    touchscreen,innioasisy1: "取り消し"
   </voice>
 </phrase>
 <phrase>

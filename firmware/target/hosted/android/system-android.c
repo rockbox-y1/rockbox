@@ -29,7 +29,6 @@
 #include "button.h"
 
 
-
 /* global fields for use with various JNI calls */
 static JavaVM *vm_ptr;
 JNIEnv *env_ptr;
@@ -45,7 +44,11 @@ extern void telephony_init_device(void);
 void system_exception_wait(void)
 {
     intptr_t dummy = 0;
+#ifdef PLATFORM_INNIOASIS_Y1
+    while(button_read_device(&dummy) != BUTTON_MENU);
+#else
     while(button_read_device(&dummy) != BUTTON_BACK);
+#endif
 }
 
 void system_reboot(void)
@@ -63,7 +66,9 @@ void power_off(void)
 void system_init(void)
 {
     /* no better place yet */
+#ifndef PLATFORM_INNIOASIS_Y1
     telephony_init_device();
+#endif
 }
 
 int hostfs_init(void)

@@ -409,15 +409,15 @@
   user: core
   <source>
     *: none
-    radio: "FM Radio"
+    radio,innioasisy1: "FM Radio"
   </source>
   <dest>
     *: none
-    radio: "FM Rádio"
+    radio,innioasisy1: "FM Rádio"
   </dest>
   <voice>
     *: none
-    radio: "EFEM Rádio"
+    radio,innioasisy1: "EFEM Rádio"
   </voice>
 </phrase>
 <phrase>
@@ -12126,15 +12126,15 @@
   user: core
   <source>
     *: none
-    touchscreen: "OK"
+    touchscreen,innioasisy1: "OK"
   </source>
   <dest>
     *: none
-    touchscreen: "OK"
+    touchscreen,innioasisy1: "OK"
   </dest>
   <voice>
     *: none
-    touchscreen: "OUKEJ"
+    touchscreen,innioasisy1: "OUKEJ"
   </voice>
 </phrase>
 <phrase>
@@ -12143,15 +12143,15 @@
   user: core
   <source>
     *: none
-    touchscreen: "Del"
+    touchscreen,innioasisy1: "Del"
   </source>
   <dest>
     *: none
-    touchscreen: "Mazat"
+    touchscreen,innioasisy1: "Mazat"
   </dest>
   <voice>
     *: none
-    touchscreen: "Mazat"
+    touchscreen,innioasisy1: "Mazat"
   </voice>
 </phrase>
 <phrase>
@@ -12160,15 +12160,15 @@
   user: core
   <source>
     *: none
-    touchscreen: "Cancel"
+    touchscreen,innioasisy1: "Cancel"
   </source>
   <dest>
     *: none
-    touchscreen: "Zrušit"
+    touchscreen,innioasisy1: "Zrušit"
   </dest>
   <voice>
     *: none
-    touchscreen: "Zrušit"
+    touchscreen,innioasisy1: "Zrušit"
   </voice>
 </phrase>
 <phrase>

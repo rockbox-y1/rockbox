@@ -68,10 +68,17 @@ enum {
 #define BUBBLES_RIGHT       PLA_SCROLL_FWD
 #define BUBBLES_RIGHT_REP   PLA_SCROLL_FWD_REPEAT
 #else
+#if (CONFIG_KEYPAD == INNIOASIS_Y1_PAD)
+#define BUBBLES_LEFT        PLA_SCROLL_BACK
+#define BUBBLES_LEFT_REP    PLA_SCROLL_BACK_REPEAT
+#define BUBBLES_RIGHT       PLA_SCROLL_FWD
+#define BUBBLES_RIGHT_REP   PLA_SCROLL_FWD_REPEAT
+#else
 #define BUBBLES_LEFT        PLA_LEFT
 #define BUBBLES_LEFT_REP    PLA_LEFT_REPEAT
 #define BUBBLES_RIGHT       PLA_RIGHT
 #define BUBBLES_RIGHT_REP   PLA_RIGHT_REPEAT
+#endif
 #endif
 
 #define ANGLE_STEP          2
@@ -93,7 +100,8 @@ enum {
 #define BUBBLES_QUIT2       PLA_CANCEL
 #elif (CONFIG_KEYPAD == IPOD_1G2G_PAD) \
     || (CONFIG_KEYPAD == IPOD_3G_PAD) \
-    || (CONFIG_KEYPAD == IPOD_4G_PAD)
+    || (CONFIG_KEYPAD == IPOD_4G_PAD) \
+    || (CONFIG_KEYPAD == INNIOASIS_Y1_PAD)
 #define BUBBLES_FIRE        PLA_SELECT
 #define BUBBLES_FIRE_REPEAT PLA_SELECT_REPEAT
 #define BUBBLES_PAUSE       PLA_DOWN
@@ -148,6 +156,10 @@ enum {
 #define LEVEL_TXT_WIDTH 32
 #define LEVEL_TXT_Y     5
 #define MAX_FPS         40
+
+#elif (LCD_WIDTH == 480) && (LCD_HEIGHT == 360)
+#define XOFS          108
+#define MAX_FPS       60
 
 /* 22x22 bubbles (iPod Video) */
 #elif (LCD_HEIGHT == 240) && (LCD_WIDTH == 320)
