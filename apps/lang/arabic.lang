@@ -6512,15 +6512,15 @@
   user: core
   <source>
     *: none
-    radio: "FM Radio"
+    radio,innioasisy1: "FM Radio"
   </source>
   <dest>
     *: none
-    radio: "إذاعة اف ام"
+    radio,innioasisy1: "إذاعة اف ام"
   </dest>
   <voice>
     *: none
-    radio: "إذاعة اف ام"
+    radio,innioasisy1: "إذاعة اف ام"
   </voice>
 </phrase>
 <phrase>

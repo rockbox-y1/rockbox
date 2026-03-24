@@ -88,11 +88,12 @@
  * bit fields to allow PLATFORM_HOSTED to be OR'ed e.g. with a
  * possible future PLATFORM_ANDROID (some OSes might need totally different
  * handling to run on them than a stand-alone application) */
-#define PLATFORM_NATIVE  (1<<0)
-#define PLATFORM_HOSTED  (1<<1)
-#define PLATFORM_ANDROID (1<<2)
-#define PLATFORM_SDL     (1<<3)
-#define PLATFORM_CTRU    (1<<4)
+#define PLATFORM_NATIVE       (1<<0)
+#define PLATFORM_HOSTED       (1<<1)
+#define PLATFORM_ANDROID      (1<<2)
+#define PLATFORM_SDL          (1<<3)
+#define PLATFORM_CTRU         (1<<4)
+#define PLATFORM_INNIOASIS_Y1 (1<<5)
 
 /* CONFIG_KEYPAD */
 #define IRIVER_H100_PAD     4
@@ -157,6 +158,7 @@
 #define RG_NANO_PAD        77
 #define CTRU_PAD           78
 #define HIBY_R3PROII_PAD   79
+#define INNIOASIS_Y1_PAD   80
 
 /* CONFIG_REMOTE_KEYPAD */
 #define H100_REMOTE   1
@@ -492,6 +494,8 @@ Lyre prototype 1 */
 #include "config/sdlapp.h"
 #elif defined(ANDROID)
 #include "config/android.h"
+#elif defined(INNIOASIS_Y1)
+#include "config/innioasisy1.h"
 #elif defined(SAMSUNG_YPR0)
 #include "config/samsungypr0.h"
 #elif defined(CREATIVE_ZENXFI)

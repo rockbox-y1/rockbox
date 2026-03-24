@@ -253,15 +253,15 @@
   user: core
   <source>
     *: none
-    radio: "FM Radio"
+    radio,innioasisy1: "FM Radio"
   </source>
   <dest>
     *: none
-    radio: "FM radio"
+    radio,innioasisy1: "FM radio"
   </dest>
   <voice>
     *: none
-    radio: "FM radio"
+    radio,innioasisy1: "FM radio"
   </voice>
 </phrase>
 <phrase>
@@ -11713,15 +11713,15 @@
   user: core
   <source>
     *: none
-    touchscreen: "OK"
+    touchscreen,innioasisy1: "OK"
   </source>
   <dest>
     *: none
-    touchscreen: "OK"
+    touchscreen,innioasisy1: "OK"
   </dest>
   <voice>
     *: none
-    touchscreen: "OK"
+    touchscreen,innioasisy1: "OK"
   </voice>
 </phrase>
 <phrase>
@@ -11846,15 +11846,15 @@
   user: core
   <source>
     *: none
-    touchscreen: "Del"
+    touchscreen,innioasisy1: "Del"
   </source>
   <dest>
     *: none
-    touchscreen: "Slet"
+    touchscreen,innioasisy1: "Slet"
   </dest>
   <voice>
     *: none
-    touchscreen: "Slet"
+    touchscreen,innioasisy1: "Slet"
   </voice>
 </phrase>
 <phrase>
@@ -11993,15 +11993,15 @@
   user: core
   <source>
     *: none
-    touchscreen: "Cancel"
+    touchscreen,innioasisy1: "Cancel"
   </source>
   <dest>
     *: none
-    touchscreen: "Annuller"
+    touchscreen,innioasisy1: "Annuller"
   </dest>
   <voice>
     *: none
-    touchscreen: "Annuller"
+    touchscreen,innioasisy1: "Annuller"
   </voice>
 </phrase>
 <phrase>

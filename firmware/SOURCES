@@ -24,6 +24,7 @@ target/hosted/rtc.c
 #endif
 
 #if (CONFIG_PLATFORM & PLATFORM_ANDROID) == 0 && \
+    !defined(INNIOASIS_Y1) && \
     !defined(DX50) && !defined(DX90) && \
     (defined(DEBUG) || defined(SIMULATOR) || defined(CTRU)) /* sim should define DEBUG instead */
 target/hosted/debug-hosted.c
@@ -1973,12 +1974,16 @@ target/arm/stm32/echoplayer/system-echoplayer.c
 target/arm/stm32/echoplayer/usb-echoplayer.c
 #endif
 
-#if (CONFIG_PLATFORM & PLATFORM_ANDROID)
+#if (CONFIG_PLATFORM & PLATFORM_ANDROID) || INNIOASIS_Y1
 target/hosted/kernel-unix.c
 target/hosted/filesystem-unix.c
 target/hosted/lc-unix.c
 target/hosted/android/lcd-android.c
+#if (CONFIG_PLATFORM & PLATFORM_ANDROID)
 target/hosted/android/button-android.c
+#else
+target/hosted/android/button-innioasis-y1.c
+#endif
 #ifdef DEBUG
 target/hosted/android/debug-android.c
 #endif
@@ -1987,6 +1992,14 @@ target/hosted/android/powermgmt-android.c
 target/hosted/android/system-android.c
 target/hosted/android/telephony-android.c
 target/hosted/android/android-codec.c
+#if INNIOASIS_Y1
+target/hosted/android/brightness-android.c
+target/hosted/android/screen-timeout-android.c
+target/hosted/android/shutdown-android.c
+target/hosted/android/reset-bluetooth-android.c
+target/hosted/android/update-android.c
+target/hosted/android/connectivity-android.c
+#endif
 #ifdef APPLICATION
 target/hosted/android/app/button-application.c
 #endif

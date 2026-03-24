@@ -374,15 +374,15 @@
   user: core
   <source>
     *: none
-    radio: "FM Radio"
+    radio,innioasisy1: "FM Radio"
   </source>
   <dest>
     *: none
-    radio: "FM Radyo"
+    radio,innioasisy1: "FM Radyo"
   </dest>
   <voice>
     *: none
-    radio: "FM Radyo"
+    radio,innioasisy1: "FM Radyo"
   </voice>
 </phrase>
 <phrase>
@@ -3722,15 +3722,15 @@
   user: core
   <source>
     *: none
-    touchscreen: "OK"
+    touchscreen,innioasisy1: "OK"
   </source>
   <dest>
     *: none
-    touchscreen: "Tamam"
+    touchscreen,innioasisy1: "Tamam"
   </dest>
   <voice>
     *: none
-    touchscreen: "Tamam"
+    touchscreen,innioasisy1: "Tamam"
   </voice>
 </phrase>
 <phrase>
@@ -7674,15 +7674,15 @@
   user: core
   <source>
     *: none
-    touchscreen: "Cancel"
+    touchscreen,innioasisy1: "Cancel"
   </source>
   <dest>
     *: none
-    touchscreen: "İptal"
+    touchscreen,innioasisy1: "İptal"
   </dest>
   <voice>
     *: none
-    touchscreen: "İptal"
+    touchscreen,innioasisy1: "İptal"
   </voice>
 </phrase>
 <phrase>
@@ -7733,15 +7733,15 @@
   user: core
   <source>
     *: none
-    touchscreen: "Del"
+    touchscreen,innioasisy1: "Del"
   </source>
   <dest>
     *: none
-    touchscreen: "Sil"
+    touchscreen,innioasisy1: "Sil"
   </dest>
   <voice>
     *: none
-    touchscreen: "Sil"
+    touchscreen,innioasisy1: "Sil"
   </voice>
 </phrase>
 <phrase>
