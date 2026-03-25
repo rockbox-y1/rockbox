@@ -231,7 +231,7 @@ public class RockboxService extends Service
             public void run()
             {
                 final int BUFFER = 8*1024;
-                String rockboxDirPath = "/data/data/org.rockbox/app_rockbox/";
+                String rockboxDirPath = "/data/data/org.rockbox/app_rockbox/.rockbox/";
                 String rockboxCreditsPath = "/sdcard/.rockbox/rocks/viewers";
                 String rockboxSdDirPath = "/sdcard/.rockbox/";
 
