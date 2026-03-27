@@ -31,8 +31,8 @@
 
 #ifndef __PCTOOL__
 /* open_plugin path lookup */
-#define OPEN_PLUGIN_DAT PLUGIN_DIR "/plugin.dat"
-#define OPEN_RBPLUGIN_DAT PLUGIN_DIR "/rb_plugins.dat"
+#define OPEN_PLUGIN_DAT PLUGIN_DATA_DIR "/plugin.dat"
+#define OPEN_RBPLUGIN_DAT PLUGIN_DATA_DIR "/rb_plugins.dat"
 #define OPEN_PLUGIN_BUFSZ MAX_PATH
 #define OPEN_PLUGIN_NAMESZ 32
 #define OPEN_PLUGIN_CFGNAME "openplugin"
