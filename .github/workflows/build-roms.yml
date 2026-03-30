@@ -1,0 +1,295 @@
+name: Build latest ROMs
+
+on:
+  push:
+    branches: [ "rebase-upstream" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      ANDROID_SDK_PATH: /usr/local/lib/android/sdk
+      ANDROID_NDK_PATH: /home/runner/android-ndk-r10e
+      ANDROID_NDK_ROOT: /home/runner/android-ndk-r10e
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: prepare build environment
+      run: |
+        sudo apt update
+        sudo apt install lib32z1
+        sudo apt install openjdk-17-jdk
+        sudo apt install golang-go
+        java --version
+        cd android/y1
+        yes | ./installToolchain.sh
+    
+    - name: build go tools
+      run: |
+        mkdir android/y1/build
+        cd android/y1/build
+        export GOPATH=$PWD/go
+        export CGO_ENABLED=0
+        export GOOS=linux
+        export GOARCH=arm
+        export GOARM=6
+        git clone https://github.com/rockbox-y1/gocurl.git 
+        cd gocurl
+        git checkout json-data
+        go build -ldflags '-s -w' -o gocurl
+        cd ..
+        git clone https://codeberg.org/rockbox-y1/download-podcast.git
+        cd download-podcast
+        git checkout patches
+        git clone https://github.com/rockbox-y1/id3-go.git
+        cd id3-go
+        git checkout patches
+        cd ..
+        go build -o poddl
+    
+    - name: build rockbox
+      run: |
+        cd android/y1/build
+        ../../../tools/configure --target=310 --lcdwidth=480 --lcdheight=360 --type=n
+        make clean
+        make
+        make classes
+        make zip
+        make unsigned-apk
+        # Sign APK
+        APKSIGNER=""
+        if command -v apksigner >/dev/null 2>&1; then
+            APKSIGNER="apksigner"
+        elif [ -n "$ANDROID_SDK_PATH" ] && [ -f "$ANDROID_SDK_PATH/build-tools/$(ls -1 "$ANDROID_SDK_PATH/build-tools" | tail -1)/apksigner" ]; then
+            APKSIGNER="$ANDROID_SDK_PATH/build-tools/$(ls -1 "$ANDROID_SDK_PATH/build-tools" | tail -1)/apksigner"
+        fi
+        $APKSIGNER sign --key ../platform.pk8 --cert ../platform.x509.pem rockbox_unsigned.apk
+        cp rockbox_unsigned.apk rockbox.apk
+      
+    - name: bundle update.zip
+      run: |
+        cd android/y1/build
+        mkdir update
+        wget https://github.com/rockbox-y1/rockbox/releases/download/stock-menu/com.innioasis.y1_2.7.2.apk
+        cp -r libs update/libs
+        cp com.innioasis*.apk update/.
+        cp rockbox.apk update/rockbox.apk
+        cp ../scripts/install-recovery.sh update/.
+        cp ../scripts/99Y1ButtonScript update/.
+        cp ../scripts/switch-to-stock.sh update/.
+        cp ../scripts/update.sh update/.
+        cp ../scripts/Rockbox.kl update/.
+        cp ../scripts/Stock.kl update/.
+        cp gocurl/gocurl update/.
+        cp download-podcast/poddl update/.
+        zip -r update.zip update/*
+        rm -rf update
+  
+    - name: bundle ROMs
+      run: |
+        # Type A
+        mkdir base
+        cd base
+        wget https://github.com/rockbox-y1/rockbox/releases/download/type-a-base/rom.zip
+        wget https://github.com/rockbox-y1/rockbox/releases/download/stock-menu/com.innioasis.y1_2.7.2.apk
+        unzip rom.zip
+        mkdir mount_sys
+        mkdir mount_user
+        sudo mount -t ext4 -o loop system.img mount_sys
+        sudo mount -t ext4 -o loop userdata.img mount_user
+        sudo cp com.innioasis.y1_2.7.2.apk mount_user/data/com.innioasis.y1.apk
+        sudo cp ../android/y1/scripts/LeanKeyKeyboardPro_v5.2.15_r.apk mount_user/data/LeanKeyKeyboardPro_v5.2.15_r.apk
+        sudo cp ../android/y1/build/rockbox.apk mount_sys/app/org.rockbox.apk
+        sudo chmod 644 mount_sys/app/org.rockbox.apk
+        sudo chown root:root mount_sys/app/org.rockbox.apk
+        sudo mkdir -p mount_sys/lib
+        sudo cp ../android/y1/build/libs/armeabi/librockbox.so mount_sys/lib/.
+        sudo chmod 644 mount_sys/lib/librockbox.so
+        sudo chown root:root mount_sys/lib/librockbox.so
+        sudo rm -rf mount_user/data/org.rockbox/lib
+        sudo mkdir -p mount_user/data/org.rockbox/lib
+        sudo cp ../android/y1/build/libs/armeabi/* mount_user/data/org.rockbox/lib/.
+        sudo chmod 777 mount_user/data/org.rockbox/lib/*
+        sudo rm -rf mount_user/data/org.rockbox/app_rockbox
+        sudo mkdir -p mount_user/data/org.rockbox/app_rockbox/.rockbox/docs
+        sudo cp ../docs/COPYING mount_user/data/org.rockbox/app_rockbox/.rockbox/docs/COPYING.txt
+        sudo cp ../docs/LICENSES mount_user/data/org.rockbox/app_rockbox/.rockbox/docs/LICENSES.txt
+        unzip ../android/y1/build/libs/armeabi/libmisc.so
+        for f in sdcard/.rockbox/*; do
+          sudo cp -rf "$f" mount_user/data/org.rockbox/app_rockbox/.rockbox/
+        done
+
+        sudo cp ../android/y1/scripts/install-recovery.sh mount_sys/etc/install-recovery.sh
+        sudo chmod 755 mount_sys/etc/install-recovery.sh
+        sudo mkdir -p mount_sys/etc/init.d
+        sudo cp ../android/y1/scripts/99Y1ButtonScript mount_sys/etc/init.d/
+        sudo chmod 755 mount_sys/etc/init.d/99Y1ButtonScript
+        sudo cp ../android/y1/scripts/switch-to-stock.sh mount_user/data/
+
+        sudo cp ../android/y1/build/gocurl/gocurl mount_user/data
+        sudo chmod 755 mount_user/data/gocurl
+        sudo cp ../android/y1/build/download-podcast/poddl mount_user/data
+        sudo chmod 755 mount_user/data/poddl
+        wget https://curl.se/ca/cacert.pem
+        sudo cp cacert.pem mount_user/data
+
+        sudo cp ../android/y1/scripts/Rockbox.kl mount_sys/usr/keylayout/Rockbox.kl
+        sudo cp ../android/y1/scripts/Stock.kl mount_sys/usr/keylayout/Stock.kl
+        sudo cp ../android/y1/scripts/Rockbox.kl mount_sys/usr/keylayout/Generic.kl
+
+        sudo mkdir -p mount_user/data/update
+        sudo cp ../android/y1/scripts/update.sh mount_user/data/update/update.sh
+
+        sudo cp ../android/y1/scripts/bootanimation.zip mount_sys/media/bootanimation.zip
+
+        # Remove unneeded apps and services to save battery
+        sudo rm mount_sys/app/YGPS.*
+        sudo rm mount_sys/app/SmsReg.*
+        sudo rm mount_sys/app/Phone.*
+        sudo rm mount_sys/app/Nfc.*
+        sudo rm mount_sys/app/CellConnService.*
+        sudo rm mount_sys/app/MediaProvider.*
+        sudo rm mount_sys/app/EngineerCode.*
+        sudo rm mount_sys/app/EngineerMode.*
+        sudo rm mount_sys/app/EngineerModeSim.*
+        sudo rm mount_sys/lib/modules/ccci.ko
+        sudo rm mount_sys/lib/modules/ccci_plat.ko
+        sudo rm mount_sys/lib/modules/mtk_stp_gps.ko
+
+        sudo umount mount_sys
+        sudo umount mount_user
+        rm rom.zip
+        rm com.innioasis.y1_2.7.2.apk
+        rm -r mount_sys
+        rm -r mount_user
+        rm -r sdcard/.rockbox
+        cd ../
+        zip -j rom.zip base/*
+        
+        # Type B
+        mkdir base_type_b
+        cd base_type_b
+        wget https://github.com/rockbox-y1/rockbox/releases/download/type-b-base/rom.zip
+        wget https://github.com/rockbox-y1/rockbox/releases/download/stock-menu/com.innioasis.y1_2.7.2.apk
+        unzip rom.zip
+        mkdir mount_sys
+        mkdir mount_user
+        sudo mount -t ext4 -o loop system.img mount_sys
+        sudo mount -t ext4 -o loop userdata.img mount_user
+        sudo cp com.innioasis.y1_2.7.2.apk mount_user/data/com.innioasis.y1.apk
+        sudo cp ../android/y1/scripts/LeanKeyKeyboardPro_v5.2.15_r.apk mount_user/data/LeanKeyKeyboardPro_v5.2.15_r.apk
+        sudo cp ../android/y1/build/rockbox.apk mount_sys/app/org.rockbox.apk
+        sudo chmod 644 mount_sys/app/org.rockbox.apk
+        sudo chown root:root mount_sys/app/org.rockbox.apk
+        sudo mkdir -p mount_sys/lib
+        sudo cp ../android/y1/build/libs/armeabi/librockbox.so mount_sys/lib/.
+        sudo chmod 644 mount_sys/lib/librockbox.so
+        sudo chown root:root mount_sys/lib/librockbox.so
+        sudo rm -rf mount_user/data/org.rockbox/lib
+        sudo mkdir -p mount_user/data/org.rockbox/lib
+        sudo cp ../android/y1/build/libs/armeabi/* mount_user/data/org.rockbox/lib/.
+        sudo chmod 777 mount_user/data/org.rockbox/lib/*
+        sudo rm -rf mount_user/data/org.rockbox/app_rockbox
+        sudo mkdir -p mount_user/data/org.rockbox/app_rockbox/.rockbox/docs
+        sudo cp ../docs/COPYING mount_user/data/org.rockbox/app_rockbox/.rockbox/docs/COPYING.txt
+        sudo cp ../docs/LICENSES mount_user/data/org.rockbox/app_rockbox/.rockbox/docs/LICENSES.txt
+        unzip ../android/y1/build/libs/armeabi/libmisc.so
+        for f in sdcard/.rockbox/*; do
+          sudo cp -rf "$f" mount_user/data/org.rockbox/app_rockbox/.rockbox/
+        done
+
+        sudo cp ../android/y1/scripts/install-recovery.sh mount_sys/etc/install-recovery.sh
+        sudo chmod 755 mount_sys/etc/install-recovery.sh
+        sudo mkdir -p mount_sys/etc/init.d
+        sudo cp ../android/y1/scripts/99Y1ButtonScript mount_sys/etc/init.d/
+        sudo chmod 755 mount_sys/etc/init.d/99Y1ButtonScript
+        sudo cp ../android/y1/scripts/switch-to-stock.sh mount_user/data/
+
+        sudo cp ../android/y1/build/gocurl/gocurl mount_user/data
+        sudo chmod 755 mount_user/data/gocurl
+        sudo cp ../android/y1/build/download-podcast/poddl mount_user/data
+        sudo chmod 755 mount_user/data/poddl
+        wget https://curl.se/ca/cacert.pem
+        sudo cp cacert.pem mount_user/data
+
+        sudo cp ../android/y1/scripts/Rockbox.kl mount_sys/usr/keylayout/Rockbox.kl
+        sudo cp ../android/y1/scripts/Stock.kl mount_sys/usr/keylayout/Stock.kl
+        sudo cp ../android/y1/scripts/Rockbox.kl mount_sys/usr/keylayout/Generic.kl
+
+        sudo mkdir -p mount_user/data/update
+        sudo cp ../android/y1/scripts/update.sh mount_user/data/update/update.sh
+
+        sudo cp ../android/y1/scripts/bootanimation.zip mount_sys/media/bootanimation.zip
+
+        # Remove unneeded apps and services to save battery
+        sudo rm mount_sys/app/YGPS.*
+        sudo rm mount_sys/app/SmsReg.*
+        sudo rm mount_sys/app/Phone.*
+        sudo rm mount_sys/app/Nfc.*
+        sudo rm mount_sys/app/CellConnService.*
+        sudo rm mount_sys/app/MediaProvider.*
+        sudo rm mount_sys/app/EngineerCode.*
+        sudo rm mount_sys/app/EngineerMode.*
+        sudo rm mount_sys/app/EngineerModeSim.*
+        sudo rm mount_sys/lib/modules/ccci.ko
+        sudo rm mount_sys/lib/modules/ccci_plat.ko
+        sudo rm mount_sys/lib/modules/mtk_stp_gps.ko
+
+        sudo umount mount_sys
+        sudo umount mount_user
+        rm rom.zip
+        rm com.innioasis.y1_2.7.2.apk
+        rm -r mount_sys
+        rm -r mount_user
+        rm -r sdcard/.rockbox
+        cd ../
+        zip -j rom_type_b.zip base_type_b/*
+    
+    # Set release date
+    - name: Set release date
+      id: date
+      run: echo "release_date=$(date +'%d-%m-%Y')" >> $GITHUB_OUTPUT
+    
+    # Create single release
+    - name: create release
+      id: create_release
+      uses: shogo82148/actions-create-release@v1
+      with:
+        release_name: Rockbox-Y1 Nightly-${{ steps.date.outputs.release_date }}
+        tag_name: nightly-${{ github.sha }}
+        prerelease: true
+        make_latest: false
+    
+    # Upload all assets to single release
+    - name: upload APK
+      uses: shogo82148/actions-upload-release-asset@v1
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./android/y1/build/rockbox.apk
+        asset_name: rockbox.apk
+        asset_content_type: application/vnd.android.package-archive
+
+    - name: upload update.zip
+      uses: shogo82148/actions-upload-release-asset@v1
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./android/y1/build/update.zip
+        asset_name: update.zip
+        asset_content_type: application/zip
+    
+    - name: upload rom.zip
+      uses: shogo82148/actions-upload-release-asset@v1
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./rom.zip
+        asset_name: rom.zip
+        asset_content_type: application/zip
+    
+    - name: upload rom_type_b.zip
+      uses: shogo82148/actions-upload-release-asset@v1
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./rom_type_b.zip
+        asset_name: rom_type_b.zip
+        asset_content_type: application/zip
