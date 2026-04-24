@@ -6,7 +6,7 @@
 #include <string.h>
 #include "powermgmt-android.h"
 
-#ifdef PLATFORM_INNIOASIS_Y1
+#ifdef INNIOASIS_Y1
 /* global fields for use with various JNI calls */
 extern JNIEnv *env_ptr;
 extern jobject RockboxService_instance;

@@ -4,7 +4,7 @@
 #include "screen-timeout-android.h"
 #include <jni.h>
 
-#ifdef PLATFORM_INNIOASIS_Y1
+#ifdef INNIOASIS_Y1
 
 /* External references to JNI environment and service */
 extern JNIEnv *env_ptr;
@@ -75,4 +75,4 @@ int android_screen_timeout_get(void)
     return (int)result;
 }
 
-#endif /* PLATFORM_INNIOASIS_Y1 */ 
+#endif /* INNIOASIS_Y1 */ 

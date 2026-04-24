@@ -9,7 +9,7 @@
 #include "settings.h"
 #include "splash.h"
 
-#ifdef PLATFORM_INNIOASIS_Y1
+#ifdef INNIOASIS_Y1
 /* wrapper for the system fm radio */
 static int fm_radio_app_func(void)
 {
