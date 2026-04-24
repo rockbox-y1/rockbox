@@ -189,7 +189,7 @@ static int browser(void* param)
                     /* Maybe just needs to reboot due to delayed commit */
                     if (stat->commit_delayed)
                     {
-                        #ifdef PLATFORM_INNIOASIS_Y1
+                        #ifdef INNIOASIS_Y1
                                 splash(HZ, "Restarting Rockbox to apply...");
                                 list_stop_handler();
                                 sleep(1);
@@ -473,7 +473,7 @@ extern struct menu_item_ex
         playlist_options,
         info_menu,
         system_menu;
-#ifdef PLATFORM_INNIOASIS_Y1
+#ifdef INNIOASIS_Y1
 extern struct menu_item_ex fm_radio_app_item;
 #endif
 static const struct root_items items[] = {
@@ -500,7 +500,7 @@ static const struct root_items items[] = {
     [GO_TO_PLAYLIST_VIEWER] = { playlist_view, NULL, &playlist_options },
     [GO_TO_SYSTEM_SCREEN] = { miscscrn, &info_menu, &system_menu },
     [GO_TO_SHORTCUTMENU] = { do_shortcut_menu, NULL, NULL },
-#ifdef PLATFORM_INNIOASIS_Y1
+#ifdef INNIOASIS_Y1
     [GO_TO_FM_RADIO_APP] = { miscscrn, &fm_radio_app_item, NULL },
 #endif
 
@@ -571,7 +571,7 @@ static struct menu_table menu_table[] = {
     { "radio", &fm },
 #endif
     { "playlists", &playlists },
-#ifdef PLATFORM_INNIOASIS_Y1
+#ifdef INNIOASIS_Y1
     { "fm_radio_app", &fm_radio_app_item },
 #endif
     { "plugins", &rocks_browser },
@@ -856,7 +856,7 @@ static int load_plugin_screen(char *key)
 
 static void ignore_back_button_stub(bool ignore)
 {
-#if (defined(PLATFORM_ANDROID) || defined(PLATFORM_INNIOASIS_Y1))
+#if (defined(PLATFORM_ANDROID) || defined(INNIOASIS_Y1))
     /* BACK button to be handled by Android instead of rockbox */
     android_ignore_back_button(ignore);
 #else

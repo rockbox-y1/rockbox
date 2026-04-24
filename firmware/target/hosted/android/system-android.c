@@ -44,7 +44,7 @@ extern void telephony_init_device(void);
 void system_exception_wait(void)
 {
     intptr_t dummy = 0;
-#ifdef PLATFORM_INNIOASIS_Y1
+#ifdef INNIOASIS_Y1
     while(button_read_device(&dummy) != BUTTON_MENU);
 #else
     while(button_read_device(&dummy) != BUTTON_BACK);
@@ -66,7 +66,7 @@ void power_off(void)
 void system_init(void)
 {
     /* no better place yet */
-#ifndef PLATFORM_INNIOASIS_Y1
+#ifndef INNIOASIS_Y1
     telephony_init_device();
 #endif
 }

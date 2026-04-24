@@ -47,7 +47,7 @@
 #include "bookmark.h"
 #include "root_menu.h"
 #include "general.h"
-#ifdef PLATFORM_INNIOASIS_Y1
+#ifdef INNIOASIS_Y1
 #include "filesystem-app.h"
 #endif
 
@@ -80,7 +80,7 @@ static size_t get_directory(char* dirbuf, size_t dirbuf_sz)
         pl_dir = global_settings.playlist_catalog_dir;
     }
 
-#ifdef PLATFORM_INNIOASIS_Y1
+#ifdef INNIOASIS_Y1
     /* Apply path replacement for <HOME> and other special directories */
     const char *replaced_path = handle_special_dirs(pl_dir, 0, dirbuf, dirbuf_sz);
     if (replaced_path != dirbuf)

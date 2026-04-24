@@ -28,7 +28,7 @@ unsigned dpad_to_button(int keyboard_key);
 void android_ignore_back_button(bool yes);
 
 /* Main unit's buttons */
-#if (CONFIG_PLATFORM & PLATFORM_ANDROID)
+#if (CONFIG_PLATFORM & PLATFORM_ANDROID) && !defined(INNIOASIS_Y1)
 #define BUTTON_MENU        0x00000001
 #define BUTTON_BACK        0x00000002
 #define BUTTON_DPAD_LEFT   0x00000004
@@ -50,7 +50,7 @@ void android_ignore_back_button(bool yes);
 #endif
 
 /* Compatibility hacks for flipping. Needs a somewhat better fix. */
-#if (CONFIG_PLATFORM & PLATFORM_ANDROID)
+#if (CONFIG_PLATFORM & PLATFORM_ANDROID) && !defined(INNIOASIS_Y1)
 #define BUTTON_LEFT  BUTTON_DPAD_LEFT
 #define BUTTON_RIGHT BUTTON_DPAD_RIGHT
 #define BUTTON_UP    BUTTON_DPAD_UP
@@ -69,7 +69,8 @@ void android_ignore_back_button(bool yes);
 #define BUTTON_BOTTOMRIGHT  0x00100000
 #endif
 
-#ifdef PLATFORM_INNIOASIS_Y1
+/* For INNIOASIS_Y1: define BUTTON_MAIN from the non-Android button set */
+#ifdef INNIOASIS_Y1
 #define BUTTON_MAIN (BUTTON_SELECT|BUTTON_MENU\
                 |BUTTON_LEFT|BUTTON_RIGHT|BUTTON_SCROLL_FWD\
                 |BUTTON_SCROLL_BACK|BUTTON_PLAY)

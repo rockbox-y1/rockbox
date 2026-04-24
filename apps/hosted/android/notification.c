@@ -71,7 +71,7 @@ static void track_changed_callback(unsigned short id, void *param)
         albumart = NULL;
         if (id3->has_embedded_albumart && id3->albumart.type == AA_TYPE_JPG)
         {   /* extract albumart to a temporary file using mmap() */
-#ifdef PLATFORM_INNIOASIS_Y1
+#ifdef INNIOASIS_Y1
             snprintf(buf, sizeof(buf), "/sdcard/.rockbox/.temp_albumart_%d.jpg",
 #else
             snprintf(buf, sizeof(buf), "/sdcard/rockbox/.temp_albumart_%d.jpg",
@@ -123,7 +123,7 @@ static void track_finished_callback(unsigned short id, void *param)
 
     /* delete temporary albumart file */
     char buf[MAX_PATH];
-#ifdef PLATFORM_INNIOASIS_Y1
+#ifdef INNIOASIS_Y1
     snprintf(buf, sizeof(buf), "/sdcard/.rockbox/.temp_albumart_%d.jpg",
 #else
     snprintf(buf, sizeof(buf), "/sdcard/rockbox/.temp_albumart_%d.jpg",

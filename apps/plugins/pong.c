@@ -636,7 +636,7 @@ static int keys(struct pong *p)
 #endif
 
     /* number of ticks this function will loop reading keys */
-#if !defined(HAVE_TOUCHSCREEN) || defined(PLATFORM_INNIOASIS_Y1)
+#if !defined(HAVE_TOUCHSCREEN) || defined(INNIOASIS_Y1)
     int time = 4;
 #else
     int time = 1;

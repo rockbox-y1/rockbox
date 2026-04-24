@@ -108,7 +108,7 @@
 #include "piezo.h"
 #endif
 
-#ifdef PLATFORM_INNIOASIS_Y1
+#ifdef INNIOASIS_Y1
 #include "powermgmt-android.h"
 #endif
 
@@ -1567,7 +1567,7 @@ int toggle_sleeptimer(void)
     int new_duration = current_timer ? 0 : global_settings.sleeptimer_duration;
     
     set_sleeptimer_duration(new_duration);
-#ifdef PLATFORM_INNIOASIS_Y1
+#ifdef INNIOASIS_Y1
     if (current_timer) {
         android_release_wakelock();
     } else if (new_duration > 0) {
