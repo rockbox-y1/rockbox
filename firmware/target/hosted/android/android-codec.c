@@ -28,7 +28,7 @@ void audiohw_set_volume(int volume)
     pcm_set_mixer_volume(volume);
 }
 
-#ifdef PLATFORM_INNIOASIS_Y1
+#ifdef INNIOASIS_Y1
 void audiohw_set_balance(int balance)
 {
     extern void pcm_set_balance(int);

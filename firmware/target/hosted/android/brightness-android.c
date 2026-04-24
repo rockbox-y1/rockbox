@@ -4,7 +4,7 @@
 #include "brightness-android.h"
 #include <jni.h>
 
-#ifdef PLATFORM_INNIOASIS_Y1
+#ifdef INNIOASIS_Y1
 
 /* External references to JNI environment and service */
 extern JNIEnv *env_ptr;
@@ -72,4 +72,4 @@ void backlight_hw_off(void){
     return;
 }
 
-#endif /* PLATFORM_INNIOASIS_Y1 */ 
+#endif /* INNIOASIS_Y1 */ 

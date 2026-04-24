@@ -1041,7 +1041,7 @@ struct plugin_api {
        the API gets incompatible */
     int (*font_measurestring)(const unsigned char *str, size_t maxbytes,
                               size_t maxwidth, int *w, int *h, int fontnum);
-#ifdef PLATFORM_INNIOASIS_Y1
+#ifdef INNIOASIS_Y1
     bool (*upload_scrobble)(const char *artist, const char *track, const char *album, int timestamp, long length);
     char** (*android_podcast_get_episode_list)(int podcast_num);
     const char* (*android_podcast_get_episode_path)(int podcast_num, int num);

@@ -128,7 +128,7 @@ static void tagcache_rebuild_with_splash(void)
 {
     tagcache_rebuild();
     splash(HZ*2, ID2P(LANG_TAGCACHE_FORCE_UPDATE_SPLASH));
-#ifdef PLATFORM_INNIOASIS_Y1
+#ifdef INNIOASIS_Y1
     splash(HZ, "Restarting Rockbox to apply...");
     list_stop_handler();
     sleep(1);
@@ -141,7 +141,7 @@ static void tagcache_update_with_splash(void)
 {
     tagcache_update();
     splash(HZ*2, ID2P(LANG_TAGCACHE_FORCE_UPDATE_SPLASH));
-#ifdef PLATFORM_INNIOASIS_Y1
+#ifdef INNIOASIS_Y1
     splash(HZ, "Restarting Rockbox to apply...");
     list_stop_handler();
     sleep(1);
@@ -313,7 +313,7 @@ static int dircache_callback(int action,
             if (global_settings.dircache)
             {
                 if (dircache_enable() < 0)
-            #ifdef PLATFORM_INNIOASIS_Y1
+            #ifdef INNIOASIS_Y1
                     splash(HZ, "Restarting Rockbox to apply...");
                     list_stop_handler();
                     sleep(1);
@@ -362,7 +362,7 @@ MENUITEM_SETTING(volume_adjust_norm_steps, &global_settings.volume_adjust_norm_s
 /* Keyclick menu */
 MENUITEM_SETTING(keyclick, &global_settings.keyclick, NULL);
 MENUITEM_SETTING(keyclick_repeats, &global_settings.keyclick_repeats, NULL);
-#ifdef PLATFORM_INNIOASIS_Y1
+#ifdef INNIOASIS_Y1
 MENUITEM_SETTING(taptic_mode, &global_settings.taptic_mode, NULL);
 MENUITEM_SETTING(wheel_vibrations, &global_settings.wheel_vibration_intensity, NULL);
 #endif
@@ -373,7 +373,7 @@ MAKE_MENU(keyclick_menu, ID2P(LANG_KEYCLICK), 0, Icon_NOICON,
 #else
 MAKE_MENU(keyclick_menu, ID2P(LANG_KEYCLICK), 0, Icon_NOICON,
            &keyclick, &keyclick_repeats
-#ifdef PLATFORM_INNIOASIS_Y1
+#ifdef INNIOASIS_Y1
            ,&taptic_mode, &wheel_vibrations
 #endif
         );

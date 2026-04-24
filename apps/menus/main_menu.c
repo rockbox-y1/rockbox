@@ -48,7 +48,7 @@
 #include "wps.h"
 #include "skin_buffer.h"
 #include "disk.h"
-#ifdef PLATFORM_INNIOASIS_Y1
+#ifdef INNIOASIS_Y1
 #include "../firmware/target/hosted/android/brightness-android.h"
 #include "../firmware/target/hosted/android/shutdown-android.h"
 #include "../firmware/target/hosted/android/reset-bluetooth-android.h"
@@ -116,7 +116,7 @@ MAKE_MENU(manage_settings, ID2P(LANG_MANAGE_MENU), NULL, Icon_Config,
 /*    MANAGE SETTINGS MENU        */
 /**********************************/
 
-#ifdef PLATFORM_INNIOASIS_Y1
+#ifdef INNIOASIS_Y1
 /***********************************/
 /*    BlUETOOTH SETTINGS MENU      */
 static int bluetooth_settings_func(void)
@@ -519,7 +519,7 @@ MENUITEM_FUNCTION(debug_menu_item, 0, ID2P(LANG_DEBUG),
 MENUITEM_FUNCTION(show_legal_item, 0, ID2P(LANG_LEGAL_NOTICES),
                   show_legal, NULL, Icon_NOICON);
 
-#ifdef PLATFORM_INNIOASIS_Y1
+#ifdef INNIOASIS_Y1
 
 static int android_restart_func(void)
 {
@@ -573,7 +573,7 @@ MAKE_MENU(info_menu, ID2P(LANG_SYSTEM), 0, Icon_System_menu,
 /*      INFO MENU                  */
 /***********************************/
 
-#ifndef PLATFORM_INNIOASIS_Y1
+#ifndef INNIOASIS_Y1
 static int main_menu_config(void)
 {
     plugin_load(PLUGIN_APPS_DIR "/main_menu_config.rock", NULL);
@@ -588,7 +588,7 @@ MENUITEM_FUNCTION(main_menu_config_item, 0, ID2P(LANG_MAIN_MENU),
 
 MAKE_MENU(main_menu_, ID2P(LANG_SETTINGS), NULL,
         Icon_Submenu_Entered,
-#ifdef PLATFORM_INNIOASIS_Y1
+#ifdef INNIOASIS_Y1
         &bluetooth_menu,
         &system_menu_item,
 #endif
@@ -601,7 +601,7 @@ MAKE_MENU(main_menu_, ID2P(LANG_SETTINGS), NULL,
 #if CONFIG_RTC
         &timedate_item,
 #endif
-#ifndef PLATFORM_INNIOASIS_Y1
+#ifndef INNIOASIS_Y1
         &main_menu_config_item,
 #endif
         &manage_settings,

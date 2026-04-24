@@ -73,7 +73,7 @@
 static unsigned char pluginbuf[PLUGIN_BUFFER_SIZE];
 void sim_lcd_ex_init(unsigned long (*getpixel)(int, int));
 void sim_lcd_ex_update_rect(int x, int y, int width, int height);
-#ifdef PLATFORM_INNIOASIS_Y1
+#ifdef INNIOASIS_Y1
 bool upload_scrobble(const char *artist, const char *track, const char *album, int timestamp, long length);
 char** android_podcast_get_episode_list(int podcast_num);
 const char* android_podcast_get_episode_path(int podcast_num, int num);
@@ -888,7 +888,7 @@ static const struct plugin_api rockbox_api = {
     /* new stuff at the end, sort into place next time
        the API gets incompatible */
     font_measurestring,
-#ifdef PLATFORM_INNIOASIS_Y1
+#ifdef INNIOASIS_Y1
     .upload_scrobble = upload_scrobble,
     .android_podcast_get_podcast_names = android_podcast_get_podcast_names,
     .android_podcast_get_episode_list = android_podcast_get_episode_list,

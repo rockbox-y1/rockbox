@@ -74,7 +74,7 @@
 #include "governor-ibasso.h"
 #endif
 
-#ifdef PLATFORM_INNIOASIS_Y1
+#ifdef INNIOASIS_Y1
 #include "../firmware/target/hosted/android/screen-timeout-android.h"
 #endif
 
@@ -940,7 +940,7 @@ static void hp_lo_select_apply(int arg)
 }
 #endif
 
-#ifdef PLATFORM_INNIOASIS_Y1
+#ifdef INNIOASIS_Y1
 void android_screen_timeout_callback(int timeout)
 {
     /* Convert choice index to actual timeout value */
@@ -2241,7 +2241,7 @@ const struct settings_list settings[] = {
                    ID2P(LANG_STRONG)),
     OFFON_SETTING(0, keyclick_repeats, LANG_KEYCLICK_REPEATS, false,
                   "keyclick repeats", NULL),
-#ifdef PLATFORM_INNIOASIS_Y1
+#ifdef INNIOASIS_Y1
     OFFON_SETTING(0, taptic_mode, LANG_TAPTIC_ENGINE_MODE, false,
                   "taptic mode", NULL),
     CHOICE_SETTING(0, wheel_vibration_intensity, LANG_WHEEL_VIBRATIONS, 25,
@@ -2446,7 +2446,7 @@ const struct settings_list settings[] = {
     ID2P(LANG_AUTO), ID2P(LANG_HEADPHONE), ID2P(LANG_LINEOUT)),
 #endif
     OFFON_SETTING(0, playback_log, LANG_LOGGING, false, "play log", NULL),
-#ifdef PLATFORM_INNIOASIS_Y1
+#ifdef INNIOASIS_Y1
     CHOICE_SETTING(0, android_screen_timeout, LANG_TIMEOUT, -1,
                    "android screen timeout", "15,30,60,120,300,600,1800", android_screen_timeout_callback, 7,
                    "15 seconds", "30 seconds", "1 minute", "2 minutes", "5 minutes", "10 minutes", "30 minutes"),

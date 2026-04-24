@@ -93,7 +93,6 @@
 #define PLATFORM_ANDROID      (1<<2)
 #define PLATFORM_SDL          (1<<3)
 #define PLATFORM_CTRU         (1<<4)
-#define PLATFORM_INNIOASIS_Y1 (1<<5)
 
 /* CONFIG_KEYPAD */
 #define IRIVER_H100_PAD     4
