@@ -2494,7 +2494,7 @@ static int brickmania_game_loop(void)
             switch(button)
             {
 #if defined(HAVE_TOUCHSCREEN)
-#ifndef PLATFORM_INNIOASIS_Y1
+#ifndef INNIOASIS_Y1
                 case (BUTTON_REL | BUTTON_TOUCHSCREEN):
 #endif
 #endif

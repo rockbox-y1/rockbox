@@ -1971,12 +1971,12 @@ target/arm/stm32/echoplayer/system-echoplayer.c
 target/arm/stm32/echoplayer/usb-echoplayer.c
 #endif
 
-#if (CONFIG_PLATFORM & PLATFORM_ANDROID) || INNIOASIS_Y1
+#if (CONFIG_PLATFORM & PLATFORM_ANDROID) || defined(INNIOASIS_Y1)
 target/hosted/kernel-unix.c
 target/hosted/filesystem-unix.c
 target/hosted/lc-unix.c
 target/hosted/android/lcd-android.c
-#if (CONFIG_PLATFORM & PLATFORM_ANDROID)
+#if (CONFIG_PLATFORM & PLATFORM_ANDROID) && !defined(INNIOASIS_Y1)
 target/hosted/android/button-android.c
 #else
 target/hosted/android/button-innioasis-y1.c
@@ -1989,7 +1989,7 @@ target/hosted/android/powermgmt-android.c
 target/hosted/android/system-android.c
 target/hosted/android/telephony-android.c
 target/hosted/android/android-codec.c
-#if INNIOASIS_Y1
+#if defined(INNIOASIS_Y1)
 target/hosted/android/brightness-android.c
 target/hosted/android/screen-timeout-android.c
 target/hosted/android/shutdown-android.c

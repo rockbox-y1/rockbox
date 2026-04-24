@@ -167,7 +167,7 @@ static int timestretch_callback(int action,
     {
         case ACTION_EXIT_MENUITEM: /* on exit */
             if (global_settings.timestretch_enabled && !dsp_timestretch_available())
-                #ifdef PLATFORM_INNIOASIS_Y1
+                #ifdef INNIOASIS_Y1
                         splash(HZ, "Restarting Rockbox...");
                         list_stop_handler();
                         sleep(1);

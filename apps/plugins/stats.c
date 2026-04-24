@@ -26,7 +26,7 @@ enum plugin_status plugin_start(const void* parameter)
     (void)parameter;
     int button, success;
     static struct dir_stats stats;
-#ifdef PLATFORM_INNIOASIS_Y1
+#ifdef INNIOASIS_Y1
     rb->strcpy(stats.dirname, "/sdcard/");
 #else
     stats.dirname[0] = '/';

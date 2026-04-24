@@ -884,7 +884,7 @@ static long find_entry_disk(const char *filename_raw, bool localfd)
 
     const char *filename = filename_raw;
 
-#if defined(APPLICATION) && !defined(PLATFORM_INNIOASIS_Y1)
+#if defined(APPLICATION) && !defined(INNIOASIS_Y1)
     char pathbuf[PATH_MAX]; /* Note: Don't use MAX_PATH here, it's too small */
     if (realpath(filename, pathbuf) == pathbuf)
         filename = pathbuf;

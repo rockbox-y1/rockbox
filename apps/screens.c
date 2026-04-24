@@ -135,7 +135,7 @@ bool set_time_screen(const char* title, struct tm *tm, bool set_date)
     struct viewport viewports[NB_SCREENS];
     bool done = false, usb = false;
     int cursorpos = 0;
-#ifdef PLATFORM_INNIOASIS_Y1
+#ifdef INNIOASIS_Y1
     bool adjust_mode = false;
 #endif
     unsigned char offsets_ptr[] =

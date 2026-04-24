@@ -259,7 +259,7 @@ bool collect_dir_stats(struct dir_stats *stats, bool (*id3_cb)(const char*))
         {
             if (!rb->strcmp((char *)entry->d_name, ".") ||
                 !rb->strcmp((char *)entry->d_name, "..")
-#ifdef PLATFORM_INNIOASIS_Y1
+#ifdef INNIOASIS_Y1
                 || !rb->strcmp((char *)entry->d_name, ".android_secure")
 #endif
                 )

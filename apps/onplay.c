@@ -1010,7 +1010,7 @@ static bool set_databasedir(void)
     struct tagcache_stat *tc_stat = tagcache_get_stat();
     if (strcasecmp(selected_file.path, tc_stat->db_path))
     {
-#ifdef PLATFORM_INNIOASIS_Y1
+#ifdef INNIOASIS_Y1
         splash(HZ, "Restarting Rockbox to apply...");
         list_stop_handler();
         sleep(1);

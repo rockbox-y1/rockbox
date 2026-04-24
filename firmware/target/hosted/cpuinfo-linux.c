@@ -40,7 +40,7 @@
 #include "debug.h"
 
 #undef open /* want the *real* open here, not sim_open or the like */
-#if (CONFIG_PLATFORM & PLATFORM_ANDROID) || defined(PLATFORM_INNIOASIS_Y1) || defined(DX50) || defined(DX90)
+#if (CONFIG_PLATFORM & PLATFORM_ANDROID) || defined(INNIOASIS_Y1) || defined(DX50) || defined(DX90)
 #include "cpu-features.h"
 #define get_nprocs android_getCpuCount
 #endif

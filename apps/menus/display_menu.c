@@ -46,7 +46,7 @@
 #include "viewport.h"
 #include "statusbar.h" /* statusbar_vals enum*/
 #include "rbunicode.h"
-#ifdef PLATFORM_INNIOASIS_Y1
+#ifdef INNIOASIS_Y1
 #include "../firmware/target/hosted/android/screen-timeout-android.h"
 #endif
 
@@ -184,7 +184,7 @@ MENUITEM_SETTING(lcd_sleep_after_backlight_off,
 #ifdef HAVE_BACKLIGHT_BRIGHTNESS
 MENUITEM_SETTING(brightness_item, &global_settings.brightness, NULL);
 #endif
-#ifdef PLATFORM_INNIOASIS_Y1
+#ifdef INNIOASIS_Y1
 MENUITEM_SETTING(android_screen_timeout, &global_settings.android_screen_timeout, NULL);
 #endif
 #endif /* HAVE_BACKLIGHT */
@@ -202,10 +202,10 @@ MENUITEM_SETTING(flip_display, &global_settings.flip_display, flipdisplay_callba
 MAKE_MENU(lcd_settings,ID2P(LANG_LCD_MENU),
             NULL, Icon_Display_menu
 #ifdef HAVE_BACKLIGHT
-#ifdef PLATFORM_INNIOASIS_Y1
+#ifdef INNIOASIS_Y1
             ,&android_screen_timeout
 #endif
-#ifndef PLATFORM_INNIOASIS_Y1
+#ifndef INNIOASIS_Y1
             ,&backlight_timeout
 # if CONFIG_CHARGING
             ,&backlight_timeout_plugged

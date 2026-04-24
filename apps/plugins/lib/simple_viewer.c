@@ -316,7 +316,7 @@ int view_text(const char *title, const char *text)
             goto out;
 #endif
         case PLA_UP_REPEAT:
-#if defined(HAVE_SCROLLWHEEL) || defined(PLATFORM_INNIOASIS_Y1)
+#if defined(HAVE_SCROLLWHEEL) || defined(INNIOASIS_Y1)
         case PLA_SCROLL_BACK:
         case PLA_SCROLL_BACK_REPEAT:
 #endif
@@ -324,7 +324,7 @@ int view_text(const char *title, const char *text)
             break;
         case PLA_DOWN:
         case PLA_DOWN_REPEAT:
-#if defined(HAVE_SCROLLWHEEL) || defined(PLATFORM_INNIOASIS_Y1)
+#if defined(HAVE_SCROLLWHEEL) || defined(INNIOASIS_Y1)
         case PLA_SCROLL_FWD:
         case PLA_SCROLL_FWD_REPEAT:
 #endif
