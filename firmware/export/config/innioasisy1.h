@@ -3,7 +3,7 @@
  */
 
 /* We don't run on hardware directly */
-#define CONFIG_PLATFORM (PLATFORM_HOSTED|PLATFORM_INNIOASIS_Y1)
+#define CONFIG_PLATFORM (PLATFORM_HOSTED|PLATFORM_ANDROID)
 #define HAVE_FPU
 
 /* For Rolo and boot loader */

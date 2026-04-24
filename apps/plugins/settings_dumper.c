@@ -20,7 +20,7 @@
 #include "plugin.h"
 
 
-#ifdef PLATFORM_INNIOASIS_Y1
+#ifdef INNIOASIS_Y1
 #define FILENAME "/sdcard/settings_dumper.txt"
 #else
 #define FILENAME "/settings_dumper.txt"

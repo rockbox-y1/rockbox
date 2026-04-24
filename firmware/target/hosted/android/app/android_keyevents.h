@@ -95,7 +95,7 @@
 #define KEYCODE_PAGE_DOWN        93
 #define KEYCODE_PICTSYMBOLS      94
 #define KEYCODE_SWITCH_CHARSET   95
-#ifdef PLATFORM_INNIOASIS_Y1
+#ifdef INNIOASIS_Y1
 /* KEYCODE_MEDIA_PLAY and KEYCODE_MEDIA_PAUSE are mapped to the the scroll buttons.
    This way Android recognizes these buttons even when the screen is off. */
 #define KEYCODE_MEDIA_PLAY       126

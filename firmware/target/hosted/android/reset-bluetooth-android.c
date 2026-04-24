@@ -2,7 +2,7 @@
 #include <stddef.h>
 #include "config.h"
 
-#ifdef PLATFORM_INNIOASIS_Y1
+#ifdef INNIOASIS_Y1
 extern JNIEnv *env_ptr;
 extern jclass RockboxService_class;
 extern jobject RockboxService_instance;

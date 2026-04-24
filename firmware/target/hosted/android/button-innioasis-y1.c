@@ -66,7 +66,7 @@ Java_org_rockbox_RockboxFramebuffer_touchHandler(JNIEnv*env, jobject this,
     last_y = y;
 }
 
-#ifdef PLATFORM_INNIOASIS_Y1
+#ifdef INNIOASIS_Y1
 extern volatile long current_tick;
 
 /* Forward declaration for vibration function */

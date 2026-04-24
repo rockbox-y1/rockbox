@@ -34,7 +34,7 @@ rbcodec_helpers.c
 menus/main_menu.c
 menus/playback_menu.c
 menus/playlist_menu.c
-#ifdef PLATFORM_INNIOASIS_Y1
+#ifdef INNIOASIS_Y1
 menus/fm_radio_app.c
 #endif
 #ifdef HAVE_RECORDING
@@ -99,7 +99,7 @@ gui/scrollbar.c
 gui/splash.c
 gui/statusbar.c
 gui/statusbar-skinned.c
-#if (CONFIG_PLATFORM&PLATFORM_ANDROID)||PLATFORM_INNIOASIS_Y1
+#if (CONFIG_PLATFORM&PLATFORM_ANDROID)||defined(INNIOASIS_Y1)
 hosted/android/yesno.c
 hosted/android/notification.c
 #else
@@ -123,7 +123,7 @@ gui/backdrop.c
 
 recorder/bmp.c
 recorder/icons.c
-#if (CONFIG_PLATFORM&PLATFORM_ANDROID)||PLATFORM_INNIOASIS_Y1
+#if (CONFIG_PLATFORM&PLATFORM_ANDROID)||defined(INNIOASIS_Y1)
 hosted/android/keyboard.c
 #else
 recorder/keyboard.c

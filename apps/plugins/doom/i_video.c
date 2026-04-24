@@ -656,7 +656,7 @@ void I_ShutdownGraphics(void)
 #error Keymap not defined!
 #endif
 
-#ifndef PLATFORM_INNIOASIS_Y1
+#ifndef INNIOASIS_Y1
 #ifdef HAVE_TOUCHSCREEN
 #ifndef DOOMBUTTON_UP
 #define DOOMBUTTON_UP      BUTTON_TOPMIDDLE
