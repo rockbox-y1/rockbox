@@ -20,7 +20,7 @@
  ****************************************************************************/
 #include "config.h"
 
-#if ((CONFIG_PLATFORM&PLATFORM_ANDROID) || defined(PLATFORM_INNIOASIS_Y1))
+#if ((CONFIG_PLATFORM&PLATFORM_ANDROID) || defined(INNIOASIS_Y1))
 #include <jni.h>
 #include <stdbool.h>
 #include "string-extra.h"

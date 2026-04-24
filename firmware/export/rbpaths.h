@@ -68,12 +68,12 @@
 #define HOME_DIR "<HOME>" /* replaced at runtime */
 #define HAVE_SPECIAL_DIRS
 
-#if !PLATFORM_INNIOASIS_Y1
+#if !defined(INNIOASIS_Y1)
 #define PLUGIN_DIR          ROCKBOX_LIBRARY_PATH "/rockbox/rocks"
 #else
 #define PLUGIN_DIR          ROCKBOX_LIBRARY_PATH "/.rockbox/rocks"
 #endif
-#if ((CONFIG_PLATFORM & PLATFORM_ANDROID) || PLATFORM_INNIOASIS_Y1)
+#if (CONFIG_PLATFORM & PLATFORM_ANDROID)
 #define CODECS_DIR          ROCKBOX_BINARY_PATH
 #else
 #define CODECS_DIR          ROCKBOX_LIBRARY_PATH "/rockbox/codecs"

@@ -46,7 +46,7 @@
 #include "lcd-remote.h"
 #endif
 
-#ifdef PLATFORM_INNIOASIS_Y1
+#ifdef INNIOASIS_Y1
 #include "brightness-android.h"
 #endif
 

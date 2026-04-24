@@ -34,14 +34,14 @@ int key_to_button(int keyboard_key)
     switch (keyboard_key)
     {
         case KEYCODE_BACK:
-#ifndef PLATFORM_INNIOASIS_Y1
+#ifndef INNIOASIS_Y1
             return ignore_back_button ? BUTTON_NONE : BUTTON_BACK;
         case KEYCODE_MENU:
 #endif
             return BUTTON_MENU;
         case KEYCODE_ENTER:
             return BUTTON_SELECT;
-#ifndef PLATFORM_INNIOASIS_Y1
+#ifndef INNIOASIS_Y1
         case KEYCODE_VOLUME_UP:
             return BUTTON_VOL_UP;
         case KEYCODE_VOLUME_DOWN:
@@ -57,25 +57,25 @@ unsigned multimedia_to_button(int keyboard_key)
     switch (keyboard_key)
     {
         case KEYCODE_MEDIA_PLAY_PAUSE:
-#ifdef PLATFORM_INNIOASIS_Y1
+#ifdef INNIOASIS_Y1
             return BUTTON_PLAY;
 #else
         case KEYCODE_MEDIA_STOP:
             return BUTTON_MULTIMEDIA_STOP;
 #endif
         case KEYCODE_MEDIA_NEXT:
-#ifdef PLATFORM_INNIOASIS_Y1
+#ifdef INNIOASIS_Y1
             return BUTTON_RIGHT;
 #else
             return BUTTON_MULTIMEDIA_NEXT;
 #endif
         case KEYCODE_MEDIA_PREVIOUS:
-#ifdef PLATFORM_INNIOASIS_Y1
+#ifdef INNIOASIS_Y1
             return BUTTON_LEFT;
 #else
             return BUTTON_MULTIMEDIA_PREV;
 #endif
-#ifdef PLATFORM_INNIOASIS_Y1
+#ifdef INNIOASIS_Y1
         /* KEYCODE_MEDIA_PLAY and KEYCODE_MEDIA_PAUSE are mapped to the the scroll buttons.
            This way Android recognizes these buttons even when the screen is off. */
         case KEYCODE_MEDIA_PLAY:

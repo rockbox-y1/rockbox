@@ -188,7 +188,7 @@ struct settings_list {
 };
 const struct settings_list* get_settings_list(int*count);
 
-#ifdef PLATFORM_INNIOASIS_Y1
+#ifdef INNIOASIS_Y1
 void android_screen_timeout_callback(int timeout);
 #endif
 #ifndef PLUGIN

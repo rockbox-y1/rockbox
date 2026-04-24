@@ -34,7 +34,7 @@
 
 #include "config.h"
 
-#ifdef PLATFORM_INNIOASIS_Y1
+#ifdef INNIOASIS_Y1
 #include <jni.h>
 #define _SYSTEM_WITH_JNI
 #include "system-target.h"

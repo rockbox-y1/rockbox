@@ -22,11 +22,11 @@
 
 #include <jni.h>
 #include <stdbool.h>
-#ifdef PLATFORM_INNIOASIS_Y1
+#ifdef INNIOASIS_Y1
 #include <stdlib.h>
 #endif
 #include "config.h"
-#ifdef PLATFORM_INNIOASIS_Y1
+#ifdef INNIOASIS_Y1
 #include "power.h"
 #include "kernel.h"
 #include "misc.h"
@@ -41,7 +41,7 @@ extern jclass  RockboxService_class;
 extern jobject RockboxService_instance;
 
 static jfieldID __battery_level;
-#ifdef PLATFORM_INNIOASIS_Y1
+#ifdef INNIOASIS_Y1
 static jfieldID __plugged_status;
 static jfieldID __is_charging;
 static jfieldID __battery_time_remaining;
@@ -63,7 +63,7 @@ static void new_battery_monitor(void)
     __battery_level = (*env_ptr)->GetFieldID(env_ptr,
                                             class,
                                             "mBattLevel", "I");
-#ifdef PLATFORM_INNIOASIS_Y1
+#ifdef INNIOASIS_Y1
     /* cache the charging type field id */
     __plugged_status = (*env_ptr)->GetFieldID(env_ptr,
                                             class,
@@ -86,7 +86,7 @@ int _battery_level(void)
     return (*env_ptr)->GetIntField(env_ptr, BatteryMonitor_instance, __battery_level);
 }
 
-#ifdef PLATFORM_INNIOASIS_Y1
+#ifdef INNIOASIS_Y1
 unsigned int power_input_status(void)
 {
     if (!BatteryMonitor_instance)

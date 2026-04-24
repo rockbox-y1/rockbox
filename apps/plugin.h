@@ -1038,7 +1038,7 @@ struct plugin_api {
                                             void *user_data),
                             void *user_data);
     char* (*strncpy)(char * dst, const char * src, size_t count);
-#ifdef PLATFORM_INNIOASIS_Y1
+#ifdef INNIOASIS_Y1
     bool (*upload_scrobble)(const char *artist, const char *track, const char *album, int timestamp, long length);
     char** (*android_podcast_get_episode_list)(int podcast_num);
     const char* (*android_podcast_get_episode_path)(int podcast_num, int num);
