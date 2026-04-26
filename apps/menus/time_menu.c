@@ -186,13 +186,13 @@ static void draw_timedate(struct viewport *vp, struct screen *display)
     display->set_viewport(last_vp);
 }
 
-
 static struct viewport clock_vps[NB_SCREENS], menu[NB_SCREENS];
 static bool menu_was_pressed;
 static int time_menu_callback(int action,
                               const struct menu_item_ex *this_item,
                               struct gui_synclist *this_list)
 {
+#ifndef INNIOASIS_Y1
     (void)this_item;
     (void)this_list;
     static int last_redraw = 0;
@@ -223,6 +223,12 @@ static int time_menu_callback(int action,
             draw_timedate(&clock_vps[i], &screens[i]);
     }
     return action;
+#else
+    (void) action;
+    (void) this_item;
+    (void) this_list;
+    return 0;
+#endif /* INNIOASIS_Y1 */
 }
 
 #if defined(HAVE_RDS_CAP) && defined(CONFIG_RTC)

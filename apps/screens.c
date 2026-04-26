@@ -57,12 +57,6 @@
 #include "ctype.h"
 #include "plugin.h"
 
-#ifdef __ANDROID__
-#include "config.h"
-void android_rtc_set_pending_time(const struct tm* tm);
-void android_rtc_commit_pending_time(void);
-#endif
-
 #if CONFIG_CHARGING
 void charging_splash(void)
 {
@@ -346,10 +340,6 @@ bool set_time_screen(const char* title, struct tm *tm, bool set_date)
                 case ACTION_STD_CANCEL:
                     done = true;
                     tm->tm_year = -1;
-#ifdef __ANDROID__
-                    splash(2*HZ, "Setting time and restarting Rockbox...");
-                    android_rtc_commit_pending_time();
-#endif
                     break;
                 case ACTION_SETTINGS_INC:
                 case ACTION_SETTINGS_INCREPEAT:
@@ -373,32 +363,20 @@ bool set_time_screen(const char* title, struct tm *tm, bool set_date)
                 case ACTION_SETTINGS_INCREPEAT:
                     *valptr = clamp_value_wrap(++(*valptr), max, min);
                     say_time(cursorpos, tm);
-#ifdef __ANDROID__
-                    android_rtc_set_pending_time(tm);
-#else
                     set_time(tm); // Save after adjustment
-#endif
                     break;
                 case ACTION_STD_PREV:
                 case ACTION_SETTINGS_DEC:
                 case ACTION_SETTINGS_DECREPEAT:
                     *valptr = clamp_value_wrap(--(*valptr), max, min);
                     say_time(cursorpos, tm);
-#ifdef __ANDROID__
-                    android_rtc_set_pending_time(tm);
-#else
                     set_time(tm); // Save after adjustment
-#endif
                     break;
                 case ACTION_STD_OK:
                     adjust_mode = false;
                     break;
                 case ACTION_STD_CANCEL:
                     adjust_mode = false;
-#ifdef __ANDROID__
-                    splash(2*HZ, "Setting time and restarting Rockbox...");
-                    android_rtc_commit_pending_time();
-#endif
                     break;
                 default:
                     if (default_event_handler(button) == SYS_USB_CONNECTED)
