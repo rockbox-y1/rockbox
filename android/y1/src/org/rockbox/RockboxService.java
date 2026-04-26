@@ -760,31 +760,6 @@ public class RockboxService extends Service
         });
     }
 
-    public static void setSystemTimeAsRoot(final String dateString) {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    // Parse the date string and convert to Unix timestamp
-                    java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyyMMdd.HHmmss");
-                    java.util.Date date = sdf.parse(dateString);
-                    long unixTimestamp = date.getTime() / 1000; // Convert to Unix timestamp
-
-                    // Set the system time using system call
-                    Log.d("RockboxTime", "Setting system time to: " + dateString + " (Unix: " + unixTimestamp + ")");
-                    String dateCmd = "date " + unixTimestamp + " & am force-stop org.rockbox";
-                    Log.d("RockboxTime", "Executing command: " + dateCmd);
-                    java.lang.Process process = Runtime.getRuntime().exec(new String[]{"input", "keyevent", "KEYCODE_MEDIA_STOP"});
-                    process.waitFor();
-                    process = Runtime.getRuntime().exec(new String[]{"sh", "-c", dateCmd});
-                    process.waitFor();
-                } catch (Exception e) {
-                    Log.e("RockboxTime", "Failed to set system time: " + e.getMessage());
-                }
-            }
-        }).start();
-    }
-
     public void acquireWakeLock()
     {
         if (wakeLock != null && !wakeLock.isHeld()) {
