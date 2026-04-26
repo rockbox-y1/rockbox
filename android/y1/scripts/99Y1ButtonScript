@@ -18,6 +18,10 @@ done
 # make button presses silent
 settings put system sound_effects_enabled 0
 
+# disable automatic time settings
+settings put global auto_time 0
+settings put global auto_time_zone 0
+
 # setup apps on first boot
 if [ ! -f /data/data/initialized ]; then
     pm install /data/data/com.innioasis.y1.apk
