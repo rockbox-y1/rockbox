@@ -123,11 +123,11 @@ void paths_init(void)
 {
 #ifdef HAVE_SPECIAL_DIRS
     /* make sure $HOME/.config/rockbox.org exists, it's needed for config.cfg */
-#if (CONFIG_PLATFORM & PLATFORM_ANDROID)
+#if (CONFIG_PLATFORM & PLATFORM_ANDROID) & !defined(INNIOASIS_Y1)
     os_mkdir("/sdcard/rockbox" __MKDIR_MODE_ARG);
     os_mkdir("/sdcard/rockbox/rocks.data" __MKDIR_MODE_ARG);
     os_mkdir("/sdcard/rockbox/eqs" __MKDIR_MODE_ARG);
-#elif defined(INNIOASIS_Y1)
+#elif INNIOASIS_Y1
     os_mkdir("/sdcard/.rockbox" __MKDIR_MODE_ARG);
     os_mkdir("/sdcard/.rockbox/rocks.data" __MKDIR_MODE_ARG);
     os_mkdir("/sdcard/.rockbox/eqs" __MKDIR_MODE_ARG);
@@ -173,7 +173,7 @@ static const char* _get_user_file_path(const char *path,
     pos += ROCKBOX_DIR_LEN;
     while (*pos == PATH_SEPCH) pos++;
 
-#if (CONFIG_PLATFORM & PLATFORM_ANDROID)
+#if (CONFIG_PLATFORM & PLATFORM_ANDROID) & !defined(INNIOASIS_Y1)
     if (path_append(buf, "/sdcard/rockbox", pos, bufsize) >= bufsize)
         return NULL;
 #elif defined(INNIOASIS_Y1)
