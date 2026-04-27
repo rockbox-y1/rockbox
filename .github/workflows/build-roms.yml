@@ -83,7 +83,9 @@ jobs:
         cp ../scripts/Stock.kl update/.
         cp gocurl/gocurl update/.
         cp download-podcast/poddl update/.
-        zip -r update.zip update/*
+        zip -r update_type_a.zip update/*
+        cp ../scripts/Stock_old.kl update/Stock.kl
+        zip -r update_type_b.zip update/*
         rm -rf update
   
     - name: bundle ROMs
@@ -214,7 +216,7 @@ jobs:
         sudo cp cacert.pem mount_user/data
 
         sudo cp ../android/y1/scripts/Rockbox.kl mount_sys/usr/keylayout/Rockbox.kl
-        sudo cp ../android/y1/scripts/Stock.kl mount_sys/usr/keylayout/Stock.kl
+        sudo cp ../android/y1/scripts/Stock_old.kl mount_sys/usr/keylayout/Stock.kl
         sudo cp ../android/y1/scripts/Rockbox.kl mount_sys/usr/keylayout/Generic.kl
 
         sudo mkdir -p mount_user/data/update
@@ -270,14 +272,22 @@ jobs:
         asset_name: rockbox.apk
         asset_content_type: application/vnd.android.package-archive
 
-    - name: upload update.zip
+    - name: upload update_type_a.zip
       uses: shogo82148/actions-upload-release-asset@v1
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./android/y1/build/update.zip
-        asset_name: update.zip
+        asset_path: ./android/y1/build/update_type_a.zip
+        asset_name: update_type_a.zip
         asset_content_type: application/zip
-    
+
+    - name: upload update_type_b.zip
+      uses: shogo82148/actions-upload-release-asset@v1
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./android/y1/build/update_type_b.zip
+        asset_name: update_type_b.zip
+        asset_content_type: application/zip
+
     - name: upload rom.zip
       uses: shogo82148/actions-upload-release-asset@v1
       with:
