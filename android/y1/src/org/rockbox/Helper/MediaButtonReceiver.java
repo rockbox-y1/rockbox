@@ -183,6 +183,7 @@ public class MediaButtonReceiver
                 if (Intent.ACTION_MEDIA_BUTTON.equals(intent.getAction()))
                 {
                     KeyEvent key = (KeyEvent)intent.getParcelableExtra(Intent.EXTRA_KEY_EVENT);
+                    if (key == null) return;
                     if (key.getAction() == KeyEvent.ACTION_UP)
                     {   /* pass the pressed key to Rockbox, starting it if needed */
                         RockboxService s = RockboxService.getInstance();
