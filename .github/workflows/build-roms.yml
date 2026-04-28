@@ -145,20 +145,6 @@ jobs:
 
         sudo cp ../android/y1/scripts/bootanimation.zip mount_sys/media/bootanimation.zip
 
-        # Remove unneeded apps and services to save battery
-        sudo rm mount_sys/app/YGPS.*
-        sudo rm mount_sys/app/SmsReg.*
-        sudo rm mount_sys/app/Phone.*
-        sudo rm mount_sys/app/Nfc.*
-        sudo rm mount_sys/app/CellConnService.*
-        sudo rm mount_sys/app/MediaProvider.*
-        sudo rm mount_sys/app/EngineerCode.*
-        sudo rm mount_sys/app/EngineerMode.*
-        sudo rm mount_sys/app/EngineerModeSim.*
-        sudo rm mount_sys/lib/modules/ccci.ko
-        sudo rm mount_sys/lib/modules/ccci_plat.ko
-        sudo rm mount_sys/lib/modules/mtk_stp_gps.ko
-
         sudo umount mount_sys
         sudo umount mount_user
         rm rom.zip
@@ -223,20 +209,6 @@ jobs:
         sudo cp ../android/y1/scripts/update.sh mount_user/data/update/update.sh
 
         sudo cp ../android/y1/scripts/bootanimation.zip mount_sys/media/bootanimation.zip
-
-        # Remove unneeded apps and services to save battery
-        sudo rm mount_sys/app/YGPS.*
-        sudo rm mount_sys/app/SmsReg.*
-        sudo rm mount_sys/app/Phone.*
-        sudo rm mount_sys/app/Nfc.*
-        sudo rm mount_sys/app/CellConnService.*
-        sudo rm mount_sys/app/MediaProvider.*
-        sudo rm mount_sys/app/EngineerCode.*
-        sudo rm mount_sys/app/EngineerMode.*
-        sudo rm mount_sys/app/EngineerModeSim.*
-        sudo rm mount_sys/lib/modules/ccci.ko
-        sudo rm mount_sys/lib/modules/ccci_plat.ko
-        sudo rm mount_sys/lib/modules/mtk_stp_gps.ko
 
         sudo umount mount_sys
         sudo umount mount_user
