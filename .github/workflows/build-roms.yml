@@ -14,13 +14,31 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    
+
+    - name: cache apt
+      uses: actions/cache@v4
+      with:
+        path: |
+          /var/cache/apt
+          /var/lib/apt/lists
+        key: ${{ runner.os }}-apt-${{ hashFiles('.github/workflows/build-roms.yml') }}
+        restore-keys: |
+          ${{ runner.os }}-apt-
+
+    - name: cache android SDK/NDK
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/android-sdk
+          ~/android-ndk-
+        key: ${{ runner.os }}-android-sdk-ndk-${{ hashFiles('android/y1/installToolchain.sh') }}
+        restore-keys: |
+          ${{ runner.os }}-android-sdk-ndk-
+
     - name: prepare build environment
       run: |
         sudo apt update
-        sudo apt install lib32z1
-        sudo apt install openjdk-17-jdk
-        sudo apt install golang-go
+        sudo apt install -y lib32z1 openjdk-17-jdk golang-go
         java --version
         cd android/y1
         yes | ./installToolchain.sh
