@@ -29,8 +29,8 @@ chmod 644 /system/app/org.rockbox.apk
 chown root:root /system/app/org.rockbox.apk
 echo "++ Updated rockbox apk"
 
-#cp com.innioasis.y1_*.apk /data/app/com.innioasis.y1-1.apk
-#echo "++ Updated stock apk"
+pm install /sdcard/.rockbox/update/com.innioasis.y1*.apk
+echo "++ Updated stock apk"
 
 cp /sdcard/.rockbox/update/install-recovery.sh /system/etc/install-recovery.sh
 chmod 755 /system/etc/install-recovery.sh

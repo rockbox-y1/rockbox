@@ -71,7 +71,7 @@ jobs:
       run: |
         cd android/y1/build
         mkdir update
-        wget https://github.com/rockbox-y1/rockbox/releases/download/stock-menu/com.innioasis.y1_2.7.2.apk
+        wget https://github.com/rockbox-y1/rockbox/releases/download/stock-menu/com.innioasis.y1_3.0.7_patched.apk
         cp -r libs update/libs
         cp com.innioasis*.apk update/.
         cp rockbox.apk update/rockbox.apk
@@ -92,13 +92,13 @@ jobs:
         mkdir base
         cd base
         wget https://github.com/rockbox-y1/rockbox/releases/download/type-a-base/rom.zip
-        wget https://github.com/rockbox-y1/rockbox/releases/download/stock-menu/com.innioasis.y1_2.7.2.apk
+        wget https://github.com/rockbox-y1/rockbox/releases/download/stock-menu/com.innioasis.y1_3.0.7_patched.apk
         unzip rom.zip
         mkdir mount_sys
         mkdir mount_user
         sudo mount -t ext4 -o loop system.img mount_sys
         sudo mount -t ext4 -o loop userdata.img mount_user
-        sudo cp com.innioasis.y1_2.7.2.apk mount_user/data/com.innioasis.y1.apk
+        sudo cp com.innioasis.y1_*.apk mount_user/data/com.innioasis.y1.apk
         sudo cp ../android/y1/scripts/LeanKeyKeyboardPro_v5.2.15_r.apk mount_user/data/LeanKeyKeyboardPro_v5.2.15_r.apk
         sudo cp ../android/y1/build/rockbox.apk mount_sys/app/org.rockbox.apk
         sudo chmod 644 mount_sys/app/org.rockbox.apk
@@ -160,7 +160,7 @@ jobs:
         sudo umount mount_sys
         sudo umount mount_user
         rm rom.zip
-        rm com.innioasis.y1_2.7.2.apk
+        rm com.innioasis.y1_*.apk
         rm -r mount_sys
         rm -r mount_user
         rm -r sdcard/.rockbox
@@ -171,13 +171,13 @@ jobs:
         mkdir base_type_b
         cd base_type_b
         wget https://github.com/rockbox-y1/rockbox/releases/download/type-b-base/rom.zip
-        wget https://github.com/rockbox-y1/rockbox/releases/download/stock-menu/com.innioasis.y1_2.7.2.apk
+        wget https://github.com/rockbox-y1/rockbox/releases/download/stock-menu/com.innioasis.y1_3.0.7_patched.apk
         unzip rom.zip
         mkdir mount_sys
         mkdir mount_user
         sudo mount -t ext4 -o loop system.img mount_sys
         sudo mount -t ext4 -o loop userdata.img mount_user
-        sudo cp com.innioasis.y1_2.7.2.apk mount_user/data/com.innioasis.y1.apk
+        sudo cp com.innioasis.y1_*.apk mount_user/data/com.innioasis.y1.apk
         sudo cp ../android/y1/scripts/LeanKeyKeyboardPro_v5.2.15_r.apk mount_user/data/LeanKeyKeyboardPro_v5.2.15_r.apk
         sudo cp ../android/y1/build/rockbox.apk mount_sys/app/org.rockbox.apk
         sudo chmod 644 mount_sys/app/org.rockbox.apk
@@ -239,7 +239,7 @@ jobs:
         sudo umount mount_sys
         sudo umount mount_user
         rm rom.zip
-        rm com.innioasis.y1_2.7.2.apk
+        rm com.innioasis.y1_*.apk
         rm -r mount_sys
         rm -r mount_user
         rm -r sdcard/.rockbox
