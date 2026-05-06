@@ -21,39 +21,104 @@
 
 package org.rockbox.monitors;
 
+import android.bluetooth.BluetoothA2dp;
+import android.bluetooth.BluetoothProfile;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.media.AudioManager;
+import android.util.Log;
 
 public class HeadphoneMonitor extends BroadcastReceiver
 {
+    private static int hp_state = -1;
+    private static final String TAG = "Rockbox.HeadphoneMonitor";
+
     public HeadphoneMonitor(Context c)
     {
+        if (isBluetoothA2dpConnected())
+        {
+            postHpStateChanged(1);
+        }
+
+        AudioManager audioManager =
+            (AudioManager) c.getSystemService(Context.AUDIO_SERVICE);
+        if (audioManager != null && audioManager.isWiredHeadsetOn())
+        {
+            postHpStateChanged(1);
+        }
+
         IntentFilter hpFilter = new IntentFilter(Intent.ACTION_HEADSET_PLUG);
-        /* caution: hidden API; might break */
-        IntentFilter noisyFilter = new IntentFilter("android.media.AUDIO_BECOMING_NOISY");
-        
+        IntentFilter btFilter = new IntentFilter(BluetoothA2dp.ACTION_CONNECTION_STATE_CHANGED);
+
         c.registerReceiver(this, hpFilter);
-        c.registerReceiver(new NoisyMonitor(), noisyFilter);
+        c.registerReceiver(new BtStateMonitor(), btFilter);
     }
 
     @Override
     public void onReceive(Context arg0, Intent intent)
     {
         int state = intent.getIntExtra("state", -1);
+        /* hp_state is sometimes -1 here even if BT was connected on startup, catch this */
+        if (hp_state == -1 && isBluetoothA2dpConnected())
+            hp_state = 1;
+        /* ignore unplug events when we know BT is connected */
+        if (state == 0 && hp_state == 1)
+            return;
+
         postHpStateChanged(state);
     }
 
-    /* audio becoming noise acts as headphones extracted */
-    private class NoisyMonitor extends BroadcastReceiver
+    /*
+     * Tracks BT connection state:
+     * - on connect signal plugged
+     * - on disconnect signal unplugged
+     */
+    private class BtStateMonitor extends BroadcastReceiver
     {
         @Override
         public void onReceive(Context arg0, Intent arg1)
         {
-            postHpStateChanged(0);   
+            int state = arg1.getIntExtra(
+                "android.bluetooth.profile.extra.STATE", BluetoothProfile.STATE_DISCONNECTED);
+
+            if (state == BluetoothProfile.STATE_CONNECTED)
+                postHpStateChanged(1);
+            else if (state == BluetoothProfile.STATE_DISCONNECTED)
+                postHpStateChanged(0);
         }
     }
-    
+
     private synchronized native void postHpStateChanged(int state);
+
+    private boolean isBluetoothA2dpConnected()
+    {
+        try
+        {
+            Process process = Runtime.getRuntime().exec("dumpsys bluetooth_a2dp");
+            java.io.BufferedReader reader =
+                new java.io.BufferedReader(
+                    new java.io.InputStreamReader(process.getInputStream()));
+            String line;
+            boolean connected = false;
+            while ((line = reader.readLine()) != null)
+            {
+                if (line.contains("connected"))
+                {
+                    connected = true;
+                    break;
+                }
+            }
+            reader.close();
+            process.waitFor();
+            Log.d(TAG, "isBluetoothA2dpConnected (dumpsys): " + connected);
+            return connected;
+        }
+        catch (Exception e)
+        {
+            Log.e(TAG, "isBluetoothA2dpConnected (dumpsys) failed", e);
+            return false;
+        }
+    }
 }
