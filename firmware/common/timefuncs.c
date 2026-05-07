@@ -22,6 +22,11 @@
 #include <stdio.h> /* get NULL */
 #include "config.h"
 
+#ifdef INNIOASIS_Y1
+#define _SYSTEM_WITH_JNI
+#include <jni.h>
+#endif
+
 #include "kernel.h"
 #include "rtc.h"
 #ifdef HAVE_RTC_IRQ
@@ -134,6 +139,24 @@ struct tm *get_time(void)
 int set_time(const struct tm *tm)
 {
 #if CONFIG_RTC
+#ifdef INNIOASIS_Y1
+    /* On Innioasis Y1, set system time via JNI */
+    if (!valid_time(tm))
+        return -2;
+    {
+        char datecmd[32];
+        snprintf(datecmd, sizeof(datecmd), "%04d%02d%02d.%02d%02d%02d",
+            tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday,
+            tm->tm_hour, tm->tm_min, tm->tm_sec);
+        JNIEnv* env = getJavaEnvironment();
+        jclass cls = (*env)->FindClass(env, "org/rockbox/RockboxService");
+        jmethodID mid = (*env)->GetStaticMethodID(env, cls, "setSystemTimeAsRoot", "(Ljava/lang/String;)V");
+        jstring jdatestr = (*env)->NewStringUTF(env, datecmd);
+        (*env)->CallStaticVoidMethod(env, cls, mid, jdatestr);
+        (*env)->DeleteLocalRef(env, jdatestr);
+    }
+    return 0;
+#else
     int rc;
 
     if (valid_time(tm))
@@ -149,6 +172,7 @@ int set_time(const struct tm *tm)
     {
         return -2;
     }
+#endif /* INNIOASIS_Y1 */
 #else /* No RTC */
     (void)tm;
     return -1;
