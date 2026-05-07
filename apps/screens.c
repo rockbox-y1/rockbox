@@ -128,9 +128,6 @@ bool set_time_screen(const char* title, struct tm *tm, bool set_date)
     struct viewport viewports[NB_SCREENS];
     bool done = false, usb = false;
     int cursorpos = 0;
-#ifdef INNIOASIS_Y1
-    bool adjust_mode = false;
-#endif
     unsigned char offsets_ptr[] =
         { OFF_HOURS, OFF_MINUTES, OFF_SECONDS, OFF_YEAR, 0, OFF_DAY };
 
@@ -284,9 +281,10 @@ bool set_time_screen(const char* title, struct tm *tm, bool set_date)
             }
 
             /* print help text */
-            if (nb_lines > 4) {
-                screen->puts(0, 4, "Back: Accept");
-            }
+            if (nb_lines > 4)
+                screen->puts(0, 4, str(LANG_TIME_SET_BUTTON));
+            if (nb_lines > 5)
+                screen->puts(0, 5, str(LANG_TIME_REVERT));
             screen->update_viewport();
             screen->set_viewport(last_vp);
         }
@@ -323,65 +321,36 @@ bool set_time_screen(const char* title, struct tm *tm, bool set_date)
         }
 
         button = get_action(CONTEXT_SETTINGS_TIME, TIMEOUT_BLOCK);
-        if (!adjust_mode) {
-            switch ( button ) {
-                case ACTION_STD_PREV:
-                    cursorpos = clamp_value_wrap(--cursorpos, last_item, 0);
-                    say_time(cursorpos, tm);
-                    break;
-                case ACTION_STD_NEXT:
-                    cursorpos = clamp_value_wrap(++cursorpos, last_item, 0);
-                    say_time(cursorpos, tm);
-                    break;
-                case ACTION_STD_OK:
-                    adjust_mode = true;
-                    break;
-                case ACTION_STD_CANCEL:
-                    done = true;
-                    tm->tm_year = -1;
-                    break;
-                case ACTION_SETTINGS_INC:
-                case ACTION_SETTINGS_INCREPEAT:
-                    *valptr = clamp_value_wrap(++(*valptr), max, min);
-                    say_time(cursorpos, tm);
-                    break;
-                case ACTION_SETTINGS_DEC:
-                case ACTION_SETTINGS_DECREPEAT:
-                    *valptr = clamp_value_wrap(--(*valptr), max, min);
-                    say_time(cursorpos, tm);
-                    break;
-                default:
-                    if (default_event_handler(button) == SYS_USB_CONNECTED)
-                        done = usb = true;
-                    break;
-            }
-        } else { // adjustment mode
-            switch ( button ) {
-                case ACTION_STD_NEXT:
-                case ACTION_SETTINGS_INC:
-                case ACTION_SETTINGS_INCREPEAT:
-                    *valptr = clamp_value_wrap(++(*valptr), max, min);
-                    say_time(cursorpos, tm);
-                    set_time(tm); // Save after adjustment
-                    break;
-                case ACTION_STD_PREV:
-                case ACTION_SETTINGS_DEC:
-                case ACTION_SETTINGS_DECREPEAT:
-                    *valptr = clamp_value_wrap(--(*valptr), max, min);
-                    say_time(cursorpos, tm);
-                    set_time(tm); // Save after adjustment
-                    break;
-                case ACTION_STD_OK:
-                    adjust_mode = false;
-                    break;
-                case ACTION_STD_CANCEL:
-                    adjust_mode = false;
-                    break;
-                default:
-                    if (default_event_handler(button) == SYS_USB_CONNECTED)
-                        done = usb = true;
-                    break;
-            }
+        switch ( button ) {
+            case ACTION_STD_PREV:
+                cursorpos = clamp_value_wrap(--cursorpos, last_item, 0);
+                say_time(cursorpos, tm);
+                break;
+            case ACTION_STD_NEXT:
+                cursorpos = clamp_value_wrap(++cursorpos, last_item, 0);
+                say_time(cursorpos, tm);
+                break;
+            case ACTION_SETTINGS_INC:
+            case ACTION_SETTINGS_INCREPEAT:
+                *valptr = clamp_value_wrap(++(*valptr), max, min);
+                say_time(cursorpos, tm);
+                break;
+            case ACTION_SETTINGS_DEC:
+            case ACTION_SETTINGS_DECREPEAT:
+                *valptr = clamp_value_wrap(--(*valptr), max, min);
+                say_time(cursorpos, tm);
+                break;
+            case ACTION_STD_OK:
+                done = true;
+                break;
+            case ACTION_STD_CANCEL:
+                done = true;
+                tm->tm_year = -1;
+                break;
+            default:
+                if (default_event_handler(button) == SYS_USB_CONNECTED)
+                    done = usb = true;
+                break;
         }
     }
     FOR_NB_SCREENS(s)
