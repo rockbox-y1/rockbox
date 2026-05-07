@@ -333,7 +333,7 @@ int view_text(const char *title, const char *text)
         case PLA_LEFT:
 #if (CONFIG_KEYPAD == IPOD_1G2G_PAD) \
     || (CONFIG_KEYPAD == IPOD_3G_PAD) \
-    || (CONFIG_KEYPAD == IPOD_4G_PAD) \return PLUGIN_OK
+    || (CONFIG_KEYPAD == IPOD_4G_PAD) \
     || (CONFIG_KEYPAD == INNIOASIS_Y1_PAD) 
             goto out;
 #endif
