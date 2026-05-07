@@ -343,6 +343,10 @@ uint32_t open_plugin_add_path(const char *key, const char *plugin, const char *p
             (lang_id <= OPEN_PLUGIN_LANG_INVALID ? 0 : LANG_LAST_INDEX_IN_ARRAY);
         logf("OP add_path name: %s %s %s",
              op_entry->name, op_entry->path, op_entry->param);
+#ifdef INNIOASIS_Y1
+        /* write to disk immediately in case app is killed */
+        op_update_dat(op_entry, false);
+#endif
         return hash;
     }
 
