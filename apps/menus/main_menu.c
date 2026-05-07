@@ -502,23 +502,11 @@ MENUITEM_FUNCTION(show_info_item, 0, ID2P(LANG_ROCKBOX_INFO),
                   show_info, NULL, Icon_NOICON);
 
 #if CONFIG_RTC
-#ifdef INNIOASIS_Y1
-int time_screen_innioasis_y1(void)
-{
-    system("am start -a android.settings.DATE_SETTINGS");
-    return 0;
-}
-#else
 int time_screen(void* ignored);
-#endif
 MENUITEM_FUNCTION(timedate_item, MENU_FUNC_CHECK_RETVAL, ID2P(LANG_TIME_MENU),
-#ifndef INNIOASIS_Y1
-                  time_screen,
-#else
-                  time_screen_innioasis_y1,
+                  time_screen,  NULL, Icon_Menu_setting );
 #endif
-                  NULL, Icon_Menu_setting );
-#endif
+
 MENUITEM_FUNCTION(show_credits_item, 0, ID2P(LANG_CREDITS),
                   show_credits, NULL, Icon_NOICON);
 
@@ -585,6 +573,7 @@ MAKE_MENU(info_menu, ID2P(LANG_SYSTEM), 0, Icon_System_menu,
 /*      INFO MENU                  */
 /***********************************/
 
+#ifndef INNIOASIS_Y1
 static int main_menu_config(void)
 {
     plugin_load(PLUGIN_APPS_DIR "/main_menu_config.rock", NULL);
@@ -592,6 +581,7 @@ static int main_menu_config(void)
 }
 MENUITEM_FUNCTION(main_menu_config_item, 0, ID2P(LANG_MAIN_MENU),
                   main_menu_config, NULL, Icon_Rockbox);
+#endif
 
 /***********************************/
 /*    MAIN MENU                    */
@@ -608,10 +598,12 @@ MAKE_MENU(main_menu_, ID2P(LANG_SETTINGS), NULL,
 #ifdef HAVE_RECORDING
         &recording_settings,
 #endif
-#if CONFIG_RTC || defined(INNIOASIS_Y1)
+#if CONFIG_RTC
         &timedate_item,
 #endif
+#ifndef INNIOASIS_Y1
         &main_menu_config_item,
+#endif
         &manage_settings,
         );
 /*    MAIN MENU                    */
