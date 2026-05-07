@@ -127,7 +127,19 @@ public class RockboxFramebuffer extends SurfaceView
     
     private void update(ByteBuffer framebuffer, Rect dirty)
     {
-        update(framebuffer);
+        SurfaceHolder holder = getHolder();                            
+        Canvas c = holder.lockCanvas(dirty);
+
+        if (c == null)
+			return;
+
+        /* can't copy a partial buffer, but it doesn't make a noticeable difference anyway */
+        btm.copyPixelsFromBuffer(framebuffer);
+        synchronized (holder)
+        {   /* draw */
+            c.drawBitmap(btm, dirty, dirty, null);
+        }
+        holder.unlockCanvasAndPost(c);
     }
 
     public boolean onTouchEvent(MotionEvent me)
