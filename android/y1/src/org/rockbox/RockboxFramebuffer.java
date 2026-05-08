@@ -54,6 +54,16 @@ public class RockboxFramebuffer extends SurfaceView
     private Bitmap btm;
     private final Paint sharpPaint = new Paint();
 
+    /* surface lifecycle states/objects */
+    private final Object surfaceLock = new Object();
+    private boolean surfaceReady = false;
+    private boolean surfaceEnabled = false;
+
+    /* watchdog for detecting freezes */
+    private final Handler watchdogHandler = new Handler(Looper.getMainLooper());
+    private volatile long lastUpdateTime = 0;
+    private static final long WATCHDOG_TIMEOUT_MS = 5000;
+
     private static final int[] duration_mapping = {
         0, 1, 2, 3, 4, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50
     };
@@ -112,10 +122,20 @@ public class RockboxFramebuffer extends SurfaceView
 
     private void update(ByteBuffer framebuffer)
     {
+        /* check if surface ready before drawing */
+        synchronized (surfaceLock) {
+            if (!surfaceReady) {
+                Log.w("RockboxFramebuffer", "update skipped: surface not ready");
+                return;
+            }
+        }
+
         SurfaceHolder holder = getHolder();                            
         Canvas c = holder.lockCanvas();
-        if (c == null)
-			return;
+        if (c == null) {
+            Log.w("RockboxFramebuffer", "update: lockCanvas returned null");
+            return;
+        }
 
         btm.copyPixelsFromBuffer(framebuffer);
         synchronized (holder)
@@ -123,15 +143,28 @@ public class RockboxFramebuffer extends SurfaceView
             c.drawBitmap(btm, 0.0f, 0.0f, null);
         }
         holder.unlockCanvasAndPost(c);
+
+        /* last drawing (used by watchdog) */
+        lastUpdateTime = System.currentTimeMillis();
     }
     
     private void update(ByteBuffer framebuffer, Rect dirty)
     {
+        /* Check if surface is ready before attempting to draw */
+        synchronized (surfaceLock) {
+            if (!surfaceReady) {
+                Log.w("RockboxFramebuffer", "update(dirty) skipped: surface not ready");
+                return;
+            }
+        }
+
         SurfaceHolder holder = getHolder();                            
         Canvas c = holder.lockCanvas(dirty);
 
-        if (c == null)
-			return;
+        if (c == null) {
+            Log.w("RockboxFramebuffer", "update(dirty): lockCanvas returned null");
+            return;
+        }
 
         /* can't copy a partial buffer, but it doesn't make a noticeable difference anyway */
         btm.copyPixelsFromBuffer(framebuffer);
@@ -140,6 +173,9 @@ public class RockboxFramebuffer extends SurfaceView
             c.drawBitmap(btm, dirty, dirty, null);
         }
         holder.unlockCanvasAndPost(c);
+
+        /* last drawing (used by watchdog) */
+        lastUpdateTime = System.currentTimeMillis();
     }
 
     public boolean onTouchEvent(MotionEvent me)
@@ -310,11 +346,44 @@ public class RockboxFramebuffer extends SurfaceView
         }
         
     }
+    private final Runnable watchdogRunnable = new Runnable() {
+        @Override
+        public void run() {
+            long now = System.currentTimeMillis();
+            long timeSinceLastUpdate = now - lastUpdateTime;
+
+            if (timeSinceLastUpdate > WATCHDOG_TIMEOUT_MS) {
+                Log.e("RockboxFramebuffer", "WATCHDOG: No framebuffer update for " +
+                      (timeSinceLastUpdate / 1000) + "s, forcing redraw");
+                forceFullRedraw();
+            }
+
+            /* Schedule next check */
+            watchdogHandler.postDelayed(this, WATCHDOG_TIMEOUT_MS);
+        }
+    };
+
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
         /* Create bitmap with the appropriate dimensions */
+        Log.d("RockboxFramebuffer", "surfaceChanged: w=" + width + " h=" + height);
+
+        /* recycle old btm before creating new one to prevent mem leaks */
+        if (btm != null && !btm.isRecycled()) {
+            btm.recycle();
+        }
         btm = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565);
         
+        /* mark surface as ready for drawing */
+        synchronized (surfaceLock) {
+            surfaceReady = true;
+            surfaceEnabled = true;
+        }
+
+        /* start watchdog */
+        lastUpdateTime = System.currentTimeMillis();
+        watchdogHandler.postDelayed(watchdogRunnable, WATCHDOG_TIMEOUT_MS);
+
         setEnabled(true);
         /* Trigger a full framebuffer redraw from native code */
         forceFullRedraw();
@@ -322,6 +391,17 @@ public class RockboxFramebuffer extends SurfaceView
 
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
+        Log.d("RockboxFramebuffer", "surfaceDestroyed");
+
+        /* stop watchdog */
+        watchdogHandler.removeCallbacks(watchdogRunnable);
+
+        /* mark surface as not ready (prevent drawing while surface is being destroyed) */
+        synchronized (surfaceLock) {
+            surfaceReady = false;
+            surfaceEnabled = false;
+        }
+
         setEnabled(false);
         if (btm != null) {
             btm.recycle();
