@@ -33,6 +33,7 @@
 #include "android_keyevents.h"
 #include "settings.h"
 #include "action.h"
+#include "debug.h"
 
 extern JNIEnv *env_ptr;
 extern jclass  RockboxService_class;
@@ -167,9 +168,17 @@ Java_org_rockbox_RockboxFramebuffer_triggerVibrationNative(JNIEnv* env, jclass c
                 (*env)->CallStaticVoidMethod(env, framebuffer_class, trigger_vibration_method, RockboxService_instance, baseDuration, boostDuration, taptic_mode);
                 /* Clear any JNI exceptions that might have occurred */
                 if ((*env)->ExceptionCheck(env)) {
+                    DEBUGF("JNI exception in triggerVibrationNative: vibration failed\n");
+                    (*env)->ExceptionDescribe(env);
                     (*env)->ExceptionClear(env);
                 }
+            } else {
+                DEBUGF("JNI: triggerVibration method not found\n");
+                (*env)->ExceptionClear(env);
             }
+        } else {
+            DEBUGF("JNI: RockboxFramebuffer class not found for vibration\n");
+            (*env)->ExceptionClear(env);
         }
     }
 }
