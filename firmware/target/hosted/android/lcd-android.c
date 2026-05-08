@@ -26,6 +26,9 @@
 #include "kernel.h"
 #include "lcd.h"
 #include "button.h"
+#ifdef INNIOASIS_Y1
+#include "debug.h"
+#endif
 
 extern JNIEnv *env_ptr;
 extern jobject RockboxService_instance;
@@ -50,24 +53,64 @@ static void connect_with_java(JNIEnv* env, jobject fb_instance)
     JNIEnv e = *env;
 
     jclass fb_class = e->GetObjectClass(env, fb_instance);
+
     /* cache update functions */
     java_lcd_update      = e->GetMethodID(env, fb_class,
                                          "update",
                                          "(Ljava/nio/ByteBuffer;)V");
+    if (java_lcd_update == NULL) {
+        DEBUGF("JNI: failed to get update method ID\n");
+        e->ExceptionClear(env);
+        return;
+    }
+
     java_lcd_update_rect = e->GetMethodID(env, fb_class,
                                          "update",
                                          "(Ljava/nio/ByteBuffer;"
                                           "Landroid/graphics/Rect;)V");
+    if (java_lcd_update_rect == NULL) {
+        DEBUGF("JNI: failed to get update_rect method ID\n");
+        e->ExceptionClear(env);
+        return;
+    }
+
     jmethodID get_dpi    = e->GetMethodID(env, fb_class,
                                          "getDpi", "()I");
+    if (get_dpi == NULL) {
+        DEBUGF("JNI: failed to get getDpi method ID\n");
+        e->ExceptionClear(env);
+        return;
+    }
+
     jmethodID thresh     = e->GetMethodID(env, fb_class,
                                          "getScrollThreshold", "()I");
+    if (thresh == NULL) {
+        DEBUGF("JNI: failed to get getScrollThreshold method ID\n");
+        e->ExceptionClear(env);
+        return;
+    }
+
     /* these don't change with new instances so call them now */
     dpi                  = e->CallIntMethod(env, fb_instance, get_dpi);
+    if (e->ExceptionCheck(env)) {
+        DEBUGF("JNI exception in connect_with_java (getDpi)\n");
+        e->ExceptionDescribe(env);
+        e->ExceptionClear(env);
+    }
+
     scroll_threshold     = e->CallIntMethod(env, fb_instance, thresh);
+    if (e->ExceptionCheck(env)) {
+        DEBUGF("JNI exception in connect_with_java (getScrollThreshold)\n");
+        e->ExceptionDescribe(env);
+        e->ExceptionClear(env);
+    }
 
     AndroidRect_constructor = e->GetMethodID(env, AndroidRect_class,
                                          "<init>", "(IIII)V");
+    if (AndroidRect_constructor == NULL) {
+        DEBUGF("JNI: failed to get Rect constructor ID\n");
+        e->ExceptionClear(env);
+    }
 }
 
 /*
@@ -87,6 +130,14 @@ void lcd_update(void)
 
         e->CallVoidMethod(env_ptr, RockboxFramebuffer_instance,
                                    java_lcd_update, buffer);
+
+        /* check for jni exceptions that may have occurred during the call */
+        if (e->ExceptionCheck(env_ptr)) {
+            DEBUGF("JNI exception in lcd_update (CallVoidMethod)\n");
+            e->ExceptionDescribe(env_ptr);
+            e->ExceptionClear(env_ptr);
+        }
+
         e->DeleteLocalRef(env_ptr, buffer);
     }
 }
@@ -103,6 +154,13 @@ void lcd_update_rect(int x, int y, int width, int height)
         e->CallVoidMethod(env_ptr, RockboxFramebuffer_instance,
                                    java_lcd_update_rect, buffer, rect);
 
+        /* check for jni exceptions that may have occurred during the call */
+        if (e->ExceptionCheck(env_ptr)) {
+            DEBUGF("JNI exception in lcd_update_rect (CallVoidMethod)\n");
+            e->ExceptionDescribe(env_ptr);
+            e->ExceptionClear(env_ptr);
+        }
+        
         e->DeleteLocalRef(env_ptr, buffer);
         e->DeleteLocalRef(env_ptr, rect);
     }
