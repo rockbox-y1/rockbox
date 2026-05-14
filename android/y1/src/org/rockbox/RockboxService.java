@@ -742,7 +742,7 @@ public class RockboxService extends Service
                                         Log.d("RockboxService", "Attempting Rockbox Update...");
                                         String[] cmdArray = new String[] {
                                             "su", "-u", "root", "-c",
-                                            "nohup sh /data/data/update/update.sh > /sdcard/.rockbox/update.log 2>&1 &"
+                                            "nohup yes | sh /data/data/update/update.sh > /sdcard/.rockbox/update.log 2>&1 &"
                                             };
                                         java.lang.Process proc = Runtime.getRuntime().exec(cmdArray);
                                         proc.waitFor();
