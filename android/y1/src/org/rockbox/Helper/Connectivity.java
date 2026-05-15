@@ -77,11 +77,14 @@ public class Connectivity{
             String sessionKey = "";
             try {
                 JSONObject jsonObject = new JSONObject(response);
-                if (jsonObject.has("session")) {
+                if (jsonObject.has("session") && jsonObject.get("session") instanceof JSONObject) {
                     JSONObject session = jsonObject.getJSONObject("session");
                     if (session.has("key")) {
                         sessionKey = session.getString("key");
                     }
+                } else if (jsonObject.has("error")) {
+                    Log.e("RockboxService", "Last.fm: auth error: " + jsonObject.optString("message", "unknown"));
+                    return false;
                 }
             } catch (JSONException e) {
                 Log.e("RockboxService", "Last.fm: json error: " + e.getMessage());
@@ -111,6 +114,7 @@ public class Connectivity{
                         "&timestamp="+String.valueOf(timestamp)+
                         "&api_sig="+apiSig+
                         "&format=json'";
+
         } else {
             track_enc = track.replace("'", "'\\''");
             artist_enc = artist.replace("'", "'\\''");
@@ -142,10 +146,18 @@ public class Connectivity{
         response = execShell(command);
 
         // check if we got a valid response
+        if (response == null || response.trim().isEmpty()) {
+            Log.e("RockboxService", "Last.fm: empty response from gocurl");
+            return false;
+        }
         try {
             JSONObject jsonObject = new JSONObject(response);
             if (jsonObject.has("scrobbles")) {
                 return true;
+            } else if ("ok".equals(jsonObject.optString("status", ""))) {
+                return true;
+            } else if (jsonObject.has("error")) {
+                return false;
             } else {
                 return false;
             }
