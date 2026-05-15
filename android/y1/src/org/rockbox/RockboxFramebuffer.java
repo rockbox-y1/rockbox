@@ -125,7 +125,6 @@ public class RockboxFramebuffer extends SurfaceView
         /* check if surface ready before drawing */
         synchronized (surfaceLock) {
             if (!surfaceReady) {
-                Log.w("RockboxFramebuffer", "update skipped: surface not ready");
                 return;
             }
         }
@@ -153,7 +152,6 @@ public class RockboxFramebuffer extends SurfaceView
         /* Check if surface is ready before attempting to draw */
         synchronized (surfaceLock) {
             if (!surfaceReady) {
-                Log.w("RockboxFramebuffer", "update(dirty) skipped: surface not ready");
                 return;
             }
         }
