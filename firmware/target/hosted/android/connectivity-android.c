@@ -33,17 +33,22 @@ bool upload_scrobble(const char *artist, const char *track, const char *album, i
     jstring track_jstring = (*env_ptr)->NewStringUTF(env_ptr, track);
     jstring album_jstring = (*env_ptr)->NewStringUTF(env_ptr, album);
 
-    (*env_ptr)->CallBooleanMethod(env_ptr, RockboxService_instance, scrobbler_method, 
+    jboolean result = (*env_ptr)->CallBooleanMethod(env_ptr, RockboxService_instance, scrobbler_method, 
                                     artist_jstring, 
                                     track_jstring, 
                                     album_jstring, 
                                     (jint) timestamp,
                                     (jlong) length);
+
+    (*env_ptr)->DeleteLocalRef(env_ptr, artist_jstring);
+    (*env_ptr)->DeleteLocalRef(env_ptr, track_jstring);
+    (*env_ptr)->DeleteLocalRef(env_ptr, album_jstring);
+
     if ((*env_ptr)->ExceptionCheck(env_ptr)) {
         (*env_ptr)->ExceptionClear(env_ptr);
         return false;
     }
-    return true;
+    return result;
 }
 
 extern int android_podcast_download_episode(int podcast_num, int num);
