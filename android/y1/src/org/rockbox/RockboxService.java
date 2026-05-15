@@ -490,15 +490,15 @@ public class RockboxService extends Service
         String apiKey = scrobble_key;
         String sharedSecret = scrobble_shared_secret;
         String apiUrl = scrobble_url;
-        String protocol = "listenbrainz";//scrobble_protocol;
+        String protocol = scrobble_protocol;
         boolean listenbrainz = false;
         if (protocol.equals("lastfm")) {
-            if (apiUrl == ""){
+            if (apiUrl == null || apiUrl.isEmpty()){
                 apiUrl = "https://ws.audioscrobbler.com/2.0/";
             }
         } else if (protocol.equals("listenbrainz")) {
             listenbrainz = true;
-            if (apiUrl == ""){
+            if (apiUrl == null || apiUrl.isEmpty()){
                 apiUrl = "https://api.listenbrainz.org/1";
             }
         }

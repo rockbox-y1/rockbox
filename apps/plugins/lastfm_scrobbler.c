@@ -536,11 +536,14 @@ static int sbl_create_entry(struct scrobbler_entry *entry, int output_fd)
 #ifdef INNIOASIS_Y1
     // upload this scrobble entry
     if (gConfig.upload){
-        bool ret = rb->upload_scrobble(artist, id->title, id->album, timestamp, (long)entry->length);
+        const char *upload_artist = str_chk_valid(artist, UNTAGGED);
+        const char *upload_title = str_chk_valid(id->title, path);
+        const char *upload_album = str_chk_valid(id->album, "");
+        bool ret = rb->upload_scrobble(upload_artist, upload_title, upload_album, timestamp, (long)entry->length);
         if (ret){
             return SCROBBLER_LOG_OK;
         } else {
-            ret = rb->upload_scrobble(artist, id->title, id->album, timestamp, (long)entry->length);
+            ret = rb->upload_scrobble(upload_artist, upload_title, upload_album, timestamp, (long)entry->length);
             if (ret){
                 return SCROBBLER_LOG_OK;
             } else {
