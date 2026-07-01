@@ -59,8 +59,13 @@ static long reverse (long N) {
 
 
 /* data files */
+#if !defined(INNIOASIS_Y1)
 #define DICT_INDEX PLUGIN_APPS_DIR "/dict.index"
 #define DICT_DESC PLUGIN_APPS_DIR "/dict.desc"
+#else
+#define DICT_INDEX ROCKBOX_DIR "/rocks/apps/dict.index"
+#define DICT_DESC ROCKBOX_DIR "/rocks/apps/dict.desc"
+#endif
 
 /* the main plugin function */
 enum plugin_status plugin_start(const void* parameter)
