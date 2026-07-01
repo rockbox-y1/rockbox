@@ -5,7 +5,6 @@
  *   Jukebox    |    |   (  <_> )  \___|    < | \_\ (  <_> > <  <
  *   Firmware   |____|_  /\____/ \___  >__|_ \|___  /\____/__/\_ \
  *                     \/            \/     \/    \/            \/
- * $Id$
  *
  * Copyright (C) 2002 by Björn Stenberg <bjorn@haxx.se>
  *
@@ -199,13 +198,6 @@ bool usb_powered_only(void)
 bool usb_charging_enable(bool on)
 {
     (void)on;
-    return false;
-}
-#endif
-
-#ifndef USB_NONE
-bool usb_inserted(void)
-{
     return false;
 }
 #endif

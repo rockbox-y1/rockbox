@@ -5,7 +5,6 @@
  *   Jukebox    |    |   (  <_> )  \___|    < | \_\ (  <_> > <  <
  *   Firmware   |____|_  /\____/ \___  >__|_ \|___  /\____/__/\_ \
  *                     \/            \/     \/    \/            \/
- * $Id$
  *
  * Copyright (C) 2009 by Karl Kurbjun
  * Portions Copyright (C) 2007 by Catalin Patulea
@@ -210,7 +209,7 @@ static void control_received(void) {
     /* acknowledge packet recieved (clear valid) */
     M66591_INTSTAT_MAIN &= ~(1<<3);
 
-    usb_core_legacy_control_request(&temp);
+    usb_core_setup_received(&temp);
 }
 
 /* This is a helper function, it is used to notife the stack that a transfer is

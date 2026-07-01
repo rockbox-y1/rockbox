@@ -5,7 +5,6 @@
  *   Jukebox    |    |   (  <_> )  \___|    < | \_\ (  <_> > <  <
  *   Firmware   |____|_  /\____/ \___  >__|_ \|___  /\____/__/\_ \
  *                     \/            \/     \/    \/            \/
- * $Id$
  *
  * Copyright (C) 2005-2007 Miika Pekkarinen
  * Copyright (C) 2007-2008 Nicolas Pennequin
@@ -2681,7 +2680,7 @@ static bool single_mode_do_pause(int id3_hid)
         ((skip_pending == TRACK_SKIP_AUTO) || (skip_pending == TRACK_SKIP_AUTO_NEW_PLAYLIST))) {
 
         if (global_settings.single_mode == SINGLE_MODE_TRACK)
-            return true;
+            return (skip_pending != TRACK_SKIP_AUTO_NEW_PLAYLIST); /*FS#13943*/
 
         char *previous_tag = single_mode_get_id3_tag(id3_get(PLAYING_ID3));
         char *new_tag = single_mode_get_id3_tag(bufgetid3(id3_hid));

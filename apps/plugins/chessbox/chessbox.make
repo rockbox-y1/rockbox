@@ -4,7 +4,6 @@
 #   Jukebox    |    |   (  <_> )  \___|    < | \_\ (  <_> > <  <
 #   Firmware   |____|_  /\____/ \___  >__|_ \|___  /\____/__/\_ \
 #                     \/            \/     \/    \/            \/
-# $Id$
 #
 
 CHESSBOX_SRCDIR = $(APPSDIR)/plugins/chessbox
@@ -32,7 +31,7 @@ $(CHESSBOX_OBJDIR)/chessbox.refmap: $(CHESSBOX_OBJ)
 
 $(CHESSBOX_OUTLDS): $(PLUGIN_LDS) $(CHESSBOX_OBJDIR)/chessbox.refmap
 	$(call PRINTS,PP $(@F))$(call preprocess2file,$<,$@,-DPLUGIN -DOVERLAY_OFFSET=$(shell \
-		$(TOOLSDIR)/ovl_offset.pl $(CHESSBOX_OBJDIR)/chessbox.refmap))
+		$(TOOLSDIR)/ovl_offset.pl $(CHESSBOX_OBJDIR)/chessbox.refelf))
 
 $(CHESSBOX_OBJDIR)/chessbox.ovl: $(CHESSBOX_OBJ) $(CHESSBOX_OUTLDS)
 	$(SILENT)$(CC) $(PLUGINFLAGS) -o $(basename $@).elf \

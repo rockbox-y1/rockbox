@@ -5,7 +5,6 @@
  *   Jukebox    |    |   (  <_> )  \___|    < | \_\ (  <_> > <  <
  *   Firmware   |____|_  /\____/ \___  >__|_ \|___  /\____/__/\_ \
  *                     \/            \/     \/    \/            \/
- * $Id$
  *
  * Copyright (C) 2011 by Amaury Pouly
  *
@@ -38,7 +37,7 @@ void rtc_init(void)
     /* rtc-imx233 is initialized by the system */
 }
 
-static void seconds_to_datetime(uint32_t seconds, struct tm *tm)
+static void seconds_to_datetime(time_t seconds, struct tm *tm)
 {
 #ifdef USE_PERSISTENT
     /* The OF uses PERSISTENT2 register to keep the adjustment and only changes

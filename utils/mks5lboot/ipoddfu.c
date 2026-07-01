@@ -5,7 +5,6 @@
  *   Jukebox    |    |   (  <_> )  \___|    < | \_\ (  <_> > <  <
  *   Firmware   |____|_  /\____/ \___  >__|_ \|___  /\____/__/\_ \
  *                     \/            \/     \/    \/            \/
- * $Id$
  *
  * Copyright (C) 2015 by Cástor Muñoz
  *
@@ -603,7 +602,7 @@ static dfuAPIResult dfu_iokit_open(struct dfuDev *dfuh, int *pid_list)
 
     usb_matching_dict = IOServiceMatching(kIOUSBDeviceClassName);
     dfuh->kr = IOServiceGetMatchingServices(
-                kIOMasterPortDefault, usb_matching_dict, &usb_iterator);
+                kIOMainPortDefault, usb_matching_dict, &usb_iterator);
     if (!dfu_iokit_chkrc(dfuh, "Could not get matching services"))
         goto error;
 
@@ -891,7 +890,7 @@ static void dfuapi_destroy(struct dfuDev *dfuh)
 
 static struct dfuDev *dfuapi_create(void)
 {
-    return calloc(sizeof(struct dfuDev), 1);
+        return calloc(1, sizeof(struct dfuDev));
 }
 
 

@@ -5,7 +5,6 @@
  *   Jukebox    |    |   (  <_> )  \___|    < | \_\ (  <_> > <  <
  *   Firmware   |____|_  /\____/ \___  >__|_ \|___  /\____/__/\_ \
  *                     \/            \/     \/    \/            \/
- * $Id$
  *
  * Copyright (C) 2012 by Amaury Pouly
  *
@@ -107,7 +106,7 @@ safe_read32_faulty_addr:
     bx      lr
 .size       safe_read32, . - safe_read32
 
-#if (CONFIG_PLATFORM & PLATFORM_NATIVE)
+#if (CONFIG_PLATFORM & PLATFORM_NATIVE) && defined(CPU_ARM_CLASSIC)
 .section    .text.data_abort_handler
 .type       data_abort_handler, %function
 .global     data_abort_handler

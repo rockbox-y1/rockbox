@@ -5,7 +5,6 @@
  *   Jukebox    |    |   (  <_> )  \___|    < | \_\ (  <_> > <  <
  *   Firmware   |____|_  /\____/ \___  >__|_ \|___  /\____/__/\_ \
  *                     \/            \/     \/    \/            \/
- * $Id$
  *
  * Copyright (C) 2008 Dan Everton (safetydan)
  * Copyright (C) 2009 Maurus Cuelenaere
@@ -309,6 +308,15 @@ RB_WRAP(splash)
     int timeout = luaL_checkint(L, 1);
     const char *str = luaL_checkstring(L, 2);
     splashf(timeout, str); /*rockaux.c*/
+    return 0;
+}
+
+RB_WRAP(splash_progress)
+{
+    int current = luaL_checkint(L, 1);
+    int total = luaL_checkint(L, 2);
+    const char *str = luaL_checkstring(L, 3);
+    rb->splash_progress(current, total, str);
     return 0;
 }
 
@@ -962,6 +970,7 @@ static const luaL_Reg rocklib[] =
     RB_FUNC(gui_syncyesno_run),
     RB_FUNC(do_menu),
     RB_FUNC(splash),
+    RB_FUNC(splash_progress),
     RB_FUNC(splash_scroller),
 
     /* DEVICE AUDIO / SOUND / PLAYLIST CONTROL */

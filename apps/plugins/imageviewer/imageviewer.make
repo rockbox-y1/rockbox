@@ -4,7 +4,6 @@
 #   Jukebox    |    |   (  <_> )  \___|    < | \_\ (  <_> > <  <
 #   Firmware   |____|_  /\____/ \___  >__|_ \|___  /\____/__/\_ \
 #                     \/            \/     \/    \/            \/
-# $Id$
 #
 
 IMGVSRCDIR := $(APPSDIR)/plugins/imageviewer
@@ -44,11 +43,11 @@ $(IMGVBUILDDIR)/%.ovl: $(IMGDEC_OUTLDS)
 
 # rule to create reference map for image decoder
 $(IMGVBUILDDIR)/%.refmap: $(APPSDIR)/plugin.h $(IMGVSRCDIR)/imageviewer.h $(PLUGINLINK_LDS) $(PLUGIN_LIBS)
-	$(call PRINTS,LD $(@F))$(CC) $(IMGDECFLAGS) -o /dev/null \
+	$(call PRINTS,LD $(@F))$(CC) $(IMGDECFLAGS) -o $(IMGVBUILDDIR)/$*.refelf \
 		$(filter %.o, $^) \
 		$(filter %.a, $+) \
 		-lgcc $(IMGDECLDFLAGS)
 
 $(IMGVBUILDDIR)/%.link: $(PLUGIN_LDS) $(IMGVBUILDDIR)/%.refmap
 	$(call PRINTS,PP $(@F))$(call preprocess2file,$<,$@,-DPLUGIN -DIMGVDECODER_OFFSET=$(shell \
-		$(TOOLSDIR)/ovl_offset.pl $(IMGVBUILDDIR)/$*.refmap))
+		$(TOOLSDIR)/ovl_offset.pl $(IMGVBUILDDIR)/$*.refelf))

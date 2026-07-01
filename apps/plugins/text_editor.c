@@ -5,7 +5,6 @@
  *   Jukebox    |    |   (  <_> )  \___|    < | \_\ (  <_> > <  <
  *   Firmware   |____|_  /\____/ \___  >__|_ \|___  /\____/__/\_ \
  *                     \/            \/     \/    \/            \/
- * $Id$
  *
  * Copyright (C) 2006 Jonathan Gordon
  *
@@ -204,14 +203,16 @@ static bool save_changes(int overwrite)
     }
 
     rb->lcd_clear_display();
-    cpuboost(1);
 
-    for (i=0;i<line_count;i++)
+    cpuboost(1);
+    for (i=0;i<line_count - 1;i++)
     {
         rb->fdprintf(fd,"%s%s", do_action(ACTION_GET, 0, i), eol);
     }
-
+    if (line_count > 0)  /* No EOL for last item */
+        rb->fdprintf(fd,"%s", do_action(ACTION_GET, 0, line_count - 1));
     cpuboost(0);
+
     rb->close(fd);
 
     if (newfile || !overwrite)
@@ -522,6 +523,7 @@ enum plugin_status plugin_start(const void* parameter)
             case ACTION_STD_MENU:
 #endif
             {
+                rb->gui_synclist_scroll_stop(&lists);
                 /* do the item menu */
                 switch (do_item_menu(cur_sel))
                 {
@@ -540,6 +542,7 @@ enum plugin_status plugin_start(const void* parameter)
             case ACTION_STD_CANCEL:
                 if (changed)
                 {
+                    rb->gui_synclist_scroll_stop(&lists);
                     MENUITEM_STRINGLIST(menu, "Text Editor", NULL,
                                         "Return",
                                         "Playback Control", "Save Changes",

@@ -4,7 +4,6 @@
 #   Jukebox    |    |   (  <_> )  \___|    < | \_\ (  <_> > <  <
 #   Firmware   |____|_  /\____/ \___  >__|_ \|___  /\____/__/\_ \
 #                     \/            \/     \/    \/            \/
-# $Id$
 #
 
 # single-file plugins:
@@ -183,7 +182,7 @@ $(BUILDDIR)/apps/plugins/%.lua: $(ROOTDIR)/apps/plugins/%.lua
 	$(call PRINTS,CP $(subst $(ROOTDIR)/,,$<))cp $< $(BUILDDIR)/apps/plugins/
 
 $(BUILDDIR)/%.refmap: $(APPSDIR)/plugin.h $(OVERLAYREF_LDS) $(PLUGIN_LIBS) $(PLUGIN_CRT0)
-	$(call PRINTS,LD $(@F))$(CC) $(PLUGINFLAGS) -o /dev/null \
+	$(call PRINTS,LD $(@F))$(CC) $(PLUGINFLAGS) -o $(basename $@).refelf \
 		$(filter %.o, $^) \
 		$(filter %.a, $+) \
 		-lgcc $(OVERLAYLDFLAGS)

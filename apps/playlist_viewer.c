@@ -6,7 +6,6 @@
  *   Jukebox    |    |   (  <_> )  \___|    < | \_\ (  <_> > <  <
  *   Firmware   |____|_  /\____/ \___  >__|_ \|___  /\____/__/\_ \
  *                     \/            \/     \/    \/            \/
- * $Id$
  *
  * Copyright (C) 2003 Hardeep Sidhu
  *
@@ -52,6 +51,10 @@
 #include "yesno.h"
 #include "playback.h"
 
+#ifdef HAVE_DISK_STORAGE
+#include "storage.h"
+#endif
+
 #if defined (HAVE_TAGCACHE) && defined(HAVE_TC_RAMCACHE) && defined(HAVE_DIRCACHE)
 #include "tagcache.h"
 #endif
@@ -59,9 +62,17 @@
 /* Maximum number of tracks we can have loaded at one time                   */
 #define MAX_PLAYLIST_ENTRIES 200
 
-/* Maximum amount of space required for the name buffer. For each
-   entry, we store the file name as well as, possibly, metadata              */
-#define MAX_NAME_BUFFER_SZ (MAX_PLAYLIST_ENTRIES * 2 * MAX_PATH)
+/* Maximum file name length in name buffer                                   */
+#define MAX_NAME_SZ (sizeof ((struct playlist_track_info *)0)->filename)
+
+/* Maximum formatted metadata length in name buffer                          */
+#define MAX_ID3_SZ MAX_PATH
+
+/* Maximum single track info length in name buffer                           */
+#define MAX_TRACK_INFO (MAX_NAME_SZ + MAX_ID3_SZ)
+
+/* Maximum amount of space required for the name buffer.                     */
+#define MAX_NAME_BUFFER_SZ (MAX_PLAYLIST_ENTRIES * MAX_TRACK_INFO)
 
 /* Over-approximation of view_text plugin size                               */
 #define VIEW_TEXT_PLUGIN_SZ 5000
@@ -185,12 +196,10 @@ static int playlist_entry_load(struct playlist_entry *entry, int index,
 
     len = strlcpy(name_buffer, info.filename, remaining_size) + 1;
 
-    if (global_settings.playlist_viewer_track_display >
-        PLAYLIST_VIEWER_ENTRY_SHOW_FULL_PATH && len <= remaining_size)
-    {
-        /* Allocate space for the id3viewc if the option is enabled */
-        len += MAX_PATH + 1;
-    }
+    /* Allocate space for formatted metadata, if option is enabled */
+    if (global_settings.playlist_viewer_track_display
+        > PLAYLIST_VIEWER_ENTRY_SHOW_FULL_PATH)
+        len += MAX_ID3_SZ;
 
     if (len <= remaining_size)
     {
@@ -386,8 +395,8 @@ static bool update_playlist(bool force)
 
 /* Initialize the playlist viewer. */
 static bool playlist_viewer_init(struct playlist_viewer * viewer,
-                                 const char* filename, bool reload,
-                                 int *most_recent_selection)
+                                 const char* dir, const char* file,
+                                 bool reload, int *recent_selection)
 {
     char *buffer, *index_buffer = NULL;
     size_t buffer_size, index_buffer_size = 0;
@@ -401,9 +410,9 @@ static bool playlist_viewer_init(struct playlist_viewer * viewer,
               - 80 KiB plugin buffer: Sansa c200v2
               - 64 KiB plugin buffer: Sansa m200v4, Sansa Clip
     */
-    bool require_index_buffer = filename && (is_playing || PLUGIN_BUFFER_SIZE >= 0x80000);
+    bool require_index_buffer = file && (is_playing || PLUGIN_BUFFER_SIZE >= 0x80000);
 
-    if (!filename && !is_playing)
+    if (!file && !is_playing)
     {
         /* Try to restore the list from control file */
         if (playlist_resume() == -1)
@@ -417,11 +426,12 @@ static bool playlist_viewer_init(struct playlist_viewer * viewer,
     size_t id3_size = ALIGN_UP(sizeof(*viewer->id3), 4);
 
     buffer = plugin_get_buffer(&buffer_size);
-    if (!buffer || buffer_size <= MAX_PATH + id3_size)
+    if (!buffer || buffer_size <= MAX_TRACK_INFO + id3_size)
         return false;
 
+    /* Leave space to fit id3 struct and at least a single track in name buffer */
     if (require_index_buffer)
-        index_buffer_size = playlist_get_index_bufsz(buffer_size - id3_size - (MAX_PATH + 1));
+        index_buffer_size = playlist_get_index_bufsz(buffer_size - id3_size - MAX_TRACK_INFO);
 
     /* Check for unused space in the plugin buffer to run
        the view_text plugin used by the Track Info screen:
@@ -431,70 +441,44 @@ static bool playlist_viewer_init(struct playlist_viewer * viewer,
     │plugin)│██ view_text ██│ id3 │ index buffer │  name buffer  │  │
     └───────┴───────────────┴─────┴──────────────┴───────────────┴──┘
     */
-    if (buffer_size >= VIEW_TEXT_PLUGIN_SZ + id3_size + index_buffer_size + MAX_NAME_BUFFER_SZ)
+    viewer->allow_view_text_plugin = (buffer_size >=
+        VIEW_TEXT_PLUGIN_SZ + id3_size + index_buffer_size + MAX_NAME_BUFFER_SZ);
+
+    if (viewer->allow_view_text_plugin)
     {
         buffer += VIEW_TEXT_PLUGIN_SZ;
         buffer_size -= VIEW_TEXT_PLUGIN_SZ;
-        viewer->allow_view_text_plugin = true;
     }
-    else
-        viewer->allow_view_text_plugin = false;
-
     viewer->id3 = (void *) buffer;
     buffer += id3_size;
     buffer_size -= id3_size;
 
-    if (!filename)
+    /* Viewing playlist on disk */
+    if (file)
     {
-        viewer->playlist = NULL;
-        viewer->title = (char *) str(LANG_PLAYLIST);
-    }
-    else
-    {
-        /* Viewing playlist on disk */
-        const char *dir, *file;
-        char *temp_ptr;
-
-        /* Separate directory from filename */
-        temp_ptr = strrchr(filename+1,'/');
-        if (temp_ptr)
-        {
-            *temp_ptr = 0;
-            dir = filename;
-            file = temp_ptr + 1;
-        }
-        else
-        {
-            dir = "/";
-            file = filename+1;
-        }
-        viewer->title = file;
-
         if (require_index_buffer)
         {
             index_buffer = buffer;
             buffer += index_buffer_size;
             buffer_size -= index_buffer_size;
         }
-
         viewer->playlist = playlist_load(dir, file,
                                          index_buffer, index_buffer_size,
                                          buffer, buffer_size);
-
-        /* Merge separated dir and filename again */
-        if (temp_ptr)
-            *temp_ptr = '/';
     }
+    else
+        viewer->playlist = NULL;
+
     playlist_buffer_init(&viewer->buffer, buffer, buffer_size);
 
     viewer->moving_track = -1;
     viewer->moving_playlist_index = -1;
-    viewer->initial_selection = most_recent_selection;
+    viewer->initial_selection = recent_selection;
 
     if (!reload)
     {
         if (viewer->playlist)
-            viewer->selected_track = most_recent_selection ? *most_recent_selection : 0;
+            viewer->selected_track = recent_selection ? *recent_selection : 0;
         else
             viewer->selected_track = playlist_get_display_index() - 1;
     }
@@ -529,12 +513,37 @@ static void format_name(char* dest, const char* src, size_t bufsz)
     }
 }
 
-/* Format display line */
-static void format_line(struct playlist_entry* track, char* str,
-                        int len)
+static char* retrieve_formatted_id3(struct playlist_entry* track)
 {
-    char *id3viewc = NULL;
-    char *skipped, *prefix, *suffix;
+    struct mp3entry *id3 = viewer.id3;
+    char *formatted_id3 = track->name + strlen(track->name) + 1;
+    bool retrieve_success = retrieve_id3_tags(track->index, track->name,
+                                              id3, METADATA_EXCLUDE_ID3_PATH);
+    yield();
+    track->attr |= PLAYLIST_ATTR_RETRIEVE_ID3_ATTEMPTED;
+    if (!retrieve_success || !id3->title || !*id3->title)
+        return NULL;
+    track->attr |= PLAYLIST_ATTR_RETRIEVE_ID3_SUCCEEDED;
+
+    size_t len = strlcpy(formatted_id3, id3->title, MAX_ID3_SZ);
+    if (global_settings.playlist_viewer_track_display
+        != PLAYLIST_VIEWER_ENTRY_SHOW_ID3_TITLE && id3->album && *id3->album &&
+        len < MAX_ID3_SZ - 10)
+    {
+        formatted_id3[len++] = ' ';
+        formatted_id3[len++] = '-';
+        formatted_id3[len++] = ' ';
+        strmemccpy(&formatted_id3[len], id3->album, MAX_ID3_SZ - len);
+    }
+    return formatted_id3;
+}
+
+/* Format display line */
+static void format_line(struct playlist_entry* track, char* buf, int buf_sz)
+{
+    char name[MAX_PATH], *skipped, *prefix, *suffix, *formatted_name = NULL;
+    bool show_id3 = global_settings.playlist_viewer_track_display
+                    > PLAYLIST_VIEWER_ENTRY_SHOW_FULL_PATH;
     skipped = prefix = suffix = "";
     if (track->attr & PLAYLIST_ATTR_SKIPPED)
         skipped = "(ERR) ";
@@ -543,97 +552,24 @@ static void format_line(struct playlist_entry* track, char* str,
         prefix = "[";
         suffix = "]";
     }
-    if (!(track->attr & PLAYLIST_ATTR_RETRIEVE_ID3_ATTEMPTED) &&
-        (global_settings.playlist_viewer_track_display ==
-            PLAYLIST_VIEWER_ENTRY_SHOW_ID3_TITLE_AND_ALBUM ||
-        global_settings.playlist_viewer_track_display ==
-            PLAYLIST_VIEWER_ENTRY_SHOW_ID3_TITLE
-    ))
-    {
-        track->attr |= PLAYLIST_ATTR_RETRIEVE_ID3_ATTEMPTED;
-        bool retrieve_success = retrieve_id3_tags(track->index, track->name,
-                                                  viewer.id3,
-                                                  METADATA_EXCLUDE_ID3_PATH);
-        if (retrieve_success)
-        {
-            if (!id3viewc)
-            {
-                id3viewc = track->name + strlen(track->name) + 1;
-            }
-            struct mp3entry * pid3 = viewer.id3;
-            id3viewc[0] = '\0';
-            if (global_settings.playlist_viewer_track_display ==
-                PLAYLIST_VIEWER_ENTRY_SHOW_ID3_TITLE_AND_ALBUM)
-            {
-                /* Title & Album */
-                if (pid3->title && pid3->title[0] != '\0')
-                {
-                    char* cur_str = id3viewc;
-                    int title_len = strlen(pid3->title);
-                    int rem_space = MAX_PATH;
-                    for (int i = 0; i < title_len && rem_space > 0; i++)
-                    {
-                        cur_str[0] = pid3->title[i];
-                        cur_str++;
-                        rem_space--;
-                    }
-                    if (rem_space > 10)
-                    {
-                        cur_str[0] = (char) ' ';
-                        cur_str[1] = (char) '-';
-                        cur_str[2] = (char) ' ';
-                        cur_str += 3;
-                        rem_space -= 3;
-                        cur_str = strmemccpy(cur_str, (pid3->album &&
-                                             pid3->album[0] != '\0') ? pid3->album :
-                                             (char*) str(LANG_TAGNAVI_UNTAGGED),
-                                             rem_space);
-                        if (cur_str)
-                            track->attr |= PLAYLIST_ATTR_RETRIEVE_ID3_SUCCEEDED;
-                    }
-                }
-            }
-            else if (global_settings.playlist_viewer_track_display ==
-                     PLAYLIST_VIEWER_ENTRY_SHOW_ID3_TITLE)
-            {
-                /* Just the title */
-                if (pid3->title && pid3->title[0] != '\0' &&
-                    strmemccpy(id3viewc, pid3->title, MAX_PATH))
-                {
-                    track->attr |= PLAYLIST_ATTR_RETRIEVE_ID3_SUCCEEDED;
-                }
-            }
-            /* Yield to reduce as much as possible the perceived UI lag,
-            because retrieving id3 tags is an expensive operation */
-            yield();
-        }
-    }
+
+    if (show_id3 && !(track->attr & PLAYLIST_ATTR_RETRIEVE_ID3_ATTEMPTED))
+        formatted_name = retrieve_formatted_id3(track);
 
     if (!(track->attr & PLAYLIST_ATTR_RETRIEVE_ID3_SUCCEEDED))
     {
-        /* Simply use a formatted file name */
-        char name[MAX_PATH];
         format_name(name, track->name, sizeof(name));
-        if (global_settings.playlist_viewer_indices)
-            /* Display playlist index */
-            snprintf(str, len, "%s%d. %s%s%s",
-                     prefix, track->display_index, skipped, name, suffix);
-        else
-            snprintf(str, len, "%s%s%s%s", prefix, skipped, name, suffix);
+        formatted_name = name;
     }
+    else if (!formatted_name)
+        formatted_name = track->name + strlen(track->name) + 1;
+
+    if (global_settings.playlist_viewer_indices)
+        snprintf(buf, buf_sz, "%s%d. %s%s%s", prefix, track->display_index,
+                 skipped, formatted_name, suffix);
     else
-    {
-        if (!id3viewc)
-        {
-            id3viewc = track->name + strlen(track->name) + 1;
-        }
-        if (global_settings.playlist_viewer_indices)
-            /* Display playlist index */
-            snprintf(str, len, "%s%d. %s%s%s",
-                     prefix, track->display_index, skipped, id3viewc, suffix);
-        else
-            snprintf(str, len, "%s%s%s%s", prefix, skipped, id3viewc, suffix);
-    }
+        snprintf(buf, buf_sz, "%s%s%s%s", prefix,
+                 skipped, formatted_name, suffix);
 }
 
 /* Fallback for displaying fullscreen tags, in case there is not
@@ -978,32 +914,79 @@ static bool update_viewer(struct gui_synclist *playlist_lists, enum pv_context_r
 
 static bool open_playlist_viewer(const char* filename,
                                   struct gui_synclist *playlist_lists,
-                                  bool reload, int *most_recent_selection)
+                                  bool reload, int *recent_selection)
 {
+    const char *dir = NULL, *file = NULL;
+    char *sep = NULL;
     viewer.loading_tick = current_tick + HZ/3;
-    push_current_activity(ACTIVITY_PLAYLISTVIEWER);
 
-    if (playlist_viewer_init(&viewer, filename, reload, most_recent_selection))
-        viewer.is_open = true;
+    /* Set viewer title */
+    if (filename)
+    {
+        /* Separate directory from filename */
+        sep = strrchr(filename + 1, '/');
+        if (sep)
+        {
+            *sep = '\0';
+            dir = filename;
+            file = sep + 1;
+        }
+        else
+        {
+            dir = "/";
+            file = filename + 1;
+        }
+        viewer.title = file;
+    }
     else
+        viewer.title = (char *) str(LANG_PLAYLIST);
+
+    /* Prevent UI from feeling unresponsive when retrieving
+       metadata, or on devices that use disk storage. */
+    if (global_settings.playlist_viewer_track_display
+        > PLAYLIST_VIEWER_ENTRY_SHOW_FULL_PATH
+#ifdef HAVE_DISK_STORAGE
+        || (!storage_disk_is_active()
+#ifdef HAVE_DIRCACHE
+            && (filename || !global_settings.dircache)
+#endif /* HAVE DIRCACHE */
+           )
+#endif /* HAVE_DISK_STORAGE */
+       )
+    {
+        push_activity_without_refresh(ACTIVITY_PLAYLISTVIEWER);
+        clear_screen_buffer(false);
+        FOR_NB_SCREENS(i)
+            sb_set_title_text(viewer.title, Icon_Playlist, i);
+        send_event(GUI_EVENT_ACTIONUPDATE, (void*) 1);
+    }
+    else
+        push_current_activity(ACTIVITY_PLAYLISTVIEWER);
+
+    viewer.is_open = playlist_viewer_init(&viewer, dir, file, reload, recent_selection);
+
+    /* Merge separated dir and filename again */
+    if (sep)
+        *sep = '/';
+
+    if (!viewer.is_open)
         return false;
 
     update_gui(playlist_lists, true);
-
     return true;
 }
 
 /* Main viewer function.  Filename identifies playlist to be viewed.  If NULL,
    view current playlist. */
 enum playlist_viewer_result playlist_viewer_ex(const char* filename,
-                                               int* most_recent_selection)
+                                               int* recent_selection)
 {
     enum playlist_viewer_result ret = PLAYLIST_VIEWER_OK;
     bool exit = false;        /* exit viewer */
     int button;
     struct gui_synclist playlist_lists;
 
-    if (!open_playlist_viewer(filename, &playlist_lists, false, most_recent_selection))
+    if (!open_playlist_viewer(filename, &playlist_lists, false, recent_selection))
     {
         ret = PLAYLIST_VIEWER_CANCEL;
         goto exit;
@@ -1291,7 +1274,7 @@ bool search_playlist(void)
     struct gui_synclist playlist_lists;
     struct playlist_track_info track;
 
-    if (!playlist_viewer_init(&viewer, 0, false, NULL))
+    if (!playlist_viewer_init(&viewer, NULL, NULL, false, NULL))
         return ret;
     if (kbd_input(search_str, sizeof(search_str), NULL) < 0)
         return ret;

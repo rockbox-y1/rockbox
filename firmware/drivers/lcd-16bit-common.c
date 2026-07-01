@@ -5,7 +5,6 @@
  *   Jukebox    |    |   (  <_> )  \___|    < | \_\ (  <_> > <  <
  *   Firmware   |____|_  /\____/ \___  >__|_ \|___  /\____/__/\_ \
  *                     \/            \/     \/    \/            \/
- * $Id$
  *
  * Copyright (C) 2005 by Dave Chapman
  *
@@ -508,6 +507,8 @@ static void ICODE_ATTR lcd_alpha_bitmap_part_mix(
         if (alpha_pixels) { \
             alpha_data = *alpha++ ^ dmask; \
             alpha_data >>= ALPHA_BPP; \
+        } else { \
+            alpha_data = 0; \
         } \
     } while(0)
 #define START_ALPHA() do { } while(0)

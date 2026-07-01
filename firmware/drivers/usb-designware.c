@@ -5,7 +5,6 @@
  *   Jukebox    |    |   (  <_> )  \___|    < | \_\ (  <_> > <  <
  *   Firmware   |____|_  /\____/ \___  >__|_ \|___  /\____/__/\_ \
  *                     \/            \/     \/    \/            \/
- * $Id$
  *
  * Copyright (C) 2009-2014 by Michael Sparmann
  * Copyright © 2010 Amaury Pouly
@@ -40,7 +39,6 @@
 /* Define LOGF_ENABLE to enable logf output in this file */
 /*#define LOGF_ENABLE*/
 #include "logf.h"
-
 
 /* The ARM940T uses a subset of the ARMv4 functions, not
  * supporting clean/invalidate cache entries using MVA.
@@ -109,30 +107,6 @@ enum usb_dw_epdir
     USB_DW_EPDIR_OUT = 1,
 };
 
-enum usb_dw_ep0_state
-{
-    /* Waiting for a setup packet to arrive. This is the default state. */
-    EP0_SETUP,
-
-    /* Request wait states -- after submitting a request, we enter EP0_REQ
-     * (or EP0_REQ_CTRLWRITE for control writes). EP0_REQ is also used for
-     * the 2nd phase of a control write. EP0_REQ_CANCELLED is entered if we
-     * receive a setup packet before getting a response from the USB stack. */
-    EP0_REQ,
-    EP0_REQ_CTRLWRITE,
-    EP0_REQ_CANCELLED,
-
-    /* Waiting for a data phase to complete. */
-    EP0_DATA_IN,
-    EP0_DATA_OUT,
-
-    /* Waiting for the status phase */
-    EP0_STATUS_IN,
-    EP0_STATUS_OUT,
-
-    EP0_NUM_STATES
-};
-
 /* Internal EP state/info */
 struct usb_dw_ep
 {
@@ -147,42 +121,14 @@ struct usb_dw_ep
     uint8_t busy;
 };
 
-/* Additional state for EP0 */
-struct usb_dw_ep0
-{
-    enum usb_dw_ep0_state state;
-    struct usb_ctrlrequest active_req;
-    struct usb_ctrlrequest pending_req;
-};
-
 static const char* const dw_dir_str[USB_DW_NUM_DIRS] =
 {
     [USB_DW_EPDIR_IN]  = "IN",
     [USB_DW_EPDIR_OUT] = "OUT",
 };
 
-static const char* const dw_state_str[EP0_NUM_STATES] =
-{
-    [EP0_SETUP]         = "setup",
-    [EP0_REQ]           = "req",
-    [EP0_REQ_CTRLWRITE] = "req_cw",
-    [EP0_DATA_IN]       = "dat_in",
-    [EP0_DATA_OUT]      = "dat_out",
-    [EP0_STATUS_IN]     = "sts_in",
-    [EP0_STATUS_OUT]    = "sts_out",
-};
-
-#if 0
-static const char* const dw_resp_str[3] =
-{
-    [USB_CONTROL_ACK]     = "ACK",
-    [USB_CONTROL_RECEIVE] = "RECV",
-    [USB_CONTROL_STALL]   = "STALL",
-};
-#endif
-
 static struct usb_dw_ep usb_dw_ep_list[USB_NUM_ENDPOINTS][USB_DW_NUM_DIRS];
-static struct usb_dw_ep0 ep0;
+
 static uint8_t _ep0_buffer[64] USB_DEVBSS_ATTR __attribute__((aligned(32)));
 static uint8_t* ep0_buffer; /* Uncached, unless NO_UNCACHED_ADDR is defined */
 
@@ -750,26 +696,6 @@ static void usb_dw_epstart(int epnum, enum usb_dw_epdir epdir,
     dw_ep->status = -1;
     dw_ep->busy = true;
 
-    if (epnum == 0 && epdir == USB_DW_EPDIR_OUT)
-    {
-        /* FIXME: there's an extremely rare race condition here.
-         *
-         * 1. Host sends a control write.
-         * 2. We process the request.
-         * 3. (time passes)
-         * 4. This function is called via USB_CONTROL_RECEIVE response.
-         * 5. Right before we set CNAK, host sends another control write.
-         *
-         * So we may unintentionally receive data from the second request.
-         * It's possible to detect this when we see a setup packet because
-         * EP0 OUT will be busy. In principle it should even be possible to
-         * handle the 2nd request correctly. Currently we don't attempt to
-         * detect or recover from this error.
-         */
-        DWC_DOEPCTL(0) |= CNAK;
-        return;
-    }
-
     uint32_t maxpktsize = usb_dw_maxpktsize(epnum, epdir);
     uint32_t packets = usb_dw_calc_packets(xfersize, maxpktsize);
     uint32_t eptsiz = PKTCNT(packets) | xfersize;
@@ -847,139 +773,6 @@ static void usb_dw_abort_endpoint(int epnum, enum usb_dw_epdir epdir)
     }
 }
 
-static void usb_dw_control_received(struct usb_ctrlrequest* req)
-{
-    logf("%s(%p) state=%s", __func__, req, dw_state_str[ep0.state]);
-    logf(" bRequestType=%02x bRequest=%02x", req->bRequestType, req->bRequest);
-    logf(" wValue=%04x wIndex=%u wLength=%u", req->wValue, req->wIndex, req->wLength);
-
-    switch(ep0.state) {
-    case EP0_REQ:
-    case EP0_REQ_CTRLWRITE:
-    case EP0_REQ_CANCELLED:
-        /* Save the request for later */
-        memcpy(&ep0.pending_req, req, sizeof(*req));
-        ep0.state = EP0_REQ_CANCELLED;
-        break;
-
-    case EP0_DATA_IN:
-    case EP0_STATUS_IN:
-    case EP0_DATA_OUT:
-    case EP0_STATUS_OUT:
-        usb_core_control_complete(-1);
-        /* fallthrough */
-
-    case EP0_SETUP:
-        /* Save the request */
-        memcpy(&ep0.active_req, req, sizeof(*req));
-        req = &ep0.active_req;
-
-        /* Check for a SET ADDRESS request, which we must handle here */
-        if ((req->bRequestType & USB_RECIP_MASK) == USB_RECIP_DEVICE &&
-            (req->bRequestType & USB_TYPE_MASK) == USB_TYPE_STANDARD &&
-            (req->bRequest == USB_REQ_SET_ADDRESS))
-            usb_dw_set_address(req->wValue);
-
-        /* Check for control writes */
-        if (req->wLength > 0 && !(req->bRequestType & USB_DIR_IN))
-            ep0.state = EP0_REQ_CTRLWRITE;
-        else
-            ep0.state = EP0_REQ;
-
-        usb_dw_flush_endpoint(0, USB_DW_EPDIR_IN);
-        usb_core_control_request(req, NULL);
-        break;
-
-    default:
-        panicf("%s: bad state=%s", __func__, ep0.state >= EP0_NUM_STATES ? "unk" : dw_state_str[ep0.state]);
-    }
-}
-
-/* note: must be called with IRQs disabled */
-static void usb_dw_control_response(enum usb_control_response resp,
-                                    void* data, int length)
-{
-    struct usb_ctrlrequest* req = &ep0.active_req;
-
-    switch(ep0.state) {
-    case EP0_REQ:
-    case EP0_REQ_CTRLWRITE:
-        switch(resp) {
-        case USB_CONTROL_ACK:
-            if(req->wLength > 0 && (req->bRequestType & USB_DIR_IN))
-                ep0.state = EP0_DATA_IN; /* control read */
-            else
-                ep0.state = EP0_STATUS_IN; /* non-data or write */
-
-            usb_dw_transfer(0, USB_DW_EPDIR_IN, data, length);
-            break;
-
-        case USB_CONTROL_RECEIVE:
-            if(ep0.state != EP0_REQ_CTRLWRITE)
-                panicf("%s: bad response", __func__);
-
-            ep0.state = EP0_DATA_OUT;
-            usb_dw_transfer(0, USB_DW_EPDIR_OUT, data, length);
-            break;
-
-        case USB_CONTROL_STALL:
-            if(ep0.state == EP0_REQ_CTRLWRITE)
-                usb_dw_set_stall(0, USB_DW_EPDIR_OUT, 1);
-            else
-                usb_dw_set_stall(0, USB_DW_EPDIR_IN, 1);
-
-            ep0.state = EP0_SETUP;
-            break;
-        }
-        break;
-
-    case EP0_REQ_CANCELLED:
-        /* Terminate the old request */
-        usb_core_control_complete(-3);
-
-        /* Submit the pending request */
-        ep0.state = EP0_SETUP;
-        usb_dw_control_received(&ep0.pending_req);
-        break;
-
-    default:
-        panicf("%s: bad state=%s", __func__, dw_state_str[ep0.state]);
-    }
-}
-
-static void usb_dw_ep0_xfer_complete(enum usb_dw_epdir epdir,
-                                     int status, int transferred)
-{
-    struct usb_dw_ep* dw_ep = usb_dw_get_ep(0, epdir);
-
-    switch((ep0.state << 1) | epdir)
-    {
-    case (EP0_DATA_IN << 1) | USB_DW_EPDIR_IN:
-        ep0.state = EP0_STATUS_OUT;
-        usb_dw_transfer(0, USB_DW_EPDIR_OUT, NULL, 0);
-        break;
-
-    case (EP0_DATA_OUT << 1) | USB_DW_EPDIR_OUT:
-        ep0.state = EP0_REQ;
-        usb_core_control_request(&ep0.active_req, dw_ep->req_addr);
-        break;
-
-    case (EP0_STATUS_IN << 1) | USB_DW_EPDIR_IN:
-    case (EP0_STATUS_OUT << 1) | USB_DW_EPDIR_OUT:
-        if(status != 0 || transferred != 0)
-            usb_core_control_complete(-2);
-        else
-            usb_core_control_complete(0);
-
-        ep0.state = EP0_SETUP;
-        break;
-
-    default:
-        panicf("%s: state=%s dir=%s", __func__,
-               dw_state_str[ep0.state], dw_dir_str[epdir]);
-    }
-}
-
 static void usb_dw_handle_xfer_complete(int epnum, enum usb_dw_epdir epdir)
 {
     struct usb_dw_ep* dw_ep = usb_dw_get_ep(epnum, epdir);
@@ -993,7 +786,7 @@ static void usb_dw_handle_xfer_complete(int epnum, enum usb_dw_epdir epdir)
     }
 
     uint32_t bytes_left = DWC_EPTSIZ(epnum, epdir) & 0x7ffff;
-    uint32_t transferred = (is_ep0out ? 64 : dw_ep->size) - bytes_left;
+    uint32_t transferred = dw_ep->size - bytes_left;
 
     if(transferred > dw_ep->sizeleft)
     {
@@ -1008,7 +801,9 @@ static void usb_dw_handle_xfer_complete(int epnum, enum usb_dw_epdir epdir)
 #if !defined(USB_DW_ARCH_SLAVE) && defined(NO_UNCACHED_ADDR) && defined(POST_DMA_FLUSH)
         DISCARD_DCACHE_RANGE(ep0_buffer, 64);
 #endif
+#ifdef USB_DW_ARCH_SLAVE
         memcpy(dw_ep->addr, ep0_buffer, transferred);
+#endif
         usb_dw_ep0_recv();
     }
 
@@ -1058,15 +853,8 @@ static void usb_dw_handle_xfer_complete(int epnum, enum usb_dw_epdir epdir)
     semaphore_release(&dw_ep->complete);
 
     int total_bytes = dw_ep->req_size - dw_ep->sizeleft;
-    if (epnum == 0)
-    {
-        usb_dw_ep0_xfer_complete(epdir, dw_ep->status, total_bytes);
-    }
-    else
-    {
-        usb_core_transfer_complete(epnum, (epdir == USB_DW_EPDIR_OUT) ?
-                    USB_DIR_OUT : USB_DIR_IN, dw_ep->status, total_bytes);
-    }
+    usb_core_transfer_complete(epnum, (epdir == USB_DW_EPDIR_OUT) ?
+                USB_DIR_OUT : USB_DIR_IN, dw_ep->status, total_bytes);
 }
 
 static void usb_dw_handle_setup_received(void)
@@ -1076,10 +864,15 @@ static void usb_dw_handle_setup_received(void)
 #endif
     struct usb_ctrlrequest req;
     memcpy(&req, ep0_buffer, sizeof(struct usb_ctrlrequest));
-
+    usb_dw_flush_endpoint(0, USB_DW_EPDIR_IN);
     usb_dw_ep0_recv();
 
-    usb_dw_control_received(&req);
+    if ((req.bRequestType & USB_RECIP_MASK) == USB_RECIP_DEVICE &&
+        (req.bRequestType & USB_TYPE_MASK) == USB_TYPE_STANDARD &&
+        (req.bRequest == USB_REQ_SET_ADDRESS))
+        usb_dw_set_address(req.wValue);
+
+    usb_core_setup_received(&req);
 }
 
 #ifdef USB_DW_SHARED_FIFO
@@ -1133,29 +926,106 @@ static void usb_dw_handle_token_mismatch(void)
 }
 #endif /* USB_DW_SHARED_FIFO */
 
+static void usb_dw_iepint(int ep)
+{
+    uint32_t epints = DWC_DIEPINT(ep);
+    DWC_DIEPINT(ep) = epints;
+
+    if (epints & TOC)
+    {
+        usb_dw_abort_endpoint(ep, USB_DW_EPDIR_IN);
+    }
+
+#ifdef USB_DW_SHARED_FIFO
+    if (epints & ITTXFE)
+    {
+        if (epmis_msk & (1 << ep))
+        {
+            DWC_DIEPCTL(ep) |= EPENA;
+            epmis_msk &= ~(1 << ep);
+            if (!epmis_msk)
+                DWC_DIEPMSK &= ~ITTXFE;
+        }
+    }
+
+#elif defined(USB_DW_ARCH_SLAVE)
+    if (epints & TXFE)
+    {
+        usb_dw_handle_dtxfifo(ep);
+    }
+#endif
+
+    if (epints & XFRC)
+    {
+        usb_dw_handle_xfer_complete(ep, USB_DW_EPDIR_IN);
+    }
+}
+
+static void usb_dw_oepint(int ep)
+{
+    uint32_t epints = DWC_DOEPINT(ep);
+    DWC_DOEPINT(ep) = epints;
+
+    if (!ep)
+    {
+        if (epints & STUP)
+        {
+            usb_dw_handle_setup_received();
+        }
+
+        if (epints & XFRC)
+        {
+            if(epints & STATUSRECVD)
+            {
+                /* At the end of a control write's data phase, the
+                 * controller writes a spurious OUTDONE token to the
+                 * FIFO and raises StatusRecvd | XferCompl.
+                 *
+                 * We do not need or want this -- we've already handled
+                 * the data phase by this point -- but EP0 is stopped
+                 * as a side effect of XferCompl, so we need to restart
+                 * it to keep receiving packets. */
+                usb_dw_ep0_recv();
+            }
+            else if(!(epints & SETUPRECVD))
+            {
+                /* Only call this for normal data packets. Setup
+                 * packets use the STUP interrupt handler instead. */
+                usb_dw_handle_xfer_complete(0, USB_DW_EPDIR_OUT);
+            }
+        }
+    }
+    else
+    {
+        if (epints & XFRC)
+        {
+            usb_dw_handle_xfer_complete(ep, USB_DW_EPDIR_OUT);
+        }
+    }
+}
+
 static void usb_dw_irq(void)
 {
     int ep;
-    uint32_t daint;
+    uint32_t gintsts = DWC_GINTSTS & DWC_GINTMSK;
 
 #ifdef USB_DW_ARCH_SLAVE
     /* Handle one packet at a time, the IRQ will re-trigger if there's
        something left. */
-    if (DWC_GINTSTS & RXFLVL)
+    if (gintsts & RXFLVL)
     {
         usb_dw_handle_rxfifo();
     }
 #endif
 
 #ifdef USB_DW_SHARED_FIFO
-    if (DWC_GINTSTS & EPMIS)
+    if (gintsts & EPMIS)
     {
         usb_dw_handle_token_mismatch();
         DWC_GINTSTS = EPMIS;
     }
 
 #ifdef USB_DW_ARCH_SLAVE
-    uint32_t gintsts = DWC_GINTSTS & DWC_GINTMSK;
     if (gintsts & PTXFE)
     {
         /* First disable the IRQ, it will be re-enabled later if there
@@ -1180,99 +1050,29 @@ static void usb_dw_irq(void)
 #endif /* USB_DW_ARCH_SLAVE */
 #endif /* USB_DW_SHARED_FIFO */
 
-    daint = DWC_DAINT;
-
-    /* IN */
-    for (ep = 0; ep < USB_NUM_ENDPOINTS; ep++)
+    if (gintsts & (OEPINT | IEPINT))
     {
-        if (daint & (1 << ep))
+        uint32_t daint = DWC_DAINT & DWC_DAINTMSK;
+        uint32_t daint_out = daint >> 16;
+        uint32_t daint_in = daint & 0xffff;
+        for (ep = 0; ep < USB_NUM_ENDPOINTS && daint_in; ep++, daint_in >>= 1)
         {
-            uint32_t epints = DWC_DIEPINT(ep);
-
-            if (epints & TOC)
+            if (daint_in & 1)
             {
-                usb_dw_abort_endpoint(ep, USB_DW_EPDIR_IN);
+                usb_dw_iepint(ep);
             }
+        }
 
-#ifdef USB_DW_SHARED_FIFO
-            if (epints & ITTXFE)
+        for (ep = 0; ep < USB_NUM_ENDPOINTS && daint_out; ep++, daint_out >>= 1)
+        {
+            if (daint_out & 1)
             {
-                if (epmis_msk & (1 << ep))
-                {
-                    DWC_DIEPCTL(ep) |= EPENA;
-                    epmis_msk &= ~(1 << ep);
-                    if (!epmis_msk)
-                        DWC_DIEPMSK &= ~ITTXFE;
-                }
-            }
-
-#elif defined(USB_DW_ARCH_SLAVE)
-            if (epints & TXFE)
-            {
-                usb_dw_handle_dtxfifo(ep);
-            }
-#endif
-
-            /* Clear XFRC here, if this is a 'multi-transfer' request then
-               a new transfer is going to be launched, this ensures it will
-               not miss a single interrupt. */
-            DWC_DIEPINT(ep) = epints;
-
-            if (epints & XFRC)
-            {
-                usb_dw_handle_xfer_complete(ep, USB_DW_EPDIR_IN);
+                usb_dw_oepint(ep);
             }
         }
     }
 
-    /* OUT */
-    for (ep = 0; ep < USB_NUM_ENDPOINTS; ep++)
-    {
-        if (daint & (1 << (ep + 16)))
-        {
-            uint32_t epints = DWC_DOEPINT(ep);
-            DWC_DOEPINT(ep) = epints;
-
-            if (!ep)
-            {
-                if (epints & STUP)
-                {
-                    usb_dw_handle_setup_received();
-                }
-
-                if (epints & XFRC)
-                {
-                    if(epints & STATUSRECVD)
-                    {
-                        /* At the end of a control write's data phase, the
-                         * controller writes a spurious OUTDONE token to the
-                         * FIFO and raises StatusRecvd | XferCompl.
-                         *
-                         * We do not need or want this -- we've already handled
-                         * the data phase by this point -- but EP0 is stopped
-                         * as a side effect of XferCompl, so we need to restart
-                         * it to keep receiving packets. */
-                        usb_dw_ep0_recv();
-                    }
-                    else if(!(epints & SETUPRECVD))
-                    {
-                        /* Only call this for normal data packets. Setup
-                         * packets use the STUP interrupt handler instead. */
-                        usb_dw_handle_xfer_complete(0, USB_DW_EPDIR_OUT);
-                    }
-                }
-            }
-            else
-            {
-                if (epints & XFRC)
-                {
-                    usb_dw_handle_xfer_complete(ep, USB_DW_EPDIR_OUT);
-                }
-            }
-        }
-    }
-
-    if (DWC_GINTSTS & USBRST)
+    if (gintsts & USBRST)
     {
         DWC_GINTSTS = USBRST;
         usb_dw_set_address(0);
@@ -1280,10 +1080,9 @@ static void usb_dw_irq(void)
         usb_core_bus_reset();
     }
 
-    if (DWC_GINTSTS & ENUMDNE)
+    if (gintsts & ENUMDNE)
     {
         DWC_GINTSTS = ENUMDNE;
-        ep0.state = EP0_SETUP;
         usb_dw_ep0_recv();
     }
 }
@@ -1706,14 +1505,6 @@ int usb_drv_send(int endpoint, void *ptr, int length)
     }
 
     return dw_ep->status;
-}
-
-void usb_drv_control_response(enum usb_control_response resp,
-                              void* data, int length)
-{
-    usb_dw_target_disable_irq();
-    usb_dw_control_response(resp, data, length);
-    usb_dw_target_enable_irq();
 }
 
 int usb_drv_get_frame_number()

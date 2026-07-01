@@ -5,7 +5,6 @@
  *   Jukebox    |    |   (  <_> )  \___|    < | \_\ (  <_> > <  <
  *   Firmware   |____|_  /\____/ \___  >__|_ \|___  /\____/__/\_ \
  *                     \/            \/     \/    \/            \/
- * $Id$
  *
  * Copyright (C) 2002 by wavey@wavey.org
  *
@@ -178,6 +177,9 @@
 
 static struct playlist_info current_playlist;
 static struct playlist_info on_disk_playlist;
+
+/* playlist elapsed percent function from skin_tokens.c */
+extern void wps_playlist_percent_prepare(void);
 
 /* REPEAT_ONE support function from playback.c */
 extern bool audio_pending_track_skip_is_manual(void);
@@ -492,7 +494,7 @@ static void empty_playlist_unlocked(struct playlist_info* playlist, bool resume)
     playlist->first_index = 0;
     playlist->amount = 0;
     playlist->last_insert_pos = -1;
-
+    playlist->created_tick = current_tick;
     playlist->started = false;
 
     if (!resume && playlist == &current_playlist)
@@ -705,6 +707,7 @@ static void display_playlist_count(int count, const unsigned char *fmt,
 static int add_indices_to_playlist(struct playlist_info* playlist,
                                    char* buffer, size_t buflen)
 {
+    unsigned long loading_tick = current_tick + HZ/6;
     ssize_t nread;
     unsigned int i, count = 0;
     bool store_index;
@@ -727,7 +730,6 @@ static int add_indices_to_playlist(struct playlist_info* playlist,
 
     i = lseek(playlist->fd, 0, SEEK_CUR);
 
-    splash(0, ID2P(LANG_WAIT));
     store_index = true;
 
     while(1)
@@ -762,6 +764,12 @@ static int add_indices_to_playlist(struct playlist_info* playlist,
                     playlist->indices[ playlist->amount ] = i+count;
                     dc_init_filerefs(playlist, playlist->amount, 1);
                     playlist->amount++;
+
+                    if (TIME_AFTER(current_tick, loading_tick))
+                    {
+                        loading_tick += HZ*10;
+                        splash(0, ID2P(LANG_WAIT));
+                    }
                 }
             }
         }
@@ -3749,6 +3757,8 @@ void playlist_start(int start_index, unsigned long elapsed,
     sync_control_unlocked(playlist);
 
     playlist_write_unlock(playlist);
+
+    wps_playlist_percent_prepare();
 
     audio_play(elapsed, offset);
     audio_resume();

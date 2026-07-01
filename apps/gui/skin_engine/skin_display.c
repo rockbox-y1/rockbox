@@ -5,7 +5,6 @@
  *   Jukebox    |    |   (  <_> )  \___|    < | \_\ (  <_> > <  <
  *   Firmware   |____|_  /\____/ \___  >__|_ \|___  /\____/__/\_ \
  *                     \/            \/     \/    \/            \/
- * $Id$
  *
  * Copyright (C) 2002-2007 Björn Stenberg
  * Copyright (C) 2007-2008 Nicolas Pennequin
@@ -71,7 +70,19 @@
 #include "statusbar-skinned.h"
 #include "skin_display.h"
 
+static bool dirty[NB_SCREENS];
+
 void skin_render(struct gui_wps *gwps, unsigned refresh_mode);
+
+bool skin_is_dirty(enum screen_type screen)
+{
+    return dirty[screen] && !(dirty[screen] = false);
+}
+
+void skin_mark_dirty(enum screen_type screen)
+{
+    dirty[screen] = true;
+}
 
 /* update a skinned screen, update_type is WPS_REFRESH_* values.
  * Usually it should only be WPS_REFRESH_NON_STATIC
@@ -90,6 +101,7 @@ void skin_update(enum skinnable_screens skin, enum screen_type screen,
 
     skin_render(gwps, skin_do_full_update(skin, screen) ?
                         SKIN_REFRESH_ALL : update_type);
+    skin_mark_dirty(screen);
 }
 
 #ifdef AB_REPEAT_ENABLE
@@ -197,6 +209,23 @@ void draw_progressbar(struct gui_wps *gwps, struct skin_viewport* skin_viewport,
     {
         length = 100;
         end = battery_level();
+    }
+    else if (pb->type == SKIN_TOKEN_PLAYLIST_PROGRESSBAR)
+    {
+        unsigned long pl_elapsed, pl_total;
+        if (id3 && wps_get_playlist_percent(id3,
+                       id3->elapsed + state->ff_rewind_count,
+                       &pl_elapsed, &pl_total)
+            && pl_total > 0)
+        {
+            length = pl_total;
+            end = pl_elapsed;
+        }
+        else
+        {
+            length = 1;
+            end = 0;
+        }
     }
     else if (pb->type == SKIN_TOKEN_PEAKMETER_LEFTBAR ||
              pb->type == SKIN_TOKEN_PEAKMETER_RIGHTBAR)
@@ -397,8 +426,17 @@ void wps_display_images(struct gui_wps *gwps, struct viewport* vp)
     (void)vp;
     struct wps_data *data = gwps->data;
     struct screen *display = gwps->display;
-    struct skin_token_list *list = SKINOFFSETTOPTR(get_skin_buffer(data), data->images);
 
+    /* Start with album art, as it may be drawn over by mask images */
+#ifdef HAVE_ALBUMART
+    struct skin_albumart *aa = SKINOFFSETTOPTR(get_skin_buffer(data), data->albumart);
+    if (aa && aa->draw_handle >= 0)
+    {
+        draw_album_art(gwps, aa->draw_handle, false);
+        aa->draw_handle = -1;
+    }
+#endif
+    struct skin_token_list *list = SKINOFFSETTOPTR(get_skin_buffer(data), data->images);
     while (list)
     {
         struct wps_token *token = SKINOFFSETTOPTR(get_skin_buffer(data), list->token);
@@ -420,15 +458,6 @@ void wps_display_images(struct gui_wps *gwps, struct viewport* vp)
         }
         list = SKINOFFSETTOPTR(get_skin_buffer(data), list->next);
     }
-#ifdef HAVE_ALBUMART
-    /* now draw the AA */
-    struct skin_albumart *aa = SKINOFFSETTOPTR(get_skin_buffer(data), data->albumart);
-    if (aa && aa->draw_handle >= 0)
-    {
-        draw_album_art(gwps, aa->draw_handle, false);
-        aa->draw_handle = -1;
-    }
-#endif
 
     display->set_drawmode(DRMODE_SOLID);
 }

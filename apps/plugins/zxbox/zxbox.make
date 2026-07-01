@@ -4,7 +4,6 @@
 #   Jukebox    |    |   (  <_> )  \___|    < | \_\ (  <_> > <  <
 #   Firmware   |____|_  /\____/ \___  >__|_ \|___  /\____/__/\_ \
 #                     \/            \/     \/    \/            \/
-# $Id$
 #
 
 ZXBOX_SRCDIR = $(APPSDIR)/plugins/zxbox
@@ -38,7 +37,7 @@ $(ZXBOX_OBJDIR)/zxbox.refmap: $(ZXBOX_OBJ)
 
 $(ZXBOX_OUTLDS): $(PLUGIN_LDS) $(ZXBOX_OBJDIR)/zxbox.refmap
 	$(call PRINTS,PP $(@F))$(call preprocess2file,$<,$@,-DPLUGIN -DOVERLAY_OFFSET=$(shell \
-		$(TOOLSDIR)/ovl_offset.pl $(ZXBOX_OBJDIR)/zxbox.refmap))
+		$(TOOLSDIR)/ovl_offset.pl $(ZXBOX_OBJDIR)/zxbox.refelf))
 
 $(ZXBOX_OBJDIR)/zxbox.ovl: $(ZXBOX_OBJ) $(ZXBOX_OUTLDS)
 	$(SILENT)$(CC) $(PLUGINFLAGS) -o $(basename $@).elf \

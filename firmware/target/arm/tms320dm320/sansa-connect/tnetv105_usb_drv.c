@@ -5,7 +5,6 @@
  *   Jukebox    |    |   (  <_> )  \___|    < | \_\ (  <_> > <  <
  *   Firmware   |____|_  /\____/ \___  >__|_ \|___  /\____/__/\_ \
  *                     \/            \/     \/    \/            \/
- * $Id: $
  *
  * Copyright (C) 2021 by Tomasz Moń
  * Ported from Sansa Connect TNETV105 UDC Linux driver
@@ -1182,7 +1181,7 @@ void VLYNQ(void)
             }
 
             /* Process control packet */
-            usb_core_legacy_control_request(&setup);
+            usb_core_setup_received(&setup);
         }
 
         if (sysIntrStatus.f.ep0_in_ack)

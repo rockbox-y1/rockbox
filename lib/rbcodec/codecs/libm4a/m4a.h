@@ -5,7 +5,6 @@
  *   Jukebox    |    |   (  <_> )  \___|    < | \_\ (  <_> > <  <
  *   Firmware   |____|_  /\____/ \___  >__|_ \|___  /\____/__/\_ \
  *                     \/            \/     \/    \/            \/
- * $Id$
  *
  * Copyright (C) 2005 Dave Chapman
  *
@@ -79,6 +78,7 @@ typedef struct
 
     time_to_sample_t *time_to_sample;
     uint32_t num_time_to_samples;
+    uint32_t time_to_sample_offset;
 
     uint32_t *sample_byte_sizes;
     uint32_t num_sample_byte_sizes;

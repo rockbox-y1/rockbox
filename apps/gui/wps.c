@@ -5,7 +5,6 @@
  *   Jukebox    |    |   (  <_> )  \___|    < | \_\ (  <_> > <  <
  *   Firmware   |____|_  /\____/ \___  >__|_ \|___  /\____/__/\_ \
  *                     \/            \/     \/    \/            \/
- * $Id$
  *
  * Copyright (C) 2002 Jerome Kuptz
  *
@@ -533,11 +532,7 @@ static void gwps_leave_wps(bool theme_enabled)
                viewports drawn by the WPS. May need further thought... */
             struct wps_data *sbs = skin_get_gwps(CUSTOM_STATUSBAR, i)->data;
             if (gwps->data->use_extra_framebuffer && sbs->use_extra_framebuffer)
-            {
-                skin_defer_rendering(true);
                 skin_update(CUSTOM_STATUSBAR, i, SKIN_REFRESH_ALL);
-                skin_defer_rendering(false);
-            }
 #endif
             viewportmanager_theme_undo(i, skin_has_sbs(gwps));
         }
@@ -599,11 +594,7 @@ static void gwps_enter_wps(bool theme_enabled)
         skin_backdrop_show(gwps->data->backdrop_id);
 #endif
         display->clear_display();
-        if (skin_has_sbs(gwps))
-            skin_defer_rendering(true);
         skin_update(WPS, i, SKIN_REFRESH_ALL);
-        skin_defer_rendering(false);
-
     }
 #ifdef HAVE_TOUCHSCREEN
     gwps = skin_get_gwps(WPS, SCREEN_MAIN);
@@ -611,7 +602,7 @@ static void gwps_enter_wps(bool theme_enabled)
     if (gwps->data->touchregions < 0)
         touchscreen_set_mode(TOUCHSCREEN_BUTTON);
 #endif
-    /* force statusbar/skin update since we just cleared the whole screen */
+     /* Screen was cleared, so redraw SBS if enabled, and update screen */
     send_event(GUI_EVENT_ACTIONUPDATE, (void*)1);
 }
 
@@ -806,9 +797,10 @@ long gui_wps_show(void)
             case ACTION_WPS_HOTKEY:
             {
                 hotkey = true;
-                if (!global_settings.hotkey_wps)
+                int act = HK_CTX_GET(0, global_settings.context_wps);
+                if (act == HOTKEY_OFF)
                     break;
-                if (get_hotkey(global_settings.hotkey_wps)->flags & HOTKEY_FLAG_NOSBS)
+                if (get_hotkey(act)->flags & HOTKEY_FLAG_NOSBS)
                 {
                     /* leave WPS without re-enabling theme */
                     theme_enabled = false;
@@ -844,7 +836,7 @@ long gui_wps_show(void)
                 {
                     restore_theme();
                     theme_enabled = false;
-                    open_plugin_run(ID2P(LANG_OPEN_PLUGIN_SET_WPS_CONTEXT_PLUGIN));
+                    open_plugin_run(ID2P(LANG_ONPLAY_MENU_TITLE));
                 }
 
                 restore = true;

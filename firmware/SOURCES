@@ -351,6 +351,7 @@ libc/memcmp.c
 
 libc/qsort.c
 libc/random.c
+libc/sscanf.c
 libc/strcat.c
 libc/strchr.c
 libc/strcmp.c
@@ -1754,6 +1755,7 @@ target/mips/ingenic_x1000/pwm-x1000.c
 target/mips/ingenic_x1000/sfc-x1000.c
 target/mips/ingenic_x1000/system-x1000.c
 target/mips/ingenic_x1000/timer-x1000.c
+target/mips/ingenic_x1000/uart-x1000.c
 #ifndef USB_NONE
 target/mips/ingenic_x1000/usb-x1000.c
 #endif

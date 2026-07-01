@@ -5,7 +5,6 @@
  *   Jukebox    |    |   (  <_> )  \___|    < | \_\ (  <_> > <  <
  *   Firmware   |____|_  /\____/ \___  >__|_ \|___  /\____/__/\_ \
  *                     \/            \/     \/    \/            \/
- * $Id$
  *
  * Copyright (C) 2008 by Maurus Cuelenaere
  *
@@ -44,7 +43,7 @@
     .extern main
     .global _start
 
-    .section .init.text
+    .section .init.text,"ax",%progbits
     .set    push
     .set    mips32
     .set    noreorder

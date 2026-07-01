@@ -5,7 +5,6 @@
  *   Jukebox    |    |   (  <_> )  \___|    < | \_\ (  <_> > <  <
  *   Firmware   |____|_  /\____/ \___  >__|_ \|___  /\____/__/\_ \
  *                     \/            \/     \/    \/            \/
- * $Id$
  *
  * Copyright (C) 2002 Gilles Roux
  *               2003 Garrett Derner
@@ -57,7 +56,7 @@ static void tv_draw_bookmarks(const struct tv_screen_pos *top_pos)
 void tv_update_sbs_title(void)
 {
     if (tv_set_sbs_title())
-        rb->send_event(GUI_EVENT_ACTIONUPDATE, (void*)1);
+        rb->send_event(GUI_EVENT_ACTIONREDRAW, (void*)1);
 }
 
 void tv_draw_window(void)

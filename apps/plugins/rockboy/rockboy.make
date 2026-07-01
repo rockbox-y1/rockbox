@@ -4,7 +4,6 @@
 #   Jukebox    |    |   (  <_> )  \___|    < | \_\ (  <_> > <  <
 #   Firmware   |____|_  /\____/ \___  >__|_ \|___  /\____/__/\_ \
 #                     \/            \/     \/    \/            \/
-# $Id$
 #
 
 ROCKBOY_SRCDIR = $(APPSDIR)/plugins/rockboy
@@ -30,7 +29,7 @@ $(ROCKBOY_OBJDIR)/rockboy.refmap: $(ROCKBOY_OBJ)
 
 $(ROCKBOY_OUTLDS): $(PLUGIN_LDS) $(ROCKBOY_OBJDIR)/rockboy.refmap
 	$(call PRINTS,PP $(@F))$(call preprocess2file,$<,$@,-DPLUGIN -DOVERLAY_OFFSET=$(shell \
-		$(TOOLSDIR)/ovl_offset.pl $(ROCKBOY_OBJDIR)/rockboy.refmap))
+		$(TOOLSDIR)/ovl_offset.pl $(ROCKBOY_OBJDIR)/rockboy.refelf))
 
 $(ROCKBOY_OBJDIR)/rockboy.ovl: $(ROCKBOY_OBJ) $(ROCKBOY_OUTLDS)
 	$(SILENT)$(CC) $(PLUGINFLAGS) -o $(basename $@).elf \

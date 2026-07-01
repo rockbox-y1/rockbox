@@ -5,7 +5,6 @@
  *   Jukebox    |    |   (  <_> )  \___|    < | \_\ (  <_> > <  <
  *   Firmware   |____|_  /\____/ \___  >__|_ \|___  /\____/__/\_ \
  *                     \/            \/     \/    \/            \/
- * $Id$
  *
  * Copyright (C) 2002 by Linus Nielsen Feltzing
  *
@@ -179,14 +178,7 @@ enum {
     USB_NUM_DRIVERS
 };
 
-struct usb_transfer_completion_event_data
-{
-    unsigned char endpoint;
-    int dir;
-    int status;
-    int length;
-    void* data[2];
-};
+struct usb_transfer_completion_event_data;
 #endif /* HAVE_USBSTACK */
 
 /* initialise the usb code and thread */

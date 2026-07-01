@@ -5,7 +5,6 @@
  *   Jukebox    |    |   (  <_> )  \___|    < | \_\ (  <_> > <  <
  *   Firmware   |____|_  /\____/ \___  >__|_ \|___  /\____/__/\_ \
  *                     \/            \/     \/    \/            \/
- * $Id$
  *
  * Copyright (C) 2024 William Wilgus
  *
@@ -67,6 +66,7 @@ Example
     All fields except those marked (optional) above are required.
 */
 
+#include "rbversion.h"
 #include "plugin.h"
 #include "lib/configfile.h"
 
@@ -87,7 +87,7 @@ Example
 /* increment this on any code change that effects output */
 #define SCROBBLER_VERSION "1.1"
 
-#define SCROBBLER_REVISION " $Revision$"
+#define SCROBBLER_REVISION " " RBVERSION " "
 
 #define SCROBBLER_BAD_ENTRY "# FAILED - "
 
@@ -834,7 +834,9 @@ static int pbl_copyloop(int fd_copy, const char *src_filename,
     struct scrobbler_entry entry;
     long next_tick = *rb->current_tick;
     int count = 0;
+#if defined(ROCKBOX_HAS_LOGF)
     int line_num = 0;
+#endif
     int lines_copied = 0;
     int fd_src = rb->open_utf8(src_filename, O_RDONLY);
     if (fd_src < 0)
@@ -847,7 +849,9 @@ static int pbl_copyloop(int fd_copy, const char *src_filename,
     while(rb->read_line(fd_src, buf, buf_sz) > 0)
     {
         char skipch = ' ';
+#if defined(ROCKBOX_HAS_LOGF)
         line_num++;
+#endif
         do_timed_yield();
         if (buf[0] == '\0') /* skip empty lines */
             continue;
@@ -996,7 +1000,9 @@ static int sbl_export(void)
 
         struct scrobbler_entry entry;
         int rd = 0;
+#if defined(ROCKBOX_HAS_LOGF)
         int line_num = 0;
+#endif
 
         scrobbler_fd = sbl_open_create();
         if (scrobbler_fd >= 0)
@@ -1006,7 +1012,9 @@ static int sbl_export(void)
             {
                 if ((rd = rb->read_line(fd_copy, buf, sizeof(buf))) <= 0)
                     break;
+#if defined(ROCKBOX_HAS_LOGF)
                 line_num++;
+#endif
                 if (buf[0] != ' ') /* skip culled entries comments and empty lines */
                     continue;
                 pbl_parse_valid_entry(&entry, buf);

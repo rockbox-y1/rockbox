@@ -5,7 +5,6 @@
  *   Jukebox    |    |   (  <_> )  \___|    < | \_\ (  <_> > <  <
  *   Firmware   |____|_  /\____/ \___  >__|_ \|___  /\____/__/\_ \
  *                     \/            \/     \/    \/            \/
- * $Id$
  *
  * Copyright (C) Daniel Stenberg (2002)
  * Copyright (C) William Wilgus (2026)
@@ -41,31 +40,54 @@ static long progress_next_tick, talked_tick;
 
 #define MAXLINES  (LCD_HEIGHT/6)
 
+
+#ifndef BOOTLOADER
 #if MEMORYSIZE > 8
     #define MAXBUFFER MAX(1024, (LCD_WIDTH/SYSFONT_WIDTH) * MAXLINES + 1)
 #else
     #define MAXBUFFER MAX(512, (LCD_WIDTH/SYSFONT_WIDTH) * MAXLINES + 1)
 #endif
+#else
+    #define MAXBUFFER (512)
+#endif
 
 #define RECT_SPACING 3
 #define SPLASH_MEMORY_INTERVAL (HZ)
 
+/* splash_internal does the actual drawing of the splash box and text
+ * each call to splash remembers the max size and will not shrink the splash box
+ * until it is reset by an activity change or \f at the beginning of a string
+ *
+ * splash supports several escape sequences ("\n\t\f\r\v\b")
+ * '\n' (new line) indicates the end of a line of text and starts a new one
+ *  ("\n\n" will end a line and create a blank line)
+ *  '\n' as the first character of the text will create a blank line
+ *
+ * '\t' (tab) starts a new line and adds several spaces to the beginning of the
+ *  new line it also left/right justifies the splash text box
+ *  (RTL languages will right justify)
+ * '\t' as the last character of the text will left/right justify
+ *  without adding any tabs to the text output
+ *
+ * '\f' (form feed) as the first character of the text will reset the text box
+ *  width and height
+ *
+ * Others:
+ * '\f', \r', '\v' '\b' will be treated as a breaking space character
+ *  they will not be displayed as output and multiple sequences will be
+ *  treated as a single character
+ *  eg. "\b\v\f\r" will break the line but only once and will not show as a space
+ *  where as "\n\n" will break a line and add a blank line
+ *  "\t\t" would break a line and add a total of 4 spaces to the next line
+*/
 static bool splash_internal(struct screen * screen, const char *fmt, va_list ap,
                             struct viewport *vp, int addl_lines)
 {
-    static const char matchstr[] = "\r\n\f\v\t";
+    static const char matchstr[] = "\r\n\f\v\t\b";
     static int max_width[NB_SCREENS] = {0};
     static int max_height[NB_SCREENS] = {0};
-    static char splash_buf[MAXBUFFER] = {0};
-
-    struct splash_lines {
-        const char *str;
-        uint16_t x;
-        uint16_t len;
-    } lines[MAXLINES];
-    memset(lines, 0, sizeof(lines));
-
 #ifndef BOOTLOADER
+    static char splash_buf[MAXBUFFER] = {0};
     static enum current_activity last_act = ACTIVITY_UNKNOWN;
     enum current_activity act = get_current_activity();
 
@@ -78,11 +100,21 @@ static bool splash_internal(struct screen * screen, const char *fmt, va_list ap,
         }
         last_act = act;
     }
+#else /*def BOOTLOADER*/
+    char splash_buf[MAXBUFFER] = {0}; /* on the stack for the bootloader */
 #endif
+
+    struct splash_lines {
+        const char *str;
+        uint16_t x;
+        uint16_t len;
+    } lines[MAXLINES];
+    memset(lines, 0, sizeof(lines));
 
     char *buf = splash_buf;
     const char *next, *store;
 
+    bool has_tabs = false;
     int line = 0;
     int x = 0, w = 0;
     int y;
@@ -100,25 +132,36 @@ static bool splash_internal(struct screen * screen, const char *fmt, va_list ap,
     font_getstringsize(" ", &space_w, &chr_h, fontnum);
     y = (addl_lines * chr_h);
 
-    int res = vsnprintf(splash_buf, sizeof(splash_buf), fmt, ap); /*-1 to prevent sanitizer issues */
+    int res = vsnprintf(splash_buf, sizeof(splash_buf), fmt, ap);
     va_end(ap);
 
-    if (res <= 0)
+    if (res <= 0 || width < space_w || height < chr_h)
     {
 #ifdef SIMULATOR
-        printf("ERR\n");
+        if (res <= 0)
+            printf("ERROR: %s %d\n", __func__, res);
+        else
+            printf("WARNING: %s vp too small\n", __func__);
 #endif
         return false; /* nothing to display */
     }
-    /* break splash string into display lines, doing proper word wrap */
+
     const char *lastbreak = splash_buf;
-    while(true)
+    if (*lastbreak == '\f') /* only as first character - Reset splash box size */
     {
+        maxw = 0;
+        maxh = 0;
+    }
+
+    while(true) /* break splash string into display lines, doing proper word wrap */
+    {
+#ifndef BOOTLOADER
         while (*lastbreak != '\0') /* handle escape chars*/
         {
             switch (*lastbreak) /* all chars in matchstr */
             {
                 case '\t': /*fallthrough*/
+                    has_tabs = true; /* left justify (right justify for RTL)*/
                 case '\n':
                 {
                     if (lines[line].len > 0 || *lastbreak != '\t')
@@ -135,24 +178,17 @@ static bool splash_internal(struct screen * screen, const char *fmt, va_list ap,
                         }
                         line++;
                     }
-                    if (*lastbreak == '\t')
+                    /* /t as last char left justifies only */
+                    if (lastbreak[0] == '\t' && lastbreak[1] != '\0')
                     {
                         /* add offset for tab */
                         lines[line].x += space_w * 2;
-                        x += space_w * 4;
+                        x += space_w * 2;
                     }
                     break;
                 }
-                case '\f':
-                {
-                    if (lastbreak == splash_buf) /* only as first character */
-                    {
-                        /* Reset splash box size */
-                        maxw = 0;
-                        maxh = 0;
-                    }
-                    break; /* acts the same as a space character */
-                }
+                case '\b': /*fallthrough*/
+                case '\f': /*fallthrough*/
                 case '\v': /*fallthrough*/
                 case '\r':
                     break; /* acts the same as a space character */
@@ -162,7 +198,7 @@ static bool splash_internal(struct screen * screen, const char *fmt, va_list ap,
             }
             lastbreak++;
         }
-
+#endif
         if (lines[line].len > 0)
         {
             x += w;
@@ -199,20 +235,22 @@ static bool splash_internal(struct screen * screen, const char *fmt, va_list ap,
         if (w > width)
         {
             const char *nxp, *nx = next;
-            int nw, newlen, oldlen = next_len;
+            int nw, newlen;
+            int oldlen = next_len;
 
             while (nx - next < oldlen) /* try to split at a space char */
             {
                 nxp = nx;
                 nx++;
-                if (*nxp != ' ')
+                if (*nxp != ' ' && *nx != '\0') /* split on space or EOL */
                     continue;
                 newlen = nxp - next;
                 nw = font_getstringnsize(next, newlen, NULL, NULL, fontnum);
+
                 if (nw > width)
                 {
-                    /* is room left on this line & next word large enough? */
-                    if (w + space_w * 5 < width && nw - space_w * 8 > w)
+                    /* is next word larger than max width & room left on this line? */
+                    if (nw - w > width && w + space_w * 8 < width)
                         w = nw;
                     break;
                 }
@@ -223,7 +261,7 @@ static bool splash_internal(struct screen * screen, const char *fmt, va_list ap,
             if (w > width) /* split when it fits */
             {
                 w = width;
-                next_len = font_measurestring(next, oldlen, &w, fontnum);
+                next_len = font_measurestring(next, oldlen, w, &w, NULL, fontnum);
                 store = next + next_len;
             }
 
@@ -246,11 +284,13 @@ static bool splash_internal(struct screen * screen, const char *fmt, va_list ap,
     if (height > vp->height)
         height = vp->height;
 
+    /* center the vp in the screen area */
     vp->x += (vp->width - width) / 2;
     vp->y += (vp->height - height) / 2;
     vp->width = width;
     vp->height = height;
-    vp->flags |=  VP_FLAG_ALIGN_CENTER;
+    if (!has_tabs)
+        vp->flags |=  VP_FLAG_ALIGN_CENTER;
 
     /* prevent artifacts by locking to max width & height observed on repeated calls */
     max_width[screen->screen_type] = width - 2*RECT_SPACING;

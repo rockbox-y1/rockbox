@@ -5,7 +5,6 @@
  *   Jukebox    |    |   (  <_> )  \___|    < | \_\ (  <_> > <  <
  *   Firmware   |____|_  /\____/ \___  >__|_ \|___  /\____/__/\_ \
  *                     \/            \/     \/    \/            \/
- * $Id$
  *
  * Copyright (C) 2005 Dave Chapman
  *
@@ -249,7 +248,8 @@ enum codec_status codec_run(void)
         if (i == demux_res.num_sample_byte_sizes - 1)
         {
             // Size of the last frame
-            const uint32_t sample_duration = (demux_res.num_time_to_samples > 0) ?
+            // Currently ignored if time_to_sample table fails to fit.
+            const uint32_t sample_duration = (demux_res.num_time_to_samples > 0 && demux_res.time_to_sample) ?
                 demux_res.time_to_sample[demux_res.num_time_to_samples - 1].sample_duration :
                 frame_samples;
 

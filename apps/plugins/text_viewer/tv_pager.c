@@ -5,7 +5,6 @@
  *   Jukebox    |    |   (  <_> )  \___|    < | \_\ (  <_> > <  <
  *   Firmware   |____|_  /\____/ \___  >__|_ \|___  /\____/__/\_ \
  *                     \/            \/     \/    \/            \/
- * $Id$
  *
  * Copyright (C) 2002 Gilles Roux
  *               2003 Garrett Derner
@@ -318,7 +317,7 @@ void tv_move_screen(int page_offset, int line_offset, int whence)
     cur_pos.line = new_pos.line;
     if (cur_pos.line >= lines_per_page)
         cur_pos.line = lines_per_page - 1;
-    else if (cur_pos.line < 0)
+    if (cur_pos.line < 0)
     {
         cur_pos.line += lines_per_page;
         if (cur_pos.line < 0)

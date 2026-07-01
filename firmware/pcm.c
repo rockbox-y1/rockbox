@@ -5,7 +5,6 @@
  *   Jukebox    |    |   (  <_> )  \___|    < | \_\ (  <_> > <  <
  *   Firmware   |____|_  /\____/ \___  >__|_ \|___  /\____/__/\_ \
  *                     \/            \/     \/    \/            \/
- * $Id$
  *
  * Copyright (C) 2007 by Michael Sevakis
  *
@@ -77,6 +76,9 @@
  *
  */
 
+/* 'true' when all stages of pcm initialization have completed */
+static volatile bool pcm_is_ready[PCM_SINK_NUM] SHAREDBSS_ATTR = { false };
+
 #ifdef USB_ENABLE_IAP
 extern struct pcm_sink iap_pcm_sink;
 #endif
@@ -87,7 +89,7 @@ static struct pcm_sink* sinks[PCM_SINK_NUM] = {
     [PCM_SINK_IAP] = &iap_pcm_sink,
 #endif
 };
-static enum pcm_sink_ids cur_sink = PCM_SINK_BUILTIN;
+static enum pcm_sink_ids cur_sink SHAREDBSS_ATTR = PCM_SINK_BUILTIN;
 
 /* The registered callback function to ask for more mp3 data */
 volatile pcm_play_callback_type
@@ -147,7 +149,7 @@ void pcm_play_stop_int(void)
 
 static void pcm_wait_for_init(void)
 {
-    while (!sinks[cur_sink]->pcm_is_ready)
+    while (!pcm_is_ready[cur_sink])
         sleep(0);
 }
 
@@ -257,9 +259,9 @@ void pcm_init(void)
 
     for(size_t i = 0; i < PCM_SINK_NUM; i += 1) {
         struct pcm_sink* sink = sinks[i];
+        pcm_is_ready[i] = false;
         sink->pending_freq = sink->caps.default_freq;
         sink->configured_freq = -1U;
-        sink->pcm_is_ready = false;
         sink->ops.init();
     }
 }
@@ -272,7 +274,7 @@ void pcm_postinit(void)
     for(size_t i = 0; i < PCM_SINK_NUM; i += 1) {
         struct pcm_sink* sink = sinks[i];
         sink->ops.postinit();
-        sink->pcm_is_ready = true;
+        pcm_is_ready[i] = true;
     }
 
     /* Ensure mixer is in a sane state */
@@ -281,7 +283,7 @@ void pcm_postinit(void)
 
 bool pcm_is_initialized(void)
 {
-    return sinks[cur_sink]->pcm_is_ready;
+    return pcm_is_ready[cur_sink];
 }
 
 enum pcm_sink_ids pcm_current_sink(void)

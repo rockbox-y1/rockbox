@@ -5,7 +5,6 @@
  *   Jukebox    |    |   (  <_> )  \___|    < | \_\ (  <_> > <  <
  *   Firmware   |____|_  /\____/ \___  >__|_ \|___  /\____/__/\_ \
  *                     \/            \/     \/    \/            \/
- * $Id$
  *
  * Copyright (C) 2008 by Dave Chapman
  *
@@ -326,7 +325,7 @@ int main(int argc, char **argv)
      * flawed wps */
     while (argv[filearg]) {
         const char* name = argv[filearg++];
-        char *ext = strrchr(name, '.');
+        const char *ext = strrchr(name, '.');
         struct skin_stats stats;
         printf("Checking %s...\n", name);
         if (!ext)

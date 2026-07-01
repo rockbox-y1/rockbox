@@ -5,7 +5,6 @@
  *   Jukebox    |    |   (  <_> )  \___|    < | \_\ (  <_> > <  <
  *   Firmware   |____|_  /\____/ \___  >__|_ \|___  /\____/__/\_ \
  *                     \/            \/     \/    \/            \/
- * $Id$
  *
  * Copyright (C) 2002 by Daniel Stenberg
  *
@@ -379,9 +378,12 @@ static bool clean_shutdown(enum shutdown_type sd_type,
 #endif
 
         FOR_NB_SCREENS(i)
+            viewportmanager_theme_enable(i, true, NULL);
+        clear_screen_buffer(false);
+        FOR_NB_SCREENS(i)
         {
-            screens[i].clear_display();
             screens[i].update();
+            screens[i].scroll_stop();
         }
 
         if (batt_safe)
@@ -392,6 +394,8 @@ static bool clean_shutdown(enum shutdown_type sd_type,
             {
                 cancel_shutdown();
                 splash(HZ, ID2P(LANG_TAGCACHE_BUSY));
+                FOR_NB_SCREENS(i)
+                    viewportmanager_theme_undo(i, false);
                 return false;
             }
 #endif
@@ -1358,7 +1362,10 @@ const char *format_time_auto(char *buffer, int buf_len, long value,
     const char * const sign        = &"-"[value < 0 ? 0 : 1];
     bool               is_rtl      = lang_is_rtl();
     char               timebuf[25]; /* -2147483648:00:00.00\0 */
-    int                len, left_offset;
+    int                len;
+#if 0 /* unused */
+    int left_offset;
+#endif
     unsigned char      base_idx, max_idx;
 
     unsigned long  units_in[UNIT_IDX_TIME_COUNT];
@@ -1431,8 +1438,11 @@ const char *format_time_auto(char *buffer, int buf_len, long value,
 
         timebuf[offsets[base_idx] + fwidth[base_idx]] = '\0';
 
+#if 0 /* unused */
         left_offset  = -(offsets[max_idx]);
-        left_offset += strlcpy(buffer, sign, buf_len);
+        left_offset +=
+#endif
+        strlcpy(buffer, sign, buf_len);
 
         /* trim leading zero on the max_idx */
         if ((unit_idx & UNIT_TRIM_ZERO) == UNIT_TRIM_ZERO &&
@@ -1460,7 +1470,9 @@ const char *format_time_auto(char *buffer, int buf_len, long value,
 
         fwidth[UNIT_IDX_HR] = len - offsets[UNIT_IDX_HR];
 
+#if 0 /* unused */
         left_offset = -(offsets[base_idx]);
+#endif
 
         /* trim leading zero on the max_idx */
         if ((unit_idx & UNIT_TRIM_ZERO) == UNIT_TRIM_ZERO &&
@@ -1475,7 +1487,10 @@ const char *format_time_auto(char *buffer, int buf_len, long value,
         if (!supress_unit)
         {
             strmemccpy(buffer, unit_strings_core[units[max_idx]], buf_len);
-            left_offset += strlcat(buffer, " ", buf_len);
+#if 0 /* unused */
+            left_offset +=
+#endif
+            strlcat(buffer, " ", buf_len);
             strlcat(buffer, &timebuf[offsets[base_idx]], buf_len);
         }
         else
@@ -1809,11 +1824,7 @@ static void push_current_activity_refresh(enum current_activity screen, bool ref
     {
         skinlist_set_cfg(i, NULL);
         if (refresh)
-        {
-            skin_defer_rendering(true);
             skin_update(CUSTOM_STATUSBAR, i, SKIN_REFRESH_ALL);
-            skin_defer_rendering(false);
-        }
     }
     if (refresh)
         sb_skin_force_next_update();
@@ -1826,11 +1837,7 @@ static void pop_current_activity_refresh(bool refresh)
     {
         skinlist_set_cfg(i, NULL);
         if (refresh)
-        {
-            skin_defer_rendering(true);
             skin_update(CUSTOM_STATUSBAR, i, SKIN_REFRESH_ALL);
-            skin_defer_rendering(false);
-        }
     }
     if (refresh)
         sb_skin_force_next_update();

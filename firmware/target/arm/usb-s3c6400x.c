@@ -5,7 +5,6 @@
  *   Jukebox    |    |   (  <_> )  \___|    < | \_\ (  <_> > <  <
  *   Firmware   |____|_  /\____/ \___  >__|_ \|___  /\____/__/\_ \
  *                     \/            \/     \/    \/            \/
- * $Id$
  *
  * Copyright (C) 2009 by Michael Sparmann
  * Copyright © 2010 Amaury Pouly
@@ -530,7 +529,7 @@ static void handle_ep_int(int ep, bool out)
                ep0_setup_pkt->bRequest     == USB_REQ_SET_ADDRESS)
                 DCFG = (DCFG & ~bitm(DCFG, devadr)) | (ep0_setup_pkt->wValue << DCFG_devadr_bitp);
 
-            usb_core_legacy_control_request(ep0_setup_pkt);
+            usb_core_setup_received(ep0_setup_pkt);
         }
     }
 

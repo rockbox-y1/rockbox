@@ -5,7 +5,6 @@
  *   Jukebox    |    |   (  <_> )  \___|    < | \_\ (  <_> > <  <
  *   Firmware   |____|_  /\____/ \___  >__|_ \|___  /\____/__/\_ \
  *                     \/            \/     \/    \/            \/
- * $Id$
  *
  * Copyright (C) 2006 by Tomasz Malesinski
  * Copyright (C) 2008 by Maurus Cuelenaere
@@ -343,7 +342,7 @@ static void usb_handle_setup_rx(void)
     if (len == 8)
     {
         ISP1583_DFLOW_CTRLFUN |= DFLOW_CTRLFUN_STATUS; /* Acknowledge packet */
-        usb_core_legacy_control_request((struct usb_ctrlrequest*)setup_pkt_buf);
+        usb_core_setup_received((struct usb_ctrlrequest*)setup_pkt_buf);
     }
     else
     {

@@ -5,7 +5,6 @@
  *   Jukebox    |    |   (  <_> )  \___|    < | \_\ (  <_> > <  <
  *   Firmware   |____|_  /\____/ \___  >__|_ \|___  /\____/__/\_ \
  *                     \/            \/     \/    \/            \/
- * $Id$
  *
  * Copyright (C) 2002 by Stuart Martin
  *
@@ -848,10 +847,11 @@ struct user_settings
 #ifdef HAVE_HOTKEY
     /* hotkey assignments - acceptable values are in
        hotkey_action enum in onplay.h */
-    int hotkey_wps;
     int hotkey_tree;
 #endif
-
+    /* WPS context assignments - acceptable values are in
+       hotkey_action enum in onplay.h */
+    int context_wps;
     /* When resuming playback (after a stop), rewind this number of seconds */
     int resume_rewind;
 

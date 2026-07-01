@@ -5,7 +5,6 @@
  *   Jukebox    |    |   (  <_> )  \___|    < | \_\ (  <_> > <  <
  *   Firmware   |____|_  /\____/ \___  >__|_ \|___  /\____/__/\_ \
  *                     \/            \/     \/    \/            \/
- * $Id$
  *
  * Copyright (C) 2007 Nicolas Pennequin
  *
@@ -56,9 +55,9 @@
  * The function return parameter is a pointer to the filename
  *   inside the given fullpath.
  */
-static char* strip_filename(char* buf, int buf_size, const char* fullpath)
+static const char* strip_filename(char* buf, int buf_size, const char* fullpath)
 {
-    char* sep;
+    const char* sep;
     int   len;
 
     if (!buf || buf_size <= 0 || !fullpath)

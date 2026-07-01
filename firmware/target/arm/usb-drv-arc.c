@@ -5,7 +5,6 @@
  *   Jukebox    |    |   (  <_> )  \___|    < | \_\ (  <_> > <  <
  *   Firmware   |____|_  /\____/ \___  >__|_ \|___  /\____/__/\_ \
  *                     \/            \/     \/    \/            \/
- * $Id$
  *
  * Driver for ARC USBOTG Device Controller
  *
@@ -1081,7 +1080,7 @@ static void control_received(void)
         }
     }
 
-    usb_core_legacy_control_request((struct usb_ctrlrequest*)tmp);
+    usb_core_setup_received((struct usb_ctrlrequest*)tmp);
 }
 
 static void transfer_completed(void)

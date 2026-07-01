@@ -5,7 +5,6 @@
  *   Jukebox    |    |   (  <_> )  \___|    < | \_\ (  <_> > <  <
  *   Firmware   |____|_  /\____/ \___  >__|_ \|___  /\____/__/\_ \
  *                     \/            \/     \/    \/            \/
- * $Id$
  *
  * Copyright (C) 2021 Aidan MacDonald
  *
@@ -31,7 +30,7 @@
     .set noreorder
     .set noat
 
-    .section .startup.spl
+    .section .startup.spl, "ax", %progbits
 
 _spl_start:
     /* Clear data watchpoint */

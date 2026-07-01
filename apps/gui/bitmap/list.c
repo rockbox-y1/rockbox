@@ -5,7 +5,6 @@
  *   Jukebox    |    |   (  <_> )  \___|    < | \_\ (  <_> > <  <
  *   Firmware   |____|_  /\____/ \___  >__|_ \|___  /\____/__/\_ \
  *                     \/            \/     \/    \/            \/
- * $Id$
  *
  * Copyright (C) 2007 by Jonathan Gordon
  *
@@ -446,7 +445,6 @@ void list_draw(struct screen *display, struct gui_synclist *list)
 
         callback_draw_item(&list_info);
     }
-    skin_render_deferred(display, parent);
     display->set_viewport(last_vp);
 }
 

@@ -5,7 +5,6 @@
  *   Jukebox    |    |   (  <_> )  \___|    < | \_\ (  <_> > <  <
  *   Firmware   |____|_  /\____/ \___  >__|_ \|___  /\____/__/\_ \
  *                     \/            \/     \/    \/            \/
- * $Id$
  *
  * Copyright (C) 2016 Roman Stolyarov
  * Copyright (C) 2020 Solomon Peachy
@@ -320,7 +319,7 @@ static void EP0_handler(void)
         	ep0_data_supplied = true;
 	    }
             REG_USB_CSR0 = csr0;
-            usb_core_legacy_control_request(&ep0_rx.request);
+            usb_core_setup_received(&ep0_rx.request);
             ep_transfer_completed(ep_recv);
         }
     }

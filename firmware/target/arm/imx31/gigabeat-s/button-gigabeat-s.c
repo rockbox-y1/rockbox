@@ -5,7 +5,6 @@
  *   Jukebox    |    |   (  <_> )  \___|    < | \_\ (  <_> > <  <
  *   Firmware   |____|_  /\____/ \___  >__|_ \|___  /\____/__/\_ \
  *                     \/            \/     \/    \/            \/
- * $Id$
  *
  * Copyright (C) 2006 by Linus Nielsen Feltzing
  *
@@ -35,7 +34,7 @@
 static bool initialized     = false;
 #endif
 
-static unsigned long ext_btn = BUTTON_NONE; /* Buttons not on KPP */
+static uint32_t ext_btn = BUTTON_NONE; /* Buttons not on KPP */
 static bool hold_button     = false;
 #ifndef BOOTLOADER
 static bool hold_button_old = false;

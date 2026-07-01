@@ -29,19 +29,20 @@
 
 #include <QtCore>
 #include <QDebug>
+#include <QStorageInfo>
 #include <cstdlib>
 #include <stdio.h>
 
-#if defined(Q_OS_LINUX) || defined(Q_OS_MACX)
+#if defined(Q_OS_LINUX) || defined(Q_OS_MACOS)
 #include <sys/statvfs.h>
 #endif
-#if defined(Q_OS_LINUX) || defined(Q_OS_MACX)
+#if defined(Q_OS_LINUX) || defined(Q_OS_MACOS)
 #include <stdio.h>
 #endif
 #if defined(Q_OS_LINUX)
 #include <mntent.h>
 #endif
-#if defined(Q_OS_MACX) || defined(Q_OS_OPENBSD)
+#if defined(Q_OS_MACOS) || defined(Q_OS_OPENBSD)
 #include <sys/param.h>
 #include <sys/ucred.h>
 #include <sys/mount.h>
@@ -54,11 +55,9 @@
 #include <winioctl.h>
 #include <tlhelp32.h>
 #endif
-#if defined(Q_OS_MACX)
-#include <Carbon/Carbon.h>
-#include <CoreFoundation/CoreFoundation.h>
-#include <CoreServices/CoreServices.h>
-#include <IOKit/IOKitLib.h>
+#if defined(Q_OS_MACOS)
+#include <libproc.h>
+#include <signal.h>
 #endif
 
 // recursive function to delete a dir with files
@@ -93,11 +92,7 @@ QString Utils::resolvePathCase(QString path)
 {
     int start;
     QString realpath;
-#if QT_VERSION >= 0x050e00
     QStringList elems = path.split("/", Qt::SkipEmptyParts);
-#else
-    QStringList elems = path.split("/", QString::SkipEmptyParts);
-#endif
 
     if(path.isEmpty())
         return QString();
@@ -154,7 +149,7 @@ QString Utils::filesystemType(QString path)
     endmntent(mn);
 #endif
 
-#if defined(Q_OS_MACX) || defined(Q_OS_OPENBSD)
+#if defined(Q_OS_MACOS) || defined(Q_OS_OPENBSD)
     int num;
     struct statfs *mntinf;
 
@@ -181,65 +176,9 @@ QString Utils::filesystemType(QString path)
 }
 
 
-QString Utils::filesystemName(QString path)
+QString Utils::filesystemName(const QString &path)
 {
-    QString name;
-#if defined(Q_OS_WIN32)
-    wchar_t volname[MAX_PATH+1];
-    bool res = GetVolumeInformationW((LPTSTR)path.utf16(), volname, MAX_PATH+1,
-            NULL, NULL, NULL, NULL, 0);
-    if(res) {
-        name = QString::fromWCharArray(volname);
-    }
-#endif
-#if defined(Q_OS_MACX)
-    // BSD label does not include folder.
-    QString bsd = Utils::resolveDevicename(path).remove("/dev/");
-    if(bsd.isEmpty()) {
-        return name;
-    }
-    OSStatus result;
-    ItemCount index = 1;
-
-    do {
-        FSVolumeRefNum volrefnum;
-        HFSUniStr255 volname;
-
-        result = FSGetVolumeInfo(kFSInvalidVolumeRefNum, index, &volrefnum,
-                kFSVolInfoFSInfo, NULL, &volname, NULL);
-
-        if(result == noErr) {
-            GetVolParmsInfoBuffer volparms;
-            /* PBHGetVolParmsSync() is not available for 64bit while
-            FSGetVolumeParms() is available in 10.5+. Thus we need to use
-            PBHGetVolParmsSync() for 10.4, and that also requires 10.4 to
-            always use 32bit.
-            Qt 4 supports 32bit on 10.6 Cocoa only.
-            */
-#if __ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__ >= 1050
-            if(FSGetVolumeParms(volrefnum, &volparms, sizeof(volparms)) == noErr)
-#else
-            HParamBlockRec hpb;
-            hpb.ioParam.ioNamePtr = NULL;
-            hpb.ioParam.ioVRefNum = volrefnum;
-            hpb.ioParam.ioBuffer = (Ptr)&volparms;
-            hpb.ioParam.ioReqCount = sizeof(volparms);
-            if(PBHGetVolParmsSync(&hpb) == noErr)
-#endif
-            {
-                if(volparms.vMServerAdr == 0) {
-                    if(bsd == (char*)volparms.vMDeviceID) {
-                        name = QString::fromUtf16((const ushort*)volname.unicode,
-                                                  (int)volname.length);
-                        break;
-                    }
-                }
-            }
-        }
-        index++;
-    } while(result == noErr);
-#endif
-
+    QString name = QStorageInfo(path).displayName();
     LOG_INFO() << "Volume name of" << path << "is" << name;
     return name;
 }
@@ -267,7 +206,7 @@ qulonglong Utils::filesystemTotal(QString path)
 qulonglong Utils::filesystemSize(QString path, enum Utils::Size type)
 {
     qulonglong size = 0;
-#if defined(Q_OS_LINUX) || defined(Q_OS_MACX)
+#if defined(Q_OS_LINUX) || defined(Q_OS_MACOS)
     // the usage of statfs() is deprecated by the LSB so use statvfs().
     struct statvfs fs;
     int ret;
@@ -320,18 +259,10 @@ qulonglong Utils::filesystemSize(QString path, enum Utils::Size type)
 QString Utils::findExecutable(QString name)
 {
     //try autodetect tts
-#if defined(Q_OS_LINUX) || defined(Q_OS_MACX) || defined(Q_OS_OPENBSD)
-#if QT_VERSION >= 0x050e00
+#if defined(Q_OS_LINUX) || defined(Q_OS_MACOS) || defined(Q_OS_OPENBSD)
     QStringList path = QString(getenv("PATH")).split(":", Qt::SkipEmptyParts);
-#else
-    QStringList path = QString(getenv("PATH")).split(":", QString::SkipEmptyParts);
-#endif
 #elif defined(Q_OS_WIN)
-#if QT_VERSION >= 0x050e00
     QStringList path = QString(getenv("PATH")).split(";", Qt::SkipEmptyParts);
-#else
-    QStringList path = QString(getenv("PATH")).split(";", QString::SkipEmptyParts);
-#endif
 #endif
     LOG_INFO() << "system path:" << path;
     for(int i = 0; i < path.size(); i++)
@@ -339,11 +270,7 @@ QString Utils::findExecutable(QString name)
         QString executable = QDir::fromNativeSeparators(path.at(i)) + "/" + name;
 #if defined(Q_OS_WIN)
         executable += ".exe";
-#if QT_VERSION >= 0x050e00
         QStringList ex = executable.split("\"", Qt::SkipEmptyParts);
-#else
-        QStringList ex = executable.split("\"", QString::SkipEmptyParts);
-#endif
         executable = ex.join("");
 #endif
         if(QFileInfo(executable).isExecutable())
@@ -523,7 +450,7 @@ QString Utils::resolveDevicename(QString path)
 
 #endif
 
-#if defined(Q_OS_MACX) || defined(Q_OS_OPENBSD)
+#if defined(Q_OS_MACOS) || defined(Q_OS_OPENBSD)
     int num;
     struct statfs *mntinf;
 
@@ -607,7 +534,7 @@ QString Utils::resolveMountPoint(QString device)
 
 #endif
 
-#if defined(Q_OS_MACX) || defined(Q_OS_OPENBSD)
+#if defined(Q_OS_MACOS) || defined(Q_OS_OPENBSD)
     int num;
     struct statfs *mntinf;
 
@@ -680,7 +607,7 @@ QStringList Utils::mountpoints(enum MountpointsFilter type)
         }
     }
 
-#elif defined(Q_OS_MACX) || defined(Q_OS_OPENBSD)
+#elif defined(Q_OS_MACOS) || defined(Q_OS_OPENBSD)
     supported << "vfat" << "msdos" << "hfs";
     int num;
     struct statfs *mntinf;
@@ -763,35 +690,46 @@ QMap<QString, QList<int> > Utils::findRunningProcess(QStringList names)
     } while(result);
     CloseHandle(hdl);
 #endif
-#if defined(Q_OS_MACX)
-    ProcessSerialNumber psn = { 0, kNoProcess };
-    OSErr err;
-    do {
-        pid_t pid;
-        err = GetNextProcess(&psn);
-        err = GetProcessPID(&psn, &pid);
-        if(err == noErr) {
-            char buf[32] = {0};
-            ProcessInfoRec info;
-            memset(&info, 0, sizeof(ProcessInfoRec));
-            info.processName = (unsigned char*)buf;
-            info.processInfoLength = sizeof(ProcessInfoRec);
-            err = GetProcessInformation(&psn, &info);
-            if(err == noErr) {
-                // some processes start with nonprintable characters. Skip those.
-                int i;
-                for(i = 0; i < 32; i++) {
-                    if(isprint(buf[i])) break;
-                }
-                // avoid adding duplicates.
-                QString name = QString::fromUtf8(&buf[i]);
-                if(processlist.find(name) == processlist.end()) {
-                    processlist.insert(name, QList<int>());
-                }
-                processlist[name].append(pid);
-            }
+#if defined(Q_OS_MACOS)
+    int bufferSize = proc_listallpids(nullptr, 0);
+    if (bufferSize <= 0) {
+        LOG_ERROR() << "proc_listallpids failed.";
+        return found;
+    }
+
+    int count = bufferSize / sizeof(pid_t);
+    QVector<pid_t> pids(count);
+    bufferSize = proc_listallpids(pids.data(), (int)(pids.size() * sizeof(pid_t)));
+
+    if (bufferSize <= 0) {
+        LOG_ERROR() << "proc_listallpids failed (2).";
+        return found;
+    }
+
+    char pathBuffer[PROC_PIDPATHINFO_MAXSIZE];
+
+    for (int i = 0; i < count; ++i) {
+        pid_t pid = pids[i];
+        if (pid <= 0) continue;
+
+        // Get executable path
+        int ret = proc_pidpath(pid, pathBuffer, sizeof(pathBuffer));
+        if (ret <= 0) continue;
+
+        QString fullPath = QString::fromUtf8(pathBuffer);
+
+        // Extract process name from path
+        QString name = QFileInfo(fullPath).fileName();
+
+        if (name.isEmpty())
+            continue;
+
+        if (!processlist.contains(name)) {
+            processlist.insert(name, QList<int>());
         }
-    } while(err == noErr);
+
+        processlist[name].append(pid);
+    }
 #endif
 #if defined(Q_OS_LINUX)
     // not implemented for Linux!
@@ -920,7 +858,7 @@ QList<int> Utils::suspendProcess(QList<int> pidlist, bool suspend)
         CloseHandle(hToken);
     }
 #endif
-#if defined(Q_OS_MACX)
+#if defined(Q_OS_MACOS)
     int signal = suspend ? SIGSTOP : SIGCONT;
     for(int i = 0; i < pidlist.size(); i++) {
         pid_t pid = pidlist[i];
@@ -947,7 +885,7 @@ QList<int> Utils::suspendProcess(QList<int> pidlist, bool suspend)
  *  @param device mountpoint of the device
  *  @return true on success, fals otherwise.
  */
-bool Utils::ejectDevice(QString device)
+bool Utils::ejectDevice(const QString &device)
 {
 #if defined(Q_OS_WIN32)
     /* See http://support.microsoft.com/kb/165721 on the procedure to eject a
@@ -997,53 +935,26 @@ bool Utils::ejectDevice(QString device)
     return success;
 
 #endif
-#if defined(Q_OS_MACX)
-    // FIXME: FSUnmountVolumeSync is deprecated starting with 10.8.
+#if defined(Q_OS_MACOS)
     // Use DADiskUnmount / DiskArbitration framework eventually.
-    // BSD label does not include folder.
-    QString bsd = Utils::resolveDevicename(device).remove("/dev/");
-    OSStatus result;
-    ItemCount index = 1;
-    bool found = false;
+    QStorageInfo info(device);
+    if (!info.isValid())
+        return false;
 
-    do {
-        FSVolumeRefNum volrefnum;
+    QString mountPoint = info.rootPath();
 
-        result = FSGetVolumeInfo(kFSInvalidVolumeRefNum, index, &volrefnum,
-                kFSVolInfoFSInfo, NULL, NULL, NULL);
-        if(result == noErr) {
-            GetVolParmsInfoBuffer volparms;
-            /* See above -- PBHGetVolParmsSync() is not available for 64bit,
-             * and FSGetVolumeParms() on 10.5+ only. */
-#if __ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__ >= 1050
-            if(FSGetVolumeParms(volrefnum, &volparms, sizeof(volparms)) == noErr)
-#else
-            HParamBlockRec hpb;
-            hpb.ioParam.ioNamePtr = NULL;
-            hpb.ioParam.ioVRefNum = volrefnum;
-            hpb.ioParam.ioBuffer = (Ptr)&volparms;
-            hpb.ioParam.ioReqCount = sizeof(volparms);
-            if(PBHGetVolParmsSync(&hpb) == noErr)
-#endif
-            {
-                if(volparms.vMServerAdr == 0) {
-                    if(bsd == (char*)volparms.vMDeviceID) {
-                        pid_t dissenter;
-                        result = FSUnmountVolumeSync(volrefnum, 0, &dissenter);
-                        found = true;
-                        break;
-                    }
-                }
-            }
-        }
-        index++;
-    } while(result == noErr);
-    if(result == noErr && found)
-        return true;
+    QProcess proc;
+    proc.start("/usr/sbin/diskutil", {"eject", mountPoint});
+    if (!proc.waitForFinished())
+        return false;
 
+    return proc.exitStatus() == QProcess::NormalExit &&
+           proc.exitCode() == 0;
 #endif
 #if defined(Q_OS_LINUX)
     (void)device;
+    // TODO: eject [<device>|<mountPoint>] or
+    // udisksctl unmount -b <device> && udisksctl power-off -b <device>
 #endif
     return false;
 }
@@ -1053,11 +964,11 @@ qint64 Utils::recursiveFolderSize(QString path)
 {
     qint64 size = 0;
     QList<QFileInfo> items = QDir(path).entryInfoList(QDir::Files | QDir::NoDotAndDotDot);
-    for (const auto &item: qAsConst(items)) {
+    for (const auto &item: std::as_const(items)) {
         size += item.size();
     }
     QList<QString> folders = QDir(path).entryList(QDir::Dirs | QDir::NoDotAndDotDot);
-    for (auto const& folder: qAsConst(folders)) {
+    for (auto const& folder: std::as_const(folders)) {
         size += recursiveFolderSize(path + "/" + folder);
     }
     return size;

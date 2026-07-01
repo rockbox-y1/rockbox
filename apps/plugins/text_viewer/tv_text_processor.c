@@ -5,7 +5,6 @@
  *   Jukebox    |    |   (  <_> )  \___|    < | \_\ (  <_> > <  <
  *   Firmware   |____|_  /\____/ \___  >__|_ \|___  /\____/__/\_ \
  *                     \/            \/     \/    \/            \/
- * $Id$
  *
  * Copyright (C) 2002 Gilles Roux
  *               2003 Garrett Derner
@@ -362,7 +361,7 @@ static int tv_parse_text(const unsigned char *src, ucschar_t *ucs,
     int line_end_chars   = 0;
     int width = 0;
     bool is_space = false;
-
+    bool is_align_right = (preferences->alignment == AL_RIGHT);
     while (true) {
         cur = next;
         if (cur >= end_ptr)
@@ -410,7 +409,7 @@ static int tv_parse_text(const unsigned char *src, ucschar_t *ucs,
             }
 
             /* when the alignment is RIGHT, ignores indent spaces. */
-            if (preferences->alignment == AL_RIGHT && is_indent)
+            if (is_align_right && is_indent)
                 continue;
         }
         else
@@ -427,8 +426,17 @@ static int tv_parse_text(const unsigned char *src, ucschar_t *ucs,
             width -= gw;
             if (is_space)
             {
-                line_end_ptr   = cur;
-                line_end_chars = chars;
+                /*Bugfix if not align right leave the space on this line */
+                if (is_align_right)
+                {
+                    line_end_ptr   = cur;
+                    line_end_chars = chars;
+                }
+                else
+                {
+                    line_end_ptr   = next;
+                    line_end_chars = ++chars;
+                }
             }
             is_break_line = true;
             break;

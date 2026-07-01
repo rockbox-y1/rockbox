@@ -5,7 +5,6 @@
  *   Jukebox    |    |   (  <_> )  \___|    < | \_\ (  <_> > <  <
  *   Firmware   |____|_  /\____/ \___  >__|_ \|___  /\____/__/\_ \
  *                     \/            \/     \/    \/            \/
- * $Id$
  *
  * Copyright (C) 2007 by Björn Stenberg
  *
@@ -55,12 +54,6 @@
  *       -> usb_drv_exit()
  *          -> usb_drv_int_enable(false)  [ditto]
  *    -> soc specific controller/clock deinit */
-
-enum usb_control_response {
-    USB_CONTROL_ACK,
-    USB_CONTROL_STALL,
-    USB_CONTROL_RECEIVE,
-};
 
 /* endpoint allocation:
  * there are two ways to implement endpoint allocation.
@@ -112,8 +105,6 @@ int usb_drv_send(int endpoint, void* ptr, int length);
 int usb_drv_send_nonblocking(int endpoint, void* ptr, int length);
 int usb_drv_recv_blocking(int endpoint, void* ptr, int length);
 int usb_drv_recv_nonblocking(int endpoint, void* ptr, int length);
-void usb_drv_control_response(enum usb_control_response resp,
-                              void* data, int length);
 void usb_drv_set_address(int address);
 void usb_drv_reset_endpoint(int endpoint, bool send);
 bool usb_drv_powered(void);
