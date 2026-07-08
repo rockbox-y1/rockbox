@@ -106,6 +106,10 @@ jobs:
   
     - name: bundle ROMs
       run: |
+        # Fetch Airpods 2 fix
+        wget https://github.com/rockbox-y1/rockbox/releases/download/airpods-2-fix/libbluetoothdrv.so
+        wget https://github.com/rockbox-y1/rockbox/releases/download/airpods-2-fix/libbluetoothdrv_real.so
+
         # Type A
         mkdir base
         cd base
@@ -160,6 +164,11 @@ jobs:
         sudo cp ../android/y1/scripts/update.sh mount_user/data/update/update.sh
 
         sudo cp ../android/y1/scripts/bootanimation.zip mount_sys/media/bootanimation.zip
+
+        sudo cp ../libbluetoothdrv.so mount_sys/lib/.
+        sudo cp ../libbluetoothdrv_real.so mount_sys/lib/.
+        sudo chmod 644 mount_sys/lib/libbluetoothdrv.so
+        sudo chmod 644 mount_sys/lib/libbluetoothdrv_real.so
 
         sudo umount mount_sys
         sudo umount mount_user
@@ -225,6 +234,11 @@ jobs:
         sudo cp ../android/y1/scripts/update.sh mount_user/data/update/update.sh
 
         sudo cp ../android/y1/scripts/bootanimation.zip mount_sys/media/bootanimation.zip
+
+        sudo cp ../libbluetoothdrv.so mount_sys/lib/.
+        sudo cp ../libbluetoothdrv_real.so mount_sys/lib/.
+        sudo chmod 644 mount_sys/lib/libbluetoothdrv.so
+        sudo chmod 644 mount_sys/lib/libbluetoothdrv_real.so
 
         sudo umount mount_sys
         sudo umount mount_user
