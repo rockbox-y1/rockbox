@@ -48,6 +48,9 @@
 #if (CONFIG_PLATFORM & PLATFORM_HOSTED)
 #include <time.h>
 #endif
+#if (CONFIG_PLATFORM & PLATFORM_ANDROID)
+#include "powermgmt-android.h"
+#endif
 
 #if (defined(IAUDIO_X5) || defined(IAUDIO_M5) || defined(COWON_D2)) \
     && !defined (SIMULATOR)
@@ -1084,6 +1087,12 @@ void shutdown_hw(enum shutdown_type sd_type)
 void set_poweroff_timeout(int timeout)
 {
     poweroff_timeout = timeout;
+#if (CONFIG_PLATFORM & PLATFORM_ANDROID)
+    if (timeout > 0)
+        android_acquire_wakelock();
+    else
+        android_release_wakelock();
+#endif
 }
 
 void reset_poweroff_timer(void)
