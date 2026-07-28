@@ -53,6 +53,10 @@
 #include "pcf50606.h"
 #endif
 
+#if (INNIOASIS_Y1)
+#include "powermgmt-android.h"
+#endif
+
 #if (BATTERY_CAPACITY_DEFAULT > 0)
 extern unsigned short power_history[POWER_HISTORY_LEN];
 extern unsigned short battery_level_disksafe;
@@ -1083,6 +1087,12 @@ void shutdown_hw(enum shutdown_type sd_type)
 void set_poweroff_timeout(int timeout)
 {
     poweroff_timeout = timeout;
+#if (INNIOASIS_Y1)
+    if (timeout > 0)
+        android_acquire_wakelock();
+    else
+        android_release_wakelock();
+#endif
 }
 
 void reset_poweroff_timer(void)
