@@ -332,8 +332,12 @@ void sound_set_balance(int value)
     if (!audio_is_initialized)
         return;
 
+#if defined(AUDIOHW_HAVE_BALANCE)
+    audiohw_set_balance(value);
+#else
     sound_prescaler.balance = value;
     set_prescaled_volume();
+#endif
 }
 
 #if defined(AUDIOHW_HAVE_BASS)
