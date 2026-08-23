@@ -188,7 +188,18 @@ target/hosted/hiby/hibylinux_codec.c
 #endif
 #endif
 
-#if (defined(HIBY_R1) || defined(HIBY_R3PROII)) && !defined(SIMULATOR)
+#if defined(HIDIZS_AP80MAX) && !defined(SIMULATOR)
+target/hosted/hiby/usb-hiby-gadget.c
+target/hosted/hiby/ap80max/button-ap80max.c
+target/hosted/hiby/ap80max/powermgmt-ap80max.c
+target/hosted/hiby/debug-hiby.c
+#ifndef BOOTLOADER
+target/hosted/hiby/ap80max/led-ap80max.c
+target/hosted/hiby/hibylinux_codec.c
+#endif
+#endif
+
+#if (defined(HIBY_R1) || defined(HIBY_R3PROII) || defined(HIDIZS_AP80MAX)) && !defined(SIMULATOR)
 target/hosted/hiby/usb-dac-hiby.c
 #endif
 
@@ -223,7 +234,7 @@ target/hosted/xduoo/xduoolinux_codec.c
 target/hosted/button-devinput.c
 #endif
 
-#if defined(HIBY_LINUX) && !defined(HIBY_R3PROII) && !defined(HIBY_R1) && !defined(SIMULATOR)
+#if defined(HIBY_LINUX) && !defined(HIBY_R3PROII) && !defined(HIBY_R1) && !defined(HIDIZS_AP80MAX) && !defined(SIMULATOR)
 target/hosted/usb-hiby.c
 #endif
 
@@ -542,9 +553,9 @@ sound.c
 pcm_sampr.c
 pcm.c
 pcm_mixer.c
-#ifdef HAVE_SW_VOLUME_CONTROL
+#ifdef WANT_SWVOL
 pcm_sw_volume.c
-#endif /* HAVE_SW_VOLUME_CONTROL */
+#endif /* WANT_SWVOL */
 #ifdef HAVE_RECORDING
 enc_base.c
 #endif /* HAVE_RECORDING */
@@ -1676,6 +1687,7 @@ target/arm/s5l8702/ipod6g/serial-6g.c
 #ifndef BOOTLOADER
 target/arm/s5l8702/ipod6g/audio-6g.c
 target/arm/s5l8702/ipod6g/cscodec-6g.c
+target/arm/s5l8702/ipod6g/mikey-6g.c
 #endif /* BOOTLOADER */
 #endif /* IPOD_6G */
 

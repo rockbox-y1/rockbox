@@ -1053,6 +1053,11 @@ struct plugin_api {
     int (*android_podcast_disconnect_wifi)(void);
     void (*free_array)(char** array);
 #endif
+#ifdef HAVE_TOUCHSCREEN
+    int (*gesture_flick_get_in_vp)(const struct gesture_event *gevt,
+                                   const struct viewport *vp);
+    int (*gesture_flick_get)(const struct gesture_event *gevt);
+#endif
 };
 struct plugin_header {
     struct lc_header lc_hdr; /* must be the first */

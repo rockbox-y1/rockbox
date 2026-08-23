@@ -259,7 +259,7 @@ GetOptions ( 'r|root=s'      => \$ROOT,
 # Thus we use the ":" for those for which we use a default value in case of ""
 # and assign the default value afterwards
 if ($ziptool eq '') {
-    $ziptool = "zip -r9";
+    $ziptool = "zip -r9 -X";
 }
 if ($output eq '') {
     $output = "rockbox.zip"
@@ -692,6 +692,13 @@ sub buildzip {
     # copy the .lua files
     glob_mkdir("$temp_dir/rocks/viewers/lua/");
     glob_copy('apps/plugins/lua/*.lua', "$temp_dir/rocks/viewers/lua/");
+
+    # finally, bundle map files for debug
+    glob_mkdir("$temp_dir/debug");
+    glob_copy("*.map", "$temp_dir/debug");
+# codecs and plugin maps add up
+#    find(find_copyfile(qr/\.(map)/, abs_path("$temp_dir/debug")), 'lib');
+#    find(find_copyfile(qr/\.(map)/, abs_path("$temp_dir/debug")), 'apps/plugins');
 }
 
 my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) =

@@ -41,9 +41,9 @@
 #include "appevents.h"
 #include "statusbar-skinned.h"
 
- /* 1 top, 1 bottom, 2 on either side, 1 for the icons
-  * if enough space, top and bottom have 2 lines */
-#define MIN_LINES 5
+ /* 2 lines for each of the three vertical sections (top/middle/bottom).
+    If less space is available, the top and bottom each lose a line. */
+#define MIN_LINES (3*2)
 #define MAX_NEEDED_LINES 10
  /* pixels between the 2 center items minimum or between text and icons,
   * and between text and parent boundaries */
@@ -58,7 +58,18 @@ struct quickscreen
     struct viewport vp_icons[NB_SCREENS];
     int button_enter;
     enum quickscreen_return result;
+    enum quickscreen_item volume_item;
 };
+
+/* Skin draws custom Quickscreen UI */
+static bool qs_skinned[NB_SCREENS];
+
+/* Toggle built-in interface, based on
+   whether skin draws custom QS UI. */
+void quickscreen_set_skinned(enum screen_type screen, bool skinned)
+{
+    qs_skinned[screen] = skinned;
+}
 
 static void quickscreen_fix_viewports(struct quickscreen *qs, enum screen_type screen)
 {
@@ -173,11 +184,58 @@ static void quickscreen_fix_viewports(struct quickscreen *qs, enum screen_type s
     vps[QUICKSCREEN_RIGHT].flags  |= VP_FLAG_ALIGN_RIGHT;
 }
 
+/* Draw QS item into current viewport */
+static void quickscreen_draw_item(struct quickscreen *qs, struct screen *display,
+                                  enum quickscreen_item i, bool single_line)
+{
+    char buf[MAX_PATH];
+    int int_value;
+    unsigned const char *title, *value;
+
+    title = P2STR(ID2P(qs->items[i]->lang_id));
+    int_value = option_value_as_int(qs->items[i]);
+    value = option_get_valuestring(qs->items[i], buf, sizeof buf, int_value);
+
+    if (single_line)
+    {
+        char text[MAX_PATH];
+        snprintf(text, sizeof text, "%s: %s", title, value);
+        display->puts_scroll(0, 0, text);
+    }
+    else
+    {
+        display->puts_scroll(0, 0, title);
+        display->puts_scroll(0, 1, value);
+    }
+}
+
+/* Redraw viewports affected by the adjusted setting */
+static void quickscreen_update(struct quickscreen *qs, enum quickscreen_item selected)
+{
+    FOR_NB_SCREENS(screen)
+    {
+        struct screen *display = &screens[screen];
+        struct viewport *vps = qs->vps[screen];
+
+        if (qs_skinned[screen])
+            continue;
+
+        for (int i = 0; i < QUICKSCREEN_ITEM_COUNT; i++)
+            if (qs->items[i] == qs->items[selected])
+            {
+                struct viewport *last_vp = display->set_viewport(&vps[i]);
+                display->clear_viewport();
+                quickscreen_draw_item(qs, display, i, viewport_get_nb_lines(&vps[i]) < 2);
+                display->set_viewport(last_vp);
+            }
+
+        skin_mark_dirty(screen);
+    }
+}
+
+/* Redraw whole Quickscreen */
 static void quickscreen_draw(struct quickscreen *qs, enum screen_type screen)
 {
-    int temp, i;
-    char buf[MAX_PATH];
-    unsigned const char *title, *value;
     struct screen *display = &screens[screen];
     struct viewport *parent = &qs->parent[screen];
     struct viewport *vps = qs->vps[screen];
@@ -185,55 +243,33 @@ static void quickscreen_draw(struct quickscreen *qs, enum screen_type screen)
     struct viewport *last_vp = display->set_viewport(parent);
     display->clear_viewport();
 
-    for (i = 0; i < QUICKSCREEN_ITEM_COUNT; i++)
-    {
-        struct viewport *vp = &vps[i];
-        if (!qs->items[i])
-            continue;
-        display->set_viewport(vp);
-
-        title = P2STR(ID2P(qs->items[i]->lang_id));
-        temp = option_value_as_int(qs->items[i]);
-        value = option_get_valuestring(qs->items[i],
-                                       buf, sizeof buf, temp);
-
-        if (viewport_get_nb_lines(vp) < 2)
+    /* items */
+    for (int i = 0; i < QUICKSCREEN_ITEM_COUNT; i++)
+        if (qs->items[i])
         {
-            char text[MAX_PATH];
-            snprintf(text, sizeof text, "%s: %s", title, value);
-            display->puts_scroll(0, 0, text);
+            display->set_viewport(&vps[i]);
+            quickscreen_draw_item(qs, display, i, viewport_get_nb_lines(&vps[i]) < 2);
         }
-        else
-        {
-            display->puts_scroll(0, 0, title);
-            display->puts_scroll(0, 1, value);
-        }
-    }
-    /* draw the icons */
+
+    /* icons */
     display->set_viewport(vp_icons);
-
-    if (qs->items[QUICKSCREEN_TOP] != NULL)
-    {
+    if (qs->items[QUICKSCREEN_TOP])
         display->mono_bitmap(bitmap_icons_7x8[Icon_UpArrow],
-            (vp_icons->width/2) - 4, 0, 7, 8);
-    }
-    if (qs->items[QUICKSCREEN_RIGHT] != NULL)
-    {
-        display->mono_bitmap(bitmap_icons_7x8[Icon_FastForward],
-            vp_icons->width - 8, (vp_icons->height/2) - 4, 7, 8);
-    }
-    if (qs->items[QUICKSCREEN_LEFT] != NULL)
-    {
-        display->mono_bitmap(bitmap_icons_7x8[Icon_FastBackward],
-            0, (vp_icons->height/2) - 4, 7, 8);
-    }
-    if (qs->items[QUICKSCREEN_BOTTOM] != NULL)
-    {
-        display->mono_bitmap(bitmap_icons_7x8[Icon_DownArrow],
-            (vp_icons->width/2) - 4, vp_icons->height - 8, 7, 8);
-    }
+                             (vp_icons->width/2) - 4, 0, 7, 8);
 
-    skin_mark_dirty(display->screen_type);
+    if (qs->items[QUICKSCREEN_RIGHT])
+        display->mono_bitmap(bitmap_icons_7x8[Icon_FastForward],
+                             vp_icons->width - 8, (vp_icons->height/2) - 4, 7, 8);
+
+    if (qs->items[QUICKSCREEN_LEFT])
+        display->mono_bitmap(bitmap_icons_7x8[Icon_FastBackward],
+                             0, (vp_icons->height/2) - 4, 7, 8);
+
+    if (qs->items[QUICKSCREEN_BOTTOM])
+        display->mono_bitmap(bitmap_icons_7x8[Icon_DownArrow],
+                             (vp_icons->width/2) - 4, vp_icons->height - 8, 7, 8);
+
+    skin_mark_dirty(screen);
     display->set_viewport(last_vp);
 }
 
@@ -243,7 +279,8 @@ static void quickscreen_draw_cb(unsigned short id, void *data, void *userdata)
     (void)data;
 
     FOR_NB_SCREENS(i)
-        quickscreen_draw((struct quickscreen *) userdata, i);
+        if (!qs_skinned[i])
+            quickscreen_draw((struct quickscreen *) userdata, i);
 }
 
 static void talk_qs_option(const struct settings_list *opt, bool enqueue)
@@ -262,39 +299,39 @@ static void talk_qs_option(const struct settings_list *opt, bool enqueue)
  *  - button : the key we are going to analyse
  * returns : true if the button corresponded to an action, false otherwise
  */
-static bool quickscreen_do_button(struct quickscreen * qs, int button)
+static bool quickscreen_do_button(struct quickscreen * qs, int button,
+                                  enum quickscreen_item *item)
 {
-    int item;
     bool previous = false;
     switch(button)
     {
         case ACTION_QS_TOP:
-            item = QUICKSCREEN_TOP;
+            *item = QUICKSCREEN_TOP;
             break;
 
         case ACTION_QS_LEFT:
-            item = QUICKSCREEN_LEFT;
+            *item = QUICKSCREEN_LEFT;
             previous = true;
             break;
 
         case ACTION_QS_DOWN:
-            item = QUICKSCREEN_BOTTOM;
+            *item = QUICKSCREEN_BOTTOM;
             previous = true;
             break;
 
         case ACTION_QS_RIGHT:
-            item = QUICKSCREEN_RIGHT;
+            *item = QUICKSCREEN_RIGHT;
             break;
 
         default:
             return false;
     }
 
-    if (qs->items[item] == NULL)
+    if (qs->items[*item] == NULL)
         return false;
 
-    option_select_next_val(qs->items[item], previous, true);
-    talk_qs_option(qs->items[item], false);
+    option_select_next_val(qs->items[*item], previous, true);
+    talk_qs_option(qs->items[*item], false);
     return true;
 }
 
@@ -349,8 +386,9 @@ static void cleanup(void *parameter)
 
     FOR_NB_SCREENS(i)
     {
-        for (int j = 0; j < QUICKSCREEN_ITEM_COUNT; j++)
-            screens[i].scroll_stop_viewport(&qs->vps[i][j]);
+        if (!qs_skinned[i])
+            for (int j = 0; j < QUICKSCREEN_ITEM_COUNT; j++)
+                screens[i].scroll_stop_viewport(&qs->vps[i][j]);
         viewportmanager_theme_undo(i, !(qs->result & QUICKSCREEN_GOTO_SHORTCUTS_MENU));
     }
     /* Eliminate flashing of parent during transition to Shortcuts */
@@ -363,6 +401,7 @@ static void cleanup(void *parameter)
 static void quickscreen_run(struct quickscreen * qs)
 {
     int button;
+    enum quickscreen_item item;
     /* To quit we need either :
      *  - a second press on the button that made us enter
      *  - an action taken while pressing the enter button,
@@ -376,8 +415,11 @@ static void quickscreen_run(struct quickscreen * qs)
         screens[i].set_viewport(NULL);
         screens[i].scroll_stop();
         viewportmanager_theme_enable(i, true, &qs->parent[i]);
-        quickscreen_fix_viewports(qs, i);
-        quickscreen_draw(qs, i);
+        if (!qs_skinned[i])
+        {
+            quickscreen_fix_viewports(qs, i);
+            quickscreen_draw(qs, i);
+        }
     }
     /* Announce current selection on entering this screen. This is all
        queued up, but can be interrupted as soon as a setting is
@@ -407,22 +449,19 @@ static void quickscreen_run(struct quickscreen * qs)
             qs->result |= QUICKSCREEN_IN_USB;
             return;
         }
-        if (quickscreen_do_button(qs, button))
+        if (quickscreen_do_button(qs, button, &item))
         {
             qs->result |= QUICKSCREEN_CHANGED;
             can_quit = true;
-            FOR_NB_SCREENS(i)
-                quickscreen_draw(qs, i);
+            quickscreen_update(qs, item);
         }
         else if (button == qs->button_enter)
             can_quit = true;
-        else if (button == ACTION_QS_VOLUP) {
-            adjust_volume(1);
-            sb_skin_force_next_update();
-        }
-        else if (button == ACTION_QS_VOLDOWN) {
-            adjust_volume(-1);
-            sb_skin_force_next_update();
+        else if (button == ACTION_QS_VOLUP || button == ACTION_QS_VOLDOWN)
+        {
+            adjust_volume(button == ACTION_QS_VOLUP ? 1 : -1);
+            if (qs->volume_item < QUICKSCREEN_ITEM_COUNT)
+                quickscreen_update(qs, qs->volume_item);
         }
         else if (button == ACTION_STD_CONTEXT)
         {
@@ -434,6 +473,10 @@ static void quickscreen_run(struct quickscreen * qs)
 
         if (button == ACTION_STD_CANCEL)
             break;
+
+        /* Ignore SBS update_delay, so that setting
+           changes are immediately visible. */
+        sb_skin_force_next_update();
     }
     /* Notify that we're exiting this screen */
     cond_talk_ids_fq(VOICE_OK);
@@ -445,6 +488,7 @@ int quick_screen_quick(int button_enter)
     struct quickscreen qs;
     qs.button_enter = button_enter;
     qs.result = QUICKSCREEN_OK;
+    qs.volume_item = QUICKSCREEN_ITEM_COUNT;
 
     for (int i = 0; i < 4; ++i)
     {
@@ -452,6 +496,9 @@ int quick_screen_quick(int button_enter)
 
         if (!is_setting_quickscreenable(qs.items[i]))
             qs.items[i] = NULL;
+
+        if (qs.items[i] && qs.items[i]->lang_id == LANG_VOLUME)
+            qs.volume_item = i;
     }
 
     quickscreen_run(&qs);

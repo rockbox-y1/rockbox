@@ -142,6 +142,8 @@ static int updater_init(struct updater* u)
     nand_lock(u->ndrv);
     rc = nand_open(u->ndrv);
     if(rc != NAND_SUCCESS) {
+        nand_unlock(u->ndrv);
+        u->ndrv = NULL;
         rc = IERR_NAND_OPEN;
         goto error;
     }
@@ -237,7 +239,7 @@ int install_bootloader(const char* filename)
 
 int backup_bootloader(const char* filename)
 {
-    int rc, fd = 0;
+    int rc, fd = -1;
     struct updater u;
 
     rc = updater_init(&u);
@@ -281,7 +283,7 @@ int backup_bootloader(const char* filename)
 
 int restore_bootloader(const char* filename)
 {
-    int rc, fd = 0;
+    int rc, fd = -1;
     struct updater u;
 
     rc = updater_init(&u);

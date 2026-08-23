@@ -1737,9 +1737,11 @@ cat <<EOF
                                                  300) R3 Pro II
  ==Echo project==          ==Surfans==           301) R1
  270) Echo R1 (WIP)        280) F28 (WIP)
-
- ==Nintendo==              ==Innioasis==
- 290) Nintendo 3DS (WIP)   310) Innioasis Y1 (WIP)
+                                                 ==Hidizs==
+ ==Nintendo==                                    302) AP80 Pro Max (WIP)
+ 290) Nintendo 3DS (WIP)
+                                                ==Innioasis==
+                                                310) Innioasis Y1 (WIP)
 
 EOF
 
@@ -4226,6 +4228,31 @@ fi
     sysfont="20-Terminus"
     ;;
 
+   302|hidizsap80max)
+    target_id=125
+    application=yes
+    app_type="hibyos"
+    modelname="hidizsap80max"
+    target="HIDIZS_AP80MAX"
+    memory=16 # The device has 64mb but let's make sure it still boots with things in the background
+    mipsellinuxcc
+    tool="cp "
+    boottool="cp "
+    bmp2rb_mono="$rootdir/tools/bmp2rb -f 0"
+    bmp2rb_native="$rootdir/tools/bmp2rb -f 4"
+    output="rockbox.ap80max"
+    bootoutput="bootloader.ap80max"
+    appextra="recorder:gui:hosted"
+    plugins="yes"
+    # architecture, manufacturer and model for the target-tree build
+    # These align with
+    t_cpu="hosted"
+    t_manufacturer="hiby"
+    t_model="ap80max"
+    sysfontbl="24-Terminus"
+    sysfont="20-Terminus"
+    ;;
+
    310|innioasisy1)
     application="yes"
     target_id=125
@@ -4942,7 +4969,11 @@ export BUILDDIR=${pwd}
 export RBCODEC_BLD=${pwd}/lib/rbcodec
 export VOICELANGUAGE=${voicelanguage}
 export MEMORYSIZE=${memory}
+ifeq (\$(SOURCE_DATE_EPOCH),)
 export BUILDDATE:=\$(shell date -u +'-DYEAR=%Y -DMONTH=%m -DDAY=%d')
+else
+export BUILDDATE:=\$(shell date -d "@\$(SOURCE_DATE_EPOCH)" -u +'-DYEAR=%Y -DMONTH=%m -DDAY=%d')
+endif
 export MKFIRMWARE=${tool}
 export BMP2RB_MONO=${bmp2rb_mono}
 export BMP2RB_NATIVE=${bmp2rb_native}

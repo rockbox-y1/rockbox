@@ -900,6 +900,10 @@ static const struct plugin_api rockbox_api = {
     .android_podcast_disconnect_wifi = android_podcast_disconnect_wifi,
     .free_array = free_array,
 #endif
+#ifdef HAVE_TOUCHSCREEN
+    gesture_flick_get_in_vp,
+    gesture_flick_get,
+#endif
 };
 
 static int plugin_buffer_handle;

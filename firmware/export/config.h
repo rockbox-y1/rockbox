@@ -157,7 +157,8 @@
 #define RG_NANO_PAD        77
 #define CTRU_PAD           78
 #define HIBY_R3PROII_PAD   79
-#define INNIOASIS_Y1_PAD   80
+#define HIDIZS_AP80MAX_PAD 80
+#define INNIOASIS_Y1_PAD   81
 
 /* CONFIG_REMOTE_KEYPAD */
 #define H100_REMOTE   1
@@ -583,6 +584,8 @@ Lyre prototype 1 */
 #include "config/hibyr3proii.h"
 #elif defined(HIBY_R1)
 #include "config/hibyr1.h"
+#elif defined(HIDIZS_AP80MAX)
+#include "config/hidizsap80max.h"
 #else
 #error "unknown hardware platform!"
 #endif
@@ -1492,6 +1495,14 @@ Lyre prototype 1 */
 #define ucschar_t unsigned int
 #else
 #define ucschar_t unsigned short
+#endif
+
+#ifdef HAVE_SW_VOLUME_CONTROL
+#define WANT_SWVOL
+#endif
+
+#if defined(PCM_NATIVE_BITDEPTH) && (PCM_NATIVE_BITDEPTH > 16)
+#define WANT_SWVOL_32
 #endif
 
 #endif /* __CONFIG_H__ */
