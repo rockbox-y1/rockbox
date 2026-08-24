@@ -525,8 +525,8 @@ CONFIG_KEYPAD == MROBE500_PAD
 #elif ((LCD_WIDTH == 240) && (LCD_HEIGHT == 240)) || \
     ((LCD_WIDTH == 320) && (LCD_HEIGHT == 240)) || \
     ((LCD_WIDTH == 240) && ((LCD_HEIGHT == 320) || (LCD_HEIGHT == 400))) || \
-    ((LCD_WIDTH == 360) && ((LCD_HEIGHT == 400) || \
-    ((LCD_WIDTH == 480) && (LCD_HEIGHT == 360)) || (LCD_HEIGHT == 640)))
+    ((LCD_WIDTH == 360) && ((LCD_HEIGHT == 400) || (LCD_HEIGHT == 640))) || \
+    ((LCD_WIDTH == 480) && (LCD_HEIGHT == 360))
 #define FOOD_SIZE 7
 #define ARGH_SIZE 8
 #define SPEED 4
