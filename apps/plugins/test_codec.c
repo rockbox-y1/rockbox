@@ -21,6 +21,7 @@
 #include "lib/pluginlib_touchscreen.h"
 #include "lib/pluginlib_exit.h"
 #include "lib/pluginlib_actions.h"
+#include "lib/xlcd.h"
 
 /* this set the context to use with PLA */
 static const struct button_mapping *plugin_contexts[] = { pla_main_ctx };
@@ -41,27 +42,50 @@ static const struct opt_items boost_settings[2] = {
 /* Log functions copied from test_disk.c */
 static int line = 0;
 static int max_line = 0;
+static int line_height = 0;
 static int log_fd = -1;
+static char logfilename[MAX_PATH];
 
 static void log_close(void)
 {
     if (log_fd >= 0)
         rb->close(log_fd);
+    log_fd = -1;
+}
+
+/* The file's length only reaches the disk when it is closed.  So that what
+   has been logged survives the player being switched off, or its battery
+   running out, before the plugin is left: close the log and open it again
+   to carry on. */
+static void log_commit(void)
+{
+    if (log_fd >= 0)
+    {
+        rb->close(log_fd);
+        log_fd = rb->open(logfilename, O_WRONLY|O_APPEND);
+    }
 }
 
 static bool log_init(bool use_logfile)
 {
-    int h;
-    char logfilename[MAX_PATH];
+    static bool close_at_exit = false;
 
-    rb->lcd_getstringsize("A", NULL, &h);
-    max_line = LCD_HEIGHT / h;
+    rb->lcd_getstringsize("A", NULL, &line_height);
+    max_line = LCD_HEIGHT / line_height;
     line = 0;
     rb->lcd_clear_display();
     rb->lcd_update();
 
+    log_close();
+
     if (use_logfile) {
-        log_close();
+        /* Leaving on USB or power off goes through exit(), not the end of
+           plugin_start(). */
+        if (!close_at_exit)
+        {
+            atexit(log_close);
+            close_at_exit = true;
+        }
         rb->create_numbered_filename(logfilename, HOME_DIR, "test_codec_log_", ".txt",
                                      2 IF_CNFN_NUM_(, NULL));
         log_fd = rb->open(logfilename, O_RDWR|O_CREAT|O_TRUNC, 0666);
@@ -73,12 +97,17 @@ static bool log_init(bool use_logfile)
 
 static void log_text(char *text, bool advance)
 {
+    if (line >= max_line)
+    {
+        /* Screen is full - scroll up to make room for this line */
+        xlcd_scroll_up(line_height);
+        line = max_line - 1;
+    }
     rb->lcd_puts(0, line, text);
     rb->lcd_update();
     if (advance)
     {
-        if (++line >= max_line)
-            line = 0;
+        line++;
         if (log_fd >= 0)
             rb->fdprintf(log_fd, "%s\n", text);
     }
@@ -829,7 +858,11 @@ void plugin_quit(void)
     else
 #endif
         do {
-            btn = pluginlib_getaction(TIMEOUT_BLOCK, plugin_contexts,
+            /* lcd_update() does nothing while the LCD is off, and the
+               backlight_on() request is asynchronous, so the results may
+               not have reached the display yet - keep refreshing it */
+            rb->lcd_update();
+            btn = pluginlib_getaction(HZ/2, plugin_contexts,
                           ARRAYLEN(plugin_contexts));
             exit_on_usb(btn);
         } while ((codec_action != CODEC_ACTION_HALT)
@@ -1004,6 +1037,7 @@ menu:
                         break;
 
                     log_text("", true);
+                    log_commit();
                 }
 
                 /* Read next entry */
@@ -1012,6 +1046,9 @@ menu:
             
             rb->closedir(dir);
         }
+
+        /* The run is over: nothing more goes in the log. */
+        log_close();
     } else {
         /* Just test the file */
         res = test_track(parameter);

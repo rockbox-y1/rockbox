@@ -326,6 +326,11 @@ Lyre prototype 1 */
 #define NAND_RK27XX  5
 #define NAND_IMX233  6
 
+/* CONFIG_RK27XX_FTL: the on-flash format of an rk27xx target's NAND. A
+ * target that does not define it builds only the FTL scheme finder. */
+#define RK27XX_FTL_SCHEME_A 1 /* ftl-scheme-a.c: zone tables, remap logs */
+#define RK27XX_FTL_SCHEME_B 2 /* ftl-scheme-b.c: self-describing blocks */
+
 /* CONFIG_RTC */
 #define RTC_HOSTED   1 /* Generic hosted */
 #define RTC_PCF50605 2 /* iPod 3G, 4G & Mini */
@@ -340,6 +345,7 @@ Lyre prototype 1 */
 #define RTC_MR100  12
 #define RTC_MC13783  13 /* Freescale MC13783 PMIC */
 #define RTC_S5L8700  14
+#define RTC_S35390A  15
 #define RTC_JZ4740   16 /* Ingenic Jz4740 */
 #define RTC_NANO2G   17 /* This seems to be a PCF5063x */
 #define RTC_D2       18 /* Either PCF50606 or PCF50635 */
@@ -484,6 +490,8 @@ Lyre prototype 1 */
 #include "config/mpiohd300.h"
 #elif defined(RK27_GENERIC)
 #include "config/rk27generic.h"
+#elif defined(SAMSUNG_YPCP3)
+#include "config/samsungypcp3.h"
 #elif defined(HM60X)
 #include "config/hifimanhm60x.h"
 #elif defined(HM801)
@@ -892,6 +900,17 @@ Lyre prototype 1 */
 #endif /* CONFIG_BACKLIGHT_FADING */
 
 /* Storage related config handling */
+
+/* The rk27xx NAND's Scheme A flash translation layer holds part-written
+ * pages in RAM (ftl-scheme-a.c) until a later write completes them;
+ * storage_flush() commits them at shutdown, ROLO and wherever else it is
+ * called. */
+#if (CONFIG_STORAGE & STORAGE_NAND) && defined(CONFIG_NAND) \
+    && (CONFIG_NAND == NAND_RK27XX) \
+    && (CONFIG_RK27XX_FTL == RK27XX_FTL_SCHEME_A) \
+    && !defined(HAVE_STORAGE_FLUSH)
+#define HAVE_STORAGE_FLUSH
+#endif
 
 #if (CONFIG_STORAGE & (CONFIG_STORAGE - 1)) != 0
 /* Multiple storage drivers */

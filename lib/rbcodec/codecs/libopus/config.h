@@ -23,6 +23,27 @@
    rather than miscompiling. */
 #define CELT_DECODE_ONLY
 
+/* Code in IRAM.  PP5022 and PP5024 give a codec an 80 KB IRAM window and Opus
+   already spends 39 KB of it on tables and .ibss; the hot decode path is
+   about 34 KB of code, so it fits with room over.  Every other PP has a 48 KB
+   window, which the tables would leave too little of, and the AS3525 codec
+   link defines no IRAM region at all because the whole codec already runs
+   from IRAM there.  libcook splits the same way, for the same reason.
+   Measured on a Sansa e200v1: 48.96 MHz to 42.92, a 12.3% cut that the cycle
+   model cannot see at all, because it does not model an instruction cache.
+   Define OPUS_NO_ICODE to build without it and compare. */
+#if (CONFIG_CPU == PP5022 || CONFIG_CPU == PP5024) && !defined(OPUS_NO_ICODE)
+#define OPUS_ARM_ICODE            /* also read by the .S kernels */
+#endif
+
+#ifndef __ASSEMBLER__
+#ifdef OPUS_ARM_ICODE
+#define ICODE_ATTR_OPUS   ICODE_ATTR
+#else
+#define ICODE_ATTR_OPUS
+#endif
+#endif
+
 /* alloc stuff */
 #define VAR_ARRAYS
 #define NORM_ALIASING_HACK
@@ -57,15 +78,22 @@
 
 #if defined(CPU_ARM)
 #define OPUS_ARM_ASM
+/* Upstream's OPUS_ARM_INLINE_ASM and OPUS_ARM_INLINE_EDSP, renamed: upstream
+   layers EDSP on top of ASM, but here exactly one is defined per core. */
 #if ARM_ARCH == 4
-#define OPUS_ARM_INLINE_ASM
+#define OPUS_ARM_ASM_ARMV4_ONLY
 #elif ARM_ARCH > 4
-#define OPUS_ARM_INLINE_EDSP
-#if (ARCH_PROFILE != ARM_PROFILE_CLASSIC)
+#define OPUS_ARM_ASM_ARMV5E_AND_LATER
+#if (ARCH_PROFILE == ARM_PROFILE_MICRO)
 #define OPUS_ARM_NO_FFT_ASM
 #define OPUS_ARM_NO_MDCT_ASM
+#define OPUS_ARM_NO_PITCH_ASM
+#define OPUS_NO_PFA
+#define OPUS_ARM_NO_COMB_ASM
+#define OPUS_ARM_NO_BANDS_ASM
+#define OPUS_ARM_NO_SILK_ASM
 #endif
-#endif
+#endif /* ARM_ARCH */
 
 /*optimization no hardware division support*/
 #if !defined(ARM_HAVE_HW_DIV)
@@ -78,7 +106,24 @@
 #if CONFIG_CPU == PP5022 || CONFIG_CPU == PP5024
 #define OPUS_LOG2TAN_TABLE
 #endif
+#endif
 
+/* Good-Thomas FFT for the backward MDCT.  Every 48 kHz CELT transform length
+   is 15 times a power of two, so the prime factor algorithm applies and the
+   inter-stage twiddles -- 73% of the FFT multiplies -- disappear.  Define
+   OPUS_NO_PFA to fall back to the mixed-radix chain. */
+#ifndef OPUS_NO_PFA
+#define OPUS_PFA
+#endif
+
+/* Mixed-radix leftovers: built, but not worth IRAM once the prime
+   factor transform makes them unreachable. */
+#ifdef OPUS_PFA
+#define ICODE_ATTR_OPUS_MR
+#define ICONST_ATTR_OPUS_MR
+#else
+#define ICODE_ATTR_OPUS_MR  ICODE_ATTR_OPUS
+#define ICONST_ATTR_OPUS_MR ICONST_ATTR
 #endif
 
 #if defined(CPU_COLDFIRE)

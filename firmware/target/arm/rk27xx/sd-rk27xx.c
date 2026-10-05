@@ -142,7 +142,8 @@ static void mmu_buff_reset(void)
 
 static inline bool card_detect_target(void)
 {
-#if defined(RK27_GENERIC) || defined(IHIFI770) || defined(IHIFI770C) || defined(IHIFI800)
+#if defined(RK27_GENERIC) || defined(IHIFI770) || defined(IHIFI770C) || defined(IHIFI800) || \
+    defined(SAMSUNG_YPCP3)
     /* PC7, active low */
     return !(GPIO_PCDR & 0x80);
 #elif defined(HM60X) || defined(HM801)
@@ -322,10 +323,11 @@ static int sd_init_card(void)
     if (!sd_wait_card_busy())
         return -21;
 
-    /* CMD6 */
-    if(!send_cmd(SD_SWITCH_FUNC, 0x80fffff1, RES_R1, &response))
-        return -8;
-    sleep(HZ/10);
+    /* No CMD6 switch to high-speed mode: this is an SD 1.01 host, with a
+     * card clock of at most 25 MHz, and a card switched to high speed does
+     * not take the data it drives - every write failed, the card waiting in
+     * receive-data state for a block it never saw, while reads worked. The
+     * original firmware leaves the card at default speed too. */
 
     /*  Card back to full speed  25MHz*/
     SD_CTRL = (SD_CTRL & ~0x7FF);
@@ -463,11 +465,14 @@ int sd_read_sectors(IF_MD(int drive,) sector_t start, int count,
     int cnt, ret = 0;
     unsigned char *dst;
 
-    mutex_lock(&sd_mtx);
-    enable_controller(true);
-
+    /* Checked before taking the lock: returning from after it left sd_mtx
+     * held and the controller powered. With no card numblocks is 0, so
+     * that was every request. */
     if (count <= 0 || start + count > card_info.numblocks)
         return -1;
+
+    mutex_lock(&sd_mtx);
+    enable_controller(true);
 
     if(!(card_info.ocr & (1<<30)))
         start <<= 9; /* not SDHC */
@@ -601,11 +606,14 @@ int sd_write_sectors(IF_MD(int drive,) sector_t start, int count,
     unsigned char *src;
     /* bool card_selected = false; */
 
-    mutex_lock(&sd_mtx);
-    enable_controller(true);
-
+    /* Checked before taking the lock: returning from after it left sd_mtx
+     * held and the controller powered. With no card numblocks is 0, so
+     * that was every request. */
     if (count <= 0 || start + count > card_info.numblocks)
         return -1;
+
+    mutex_lock(&sd_mtx);
+    enable_controller(true);
 
     if(!(card_info.ocr & (1<<30)))
         start <<= 9; /* not SDHC */

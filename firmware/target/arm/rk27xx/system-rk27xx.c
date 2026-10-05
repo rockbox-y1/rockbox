@@ -23,6 +23,7 @@
 #include "panic.h"
 #include "button.h"
 #include "system-target.h"
+#include "lcdif-rk27xx.h"
 
 #define default_interrupt(name) \
   extern __attribute__((weak,alias("UIRQ"))) void name (void)
@@ -116,20 +117,8 @@ void system_init(void)
     WDTCON &= ~(1<<3);
 
 #ifndef BOOTLOADER
-    /* SDRAM tweaks.  Note this assumes 100MHz AHB+SDRAM clock. */
-
-#if !(defined(HM60X) || defined(HM801))
-    MCSDR_MODE = (3<<4)|3;         /* CAS=3, burst=8(2^3) -- Safe but slower */
-#else
-    MCSDR_MODE = (2<<4)|3;         /* CAS=2, burst=8(2^3) -- Ideal but causes startup issues on (some?) IHIFI devices */
-#endif
-
-    MCSDR_T_REF = (125*100) >> 3;  /* 125/8 = 15.625 autorefresh interval */
-    MCSDR_T_RFC = (64*100) / 1000; /* autorefresh period */
-    MCSDR_T_RP = 1;                /* precharge period */
-    MCSDR_T_RCD = 1;               /* active to RD/WR delay */
-
-    /* turn off clock for unused modules */
+    /* turn off clock for unused modules - not the NAND controller's: the
+     * FTL uses it, and a register access with its HCLK gated aborts */
     SCU_CLKCFG |= CLKCFG_WDT        |        /* WDT pclk */
                   CLKCFG_RTC        |        /* RTC pclk */
                   CLKCFG_HSADC      |        /* HS_ADC clock */
@@ -140,7 +129,6 @@ void system_init(void)
                   CLKCFG_VIP        |        /* VIP clock */
                   CLKCFG_HCLK_VIP   |        /* VIP HCLK */
                   CLKCFG_LCDC       |        /* LCDC clock */
-                  CLKCFG_NAND       |        /* NAND HCLK */
                   CLKCFG_UHC        |        /* USB host HCLK */
                   CLKCFG_DSP        |        /* DSP clock */
                   CLKCFG_OTP;                /* OTP clock (dunno what it is */
@@ -185,13 +173,14 @@ void udelay(unsigned usecs)
         cycles_per_usec = (CPUFREQ_NORMAL + 999999) / 1000000;
     }
 
-    delay = (usecs * cycles_per_usec) / 5;
+    delay = (usecs * cycles_per_usec) / 4;
 
     asm volatile(
         "1: subs %0, %0, #1  \n"    /* 1 cycle  */
-        "   nop              \n"    /* 1 cycle  */
         "   bne  1b          \n"    /* 3 cycles */
-        : : "r"(delay)
+        : "+r"(delay)               /* modified by the loop: in/out */
+	:
+	: "cc"                      /* flags clobbered */
     );
 }
 
@@ -207,10 +196,20 @@ static void cache_invalidate_way(int way)
 void commit_discard_idcache(void)
 {
     int old_irq = disable_irq_save();
+    unsigned long devid = DEVID;
+
+    /* Invalidate with the cache off, as crt0 does. This code runs from
+     * cached SDRAM: invalidating the ways while fetching through them fails
+     * when the poll loop starts on a cache line of its own, depending on
+     * where the linker happened to put it. The cache is write-through, so
+     * nothing is lost by turning it off. */
+    DEVID = devid & ~(1UL << 31);
 
     cache_invalidate_way(0);
 
     cache_invalidate_way(1);
+
+    DEVID = devid;
 
     restore_irq(old_irq);
 }
@@ -234,12 +233,8 @@ void commit_discard_dcache_range (const void *base, unsigned int size)
 #if !defined(BOOTLOADER) && defined(HAVE_ADJUSTABLE_CPU_FREQ)
 static inline void set_sdram_timing(int ahb_freq)
 {
-#if 1
-    if (ahb_freq > 100000000)
-        MCSDR_MODE = (3<<4)|3;         /* CAS=3, burst=8(2^3) */
-    else
-        MCSDR_MODE = (2<<4)|3;         /* CAS=2, burst=8(2^3) */
-#endif
+    /* refresh only: the mode register - CAS latency - stays as the boot set
+     * it (see system_init()) */
     MCSDR_T_REF = (125*ahb_freq/1000000) >> 3;
     MCSDR_T_RFC = (64*ahb_freq/1000000)/1000;
 }
@@ -255,6 +250,9 @@ void set_cpu_frequency(long frequency)
 
     if (frequency == CPUFREQ_MAX)
     {
+        /* the LCD strobes take twice the clocks at twice the clock */
+        lcdif_set_bus_timing(true);
+
         /* PLL set to 200 Mhz
          * PLL:ARM = 1:1
          * ARM:AHB = 2:1
@@ -288,6 +286,8 @@ void set_cpu_frequency(long frequency)
         SCU_DIVCON1 &= ~1;
 
         set_sdram_timing(CPUFREQ_NORMAL);
+
+        lcdif_set_bus_timing(false);
     }
 
     cpu_frequency = frequency;

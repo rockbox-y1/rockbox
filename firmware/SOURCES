@@ -503,6 +503,8 @@ drivers/rtc/rtc_jz4740.c
 drivers/rtc/rtc_jz4760.c
 #elif (CONFIG_RTC == RTC_X1000)
 drivers/rtc/rtc_x1000.c
+#elif (CONFIG_RTC == RTC_S35390A)
+drivers/rtc/rtc_s35390a.c
 #elif (CONFIG_RTC == RTC_S35380A)
 drivers/rtc/rtc_s35380a.c
 #elif (CONFIG_RTC == RTC_D2)
@@ -1709,8 +1711,23 @@ target/arm/rk27xx/system-rk27xx.c
 target/arm/rk27xx/backlight-rk27xx.c
 target/arm/rk27xx/adc-rk27xx.c
 target/arm/rk27xx/sd-rk27xx.c
-target/arm/rk27xx/ftl-rk27xx.c
+#if CONFIG_NAND == NAND_RK27XX
+#if (CONFIG_STORAGE & STORAGE_NAND)
+target/arm/rk27xx/flash-rk27xx.c
 target/arm/rk27xx/nand-rk27xx.c
+target/arm/rk27xx/ftl-rk27xx.c
+#if CONFIG_RK27XX_FTL == RK27XX_FTL_SCHEME_A
+target/arm/rk27xx/ftl-scheme-a.c
+#elif CONFIG_RK27XX_FTL == RK27XX_FTL_SCHEME_B
+target/arm/rk27xx/ftl-scheme-b.c
+#endif
+#elif !defined(BOOTLOADER)
+/* no FTL scheme configured: only the finder (debug menu) */
+target/arm/rk27xx/flash-rk27xx.c
+target/arm/rk27xx/nand-rk27xx.c
+target/arm/rk27xx/ftl-probe-rk27xx.c
+#endif
+#endif
 target/arm/rk27xx/usb-rk27xx.c
 target/arm/rk27xx/lcdif-rk27xx.c
 target/arm/rk27xx/rkw-loader.c
@@ -1728,6 +1745,19 @@ target/arm/rk27xx/rk27generic/powermgmt-rk27generic.c
 target/arm/rk27xx/rk27generic/power-rk27generic.c
 target/arm/rk27xx/rk27generic/lcd-rk27generic.c
 target/arm/rk27xx/rk27generic/fmradio-i2c-rk27generic.c
+#endif
+
+#if defined(SAMSUNG_YPCP3)
+target/arm/rk27xx/ypcp3/button-ypcp3.c
+target/arm/rk27xx/ypcp3/powermgmt-ypcp3.c
+target/arm/rk27xx/ypcp3/power-ypcp3.c
+target/arm/rk27xx/ypcp3/lcd-ypcp3.c
+#ifndef BOOTLOADER
+target/arm/rk27xx/ypcp3/wmcodec-ypcp3.c
+#endif
+#if CONFIG_TUNER
+target/arm/rk27xx/rk27generic/fmradio-i2c-rk27generic.c
+#endif
 #endif
 
 #if CONFIG_CPU == JZ4732

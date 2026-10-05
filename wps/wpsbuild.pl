@@ -231,6 +231,13 @@ sub copywps
             open(SKIN, "$dir/$file");
             while (<SKIN>) {
                 $filelist[$#filelist + 1] = $1 if (/[\(,]([^,]*?.bmp)[\),]/);
+                # fonts the skin loads itself ship with it, as the theme
+                # font does: a default theme must not need the font pack.
+                # A copy of $1: copythemefont()'s own matching resets it.
+                if (/%Fl\(\d+,([^,\)]+\.fnt)[,\)]/) {
+                    my $skinfont = $1;
+                    copythemefont($skinfont);
+                }
             }
             close(SKIN);
         }
@@ -283,10 +290,13 @@ MOO
     }
 
     push @out, "selector type: $selecttype\n"   if (defined($selecttype));
-    push @out, "backdrop: $backdrop\n"          if (defined($backdrop));
-    push @out, "filetype colours: $filetylecolor\n" if (defined($filetylecolor));
+
+    if ($main_depth > 1) {
+        push @out, "backdrop: $backdrop\n"          if (defined($backdrop));
+    }
 
     if ($main_depth > 2) {
+        push @out, "filetype colours: $filetylecolor\n" if (defined($filetylecolor));
         push @out, "foreground color: $fgcolor\n"                     if($fgcolor);
         push @out, "background color: $bgcolor\n"                     if($bgcolor);
         push @out, "line selector start color: $lineselectstart\n"    if($lineselectstart);
@@ -400,7 +410,7 @@ $wpsdir = $1;
 open(WPS, "<$wpslist");
 while(<WPS>) {
     my $l = $_;
-    
+
     # remove CR
     $l =~ s/\r//g;
     if($l =~ /^ *\#/) {

@@ -33,6 +33,7 @@
 #include "viewport.h"
 #include "file.h"
 #include "font.h"
+#include "misc.h"
 
 bool debug_wps = false;
 int wps_verbose_level = 0;
@@ -229,40 +230,95 @@ bool radio_hardware_present(void)
 
 static int loaded_fonts = 0;
 static struct font _font;
-int font_load(const char *path)
+
+/* mode 0 is for fonts in the WPS
+   mode 1 is for fonts in the cfg file
+   mode 2 is everything else in the cfg file
+
+   search is an optional location to search for relative paths
+*/
+static int checkwps_loader(const char *path, const char *search, int mode)
 {
+    if (!path)
+        return -1;
+    if (!path[0])
+        return mode? 0 : -2;  /* Empty is ok for non-WPS */
+    if (path[0] == '-' && !path[1])
+        return mode? 0 : -3;  /* Also ok for non-WPS */
+    if (path[0] == '/')
+        path++;  /* Absolute path, skip leading / */
+
     /* First see if it exists in the theme */
     int fd = open(path, O_RDONLY);
-    if (fd < 0) {
+    if (fd >= 0)
+        goto done;
+
+    {
         char buf[1024];
-        sprintf(buf, ".rockbox/%s", path);
-        fd = open(buf, O_RDONLY);
-        if (fd < 0) {
+        if (!mode) {
+            sprintf(buf, ".rockbox/%s", path);
+            fd = open(buf, O_RDONLY);
+            if (fd >= 0)
+                goto done;
+        }
+
+        if (search)
+        {
+            sprintf(buf, ".rockbox/%s/%s", search, path);
+            fd = open(buf, O_RDONLY);
+            if (fd >= 0)
+                goto done;
+        }
+
+        if (mode == 0 || mode == 1) /* not found and it's a font */
+        {
             char *first = strrchr(buf, '/');
             char *final = strrchr(buf, '.');
-            *final = 0;
             int missing = 1;
+            if (final) *final = 0;
+
             /* Check if font is included in the bundle */
-            for (int i = 0 ; bundledfonts[i] != NULL ; i++) {
-                if (!strcmp(first+1, bundledfonts[i])) {
+            for (int i = 0 ; bundledfonts[i] != NULL ; i++)
+            {
+                if (first && !strcmp(first+1, bundledfonts[i]))
+                {
                     missing = 0;
                     break;
                 }
             }
-            if (missing) {
-                //printf("Font missing >%s<\n", first+1);
-                return -1;
+
+            if (missing)
+            {
+                printf("Font missing >%s<\n", first+1);
+                return -4;
             } else {
                 printf("INFO: Theme requires rockbox font bundle\n");
             }
         }
+
+        if (mode == 2)
+        {
+            printf("ERROR: File missing: %s\n", path);
+            return -5;
+        }
     }
+
+done:
     if (fd >= 0)
         close(fd);
 
-    int id = 2 + loaded_fonts;
+    return 0;
+}
+
+int font_load(const char *path)
+{
+    int rval = checkwps_loader(path, FONT_DIR, 0);
+    if (rval)
+        return rval;
+
+    rval = 2 + loaded_fonts;
     loaded_fonts++;
-    return id;
+    return rval;
 }
 
 void font_unload(int font_id)
@@ -273,6 +329,112 @@ void font_unload(int font_id)
 struct font* font_get(int font)
 {
     return &_font;
+}
+
+bool settings_load_config(const char* file, bool apply)
+{
+    int fd;
+    char line[128];
+    bool theme_changed = false;
+    fd = open_utf8(file, O_RDONLY);
+    if (fd < 0)
+        return false;
+
+    while (read_line(fd, line, sizeof line) > 0)
+    {
+        char *name, *value;
+        if (!settings_parseline(line, &name, &value))
+            continue;
+        if (!strcmp(name, "font"))
+        {
+            if (checkwps_loader(value, FONT_DIR, 1))
+                return false;
+        }
+#ifdef HAVE_REMOTE_LCD
+        if (!strcmp(name, "remote font"))
+        {
+            if (checkwps_loader(value, FONT_DIR, 1))
+                return false;
+        }
+        else
+#endif
+#if LCD_DEPTH > 1
+        if (!strcmp(name, "backdrop"))
+        {
+            if (checkwps_loader(value, NULL, 2)) /* No default path */
+                return false;
+        }
+        else
+#endif
+        if (!strcmp(name, "wps"))
+        {
+            if (checkwps_loader(value, WPS_DIR, 2))
+                return false;
+        }
+        else if (!strcmp(name, "sbs"))
+        {
+            if (checkwps_loader(value, SBS_DIR, 2))
+                return false;
+        }
+        else if (!strcmp(name, "fms"))
+        {
+            if (checkwps_loader(value, SBS_DIR, 2))
+                return false;
+        }
+        else if (!strcmp(name, "rwps"))
+        {
+            if (checkwps_loader(value, WPS_DIR, 2))
+                return false;
+        }
+        else if (!strcmp(name, "rsbs"))
+        {
+            if (checkwps_loader(value, SBS_DIR, 2))
+                return false;
+        }
+        else if (!strcmp(name, "rfms"))
+        {
+            if (checkwps_loader(value, SBS_DIR, 2))
+                return false;
+        }
+        else if (!strcmp(name, "iconset"))
+        {
+            if (checkwps_loader(value, ICON_DIR, 2))
+                return false;
+        }
+        else if (!strcmp(name, "viewers iconset"))
+        {
+            if (checkwps_loader(value, ICON_DIR, 2))
+                return false;
+        }
+#ifdef HAVE_REMOTE_LCD
+        else if (!strcmp(name, "remote iconset"))
+        {
+            if (checkwps_loader(value, ICON_DIR, 2))
+                return false;
+        }
+#endif
+#ifdef HAVE_LCD_COLOR
+        else if (!strcmp(name, "filetype colours"))
+        {
+            if (checkwps_loader(value, THEME_DIR, 2))
+                return false;
+        }
+#endif
+
+        if (!string_to_cfg(name, value, &theme_changed))
+        {
+            if (strcmp(name, "fms") && strcmp(name, "rfms")) {
+                /* Unknown settings are ignored by firmware */
+                printf("WARNING: Invalid setting: %s = %s\n", name, value);
+                continue;
+            }
+        }
+    } /* while(...) */
+
+    close(fd);
+
+    (void)apply;
+    return true;
 }
 
 /* This is no longer defined in ROCKBOX builds so just use a huge value */
@@ -327,6 +489,10 @@ int check_filetype(const char *ext, enum skinnable_screens *skin,
         return 1;
 #endif
     }
+    else if (!strcmp(ext, "cfg"))
+    {
+        return 2;
+    }
     else
         return -1;
 
@@ -349,7 +515,8 @@ int main(int argc, char **argv)
         strcmp(argv[1],"-h") == 0 ||
         strcmp(argv[1],"--help") == 0 )
     {
-        printf("Usage: checkwps [OPTIONS] filename.wps [filename2.sbs]...\n");
+        printf("Usage: checkwps [OPTIONS] [filename1] [filename2] ...\n");
+        printf("  supported file types: wps, sbs, fms, cfg, rwps, rsbs, rfms\n");
         printf("\nOPTIONS:\n");
         printf("\t-v\t\tverbose\n");
         printf("\t-vv\t\tmore verbose\n");
@@ -398,6 +565,17 @@ int main(int argc, char **argv)
             ret = 2;
             goto done;
         }
+        else if (valid == 2)
+        {
+            if (!settings_load_config(name, false))
+            {
+                printf("Bad configuration\n");
+                ret = 3;
+                goto done;
+            }
+            printf("%s parsed OK\n\n", ext);
+            continue;
+        }
         else if (valid > 0)
             continue; /* skip (unsupported by this target but not an error) */
 
@@ -406,7 +584,7 @@ int main(int argc, char **argv)
         if (!res) {
             printf("%s parsing failure\n", ext);
             skin_error_format_message();
-            ret = 3;
+            ret = 4;
             goto done;
         }
 
