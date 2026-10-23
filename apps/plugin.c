@@ -279,7 +279,6 @@ static const struct plugin_api rockbox_api = {
     font_load,
     font_unload,
     font_get,
-    font_measurestring,
     font_getstringsize,
     font_get_width,
     screen_clear_area,
