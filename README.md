@@ -28,12 +28,15 @@ Exceptions:
   - Play/Pause (Long): Up
   - Touch Wheel: Volume
 
-## Dual Boot: How to switch between Rockbox and Stock
+## How to switch between Rockbox and Stock
+
+The bundled ROM allows you to switch between Rockbox and a modified version of [better-Y](https://github.com/Leska1337/better-Y) (an improved mod of the Stock interface)
+
 ### In Rockbox
-- Main Menu > System > Reboot to Stock Firmware
+- Main Menu > System > Switch to Stock Firmware
 
 ### In Stock
-- Hold Menu/Back + Play/Pause for ~15 seconds
+- Main Menu > Settings > Back to Rockbox
 
 ## Installation
 [Follow the instructions here.](INSTALLATION.md)
@@ -54,7 +57,6 @@ This fork extends the Last.fm plugin to upload scrobbles to your favorite platfo
 ## Donations
 
 If you would like to support the development of Rockbox for the Y1 financially, consider donating to one of the following causes instead:
-- The hungarian prime minister is trying to criminalize every queer person in Hungary and by extension Europe. To support the people standing up against this human rights violation (10000 HUF = 25€): https://budapestpride.hu/en/one-time-donation-paypal/
 - Partners in Health: https://www.pih.org/maternal-center-excellence
 - The maintainers of the original Rockbox project: https://www.rockbox.org/
 

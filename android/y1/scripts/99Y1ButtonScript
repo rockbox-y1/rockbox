@@ -23,12 +23,14 @@ if [ ! -f /data/data/initialized ]; then
     pm install /data/data/LeanKeyKeyboardPro_v5.2.15_r.apk
     ime enable org.liskovsoft.androidtv.rukeyboard/com.liskovsoft.leankeyboard.keyboard.leanback.ime.LeanbackImeService
     ime set org.liskovsoft.androidtv.rukeyboard/com.liskovsoft.leankeyboard.keyboard.leanback.ime.LeanbackImeService
+    # make sure old files on sdcard are purged
+    rm -rf /sdcard/.rockbox/langs
+    rm -rf /sdcard/.rockbox/rocks
     touch /data/data/initialized
 fi
 
 DEVICE="/dev/input/event2"
 MAX_HOLD=10  # seconds to trigger restart
-MAX_HOLD_DUAL_BOOT=10
 SETTINGS_FIX_INTERVAL=600 # every 10 minutes
 
 # Exit if the input device is not found
@@ -47,35 +49,19 @@ right_down=0
 menu_down=0
 play_down=0
 press_start_sec=0
-press_start_sec_dual_boot=0
 press_start_sec_media_stop=0
 press_last_sec_media_stop=0
 
 package_rb="org.rockbox"
 
-# Function to restart Rockbox
+# Function to restart Rockbox or com.innioasis.y1
 restart_rockbox() {
-    am force-stop org.rockbox
-    am start -n org.rockbox/.RockboxActivity
-}
-
-dual_boot() {
-    keymap_rb="/system/usr/keylayout/Rockbox.kl"
-    keymap="/system/usr/keylayout/Generic.kl"
-
-    # Check if Rockbox is disabled
     if pm list packages -d | grep -q "$package_rb"; then
-        # Rockbox is disabled
-        echo "Package $package_rb is disabled."
-        echo "Setting up Rockbox Keymap."
-        mount -o remount,rw /system
-        cp "$keymap_rb" "$keymap"
-        echo "Enabling Rockbox"
-        pm enable org.rockbox
-        echo "Disabling Stock"
-        pm disable com.innioasis.y1
-        echo "Rebooting"
-        reboot
+        am force-stop org.rockbox
+        am start -n org.rockbox/.RockboxActivity
+    else
+        am force-stop com.innioasis.y1
+        am start -n com.innioasis.y1/.activity.MainActivity
     fi
 }
 
@@ -155,10 +141,6 @@ while true; do
                 press_start_sec=$sec
             fi
 
-            if [ "$menu_down" -eq 1 ] && [ "$play_down" -eq 1 ] && [ "$press_start_sec_dual_boot" -eq 0 ]; then
-                press_start_sec_dual_boot=$sec
-            fi
-
             # Check if either key is released (left/right)
             if [ "$press_start_sec" -ne 0 ]; then
                 if [ "$left_down" -eq 0 ] || [ "$right_down" -eq 0 ]; then
@@ -167,16 +149,6 @@ while true; do
                         restart_rockbox
                     fi
                     press_start_sec=0
-                fi
-            fi
-            # Check if either key is released (menu/play)
-            if [ "$press_start_sec_dual_boot" -ne 0 ]; then
-                if [ "$menu_down" -eq 0 ] || [ "$play_down" -eq 0 ]; then
-                    hold_time=$((sec - press_start_sec_dual_boot))
-                    if [ "$hold_time" -ge "$MAX_HOLD_DUAL_BOOT" ]; then
-                        dual_boot
-                    fi
-                    press_start_sec_dual_boot=0
                 fi
             fi
         fi

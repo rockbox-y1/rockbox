@@ -17112,16 +17112,16 @@
 </phrase>
 <phrase>
   id: LANG_SWITCH_FIRMWARE
-  desc: Reboot to Stock item
+  desc: Switch to Stock item
   user: core
   <source>
-    *: "Reboot to Stock Firmware"
+    *: "Switch to Stock Firmware"
   </source>
   <dest>
-    *: "Reboot to Stock Firmware"
+    *: "Switch to Stock Firmware"
   </dest>
   <voice>
-    *: "Reboot to Stock Firmware"
+    *: "Switch to Stock Firmware"
   </voice>
 </phrase>
 <phrase>
