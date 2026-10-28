@@ -23,10 +23,6 @@ logo.c
 lrcplayer.c
 mosaique.c
 main_menu_config.c
-#if defined(INNIOASIS_Y1)
-podcast_downloader.c
-speaker_toggle.c
-#endif
 playing_time.c
 properties.c
 random_folder_advance_config.c
