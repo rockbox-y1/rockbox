@@ -160,10 +160,6 @@ static struct configdata config[] =
     {TYPE_BOOL, 0, 1, { .bool_p =  &gConfig.delete_log },          "DeleteLog", NULL},
     {TYPE_INT, 0, 100, { .int_p = &gConfig.savepct },              "SavePct", NULL},
     {TYPE_INT, MIN_ELAPSED_MS, 10000, { .int_p = &gConfig.minms }, "MinMs", NULL},
-#ifdef INNIOASIS_Y1
-    {TYPE_INT, -12, 12, { .int_p = &gConfig.timezone },            "Timezone", NULL},
-    {TYPE_BOOL, 0, 1, { .bool_p =  &gConfig.upload },              "Upload", NULL},
-#endif
 };
 const int gCfg_sz = sizeof(config)/sizeof(*config);
 static long yield_tick = 0;
@@ -176,10 +172,6 @@ static void config_set_defaults(void)
     gConfig.remove_dup = 0; /* save all*/
     gConfig.delete_log = true;
     gConfig.tracknfo = 0; /* save all */
-#ifdef INNIOASIS_Y1
-    gConfig.timezone = 0; /* UTC */
-    gConfig.upload = false;
-#endif
 }
 
 static int scrobbler_menu_action(int selection, bool has_log)
@@ -214,18 +206,6 @@ static int scrobbler_menu_action(int selection, bool has_log)
             rb->set_option(ID2P(LANG_TRACK_INFO), &gConfig.tracknfo, RB_INT,
                            tracknfo_option, 3, NULL);
             break;
-#ifdef INNIOASIS_Y1
-        case 5: /* set time zone */
-            rb->set_int("Timezone", "GMT", UNIT_HOUR,
-                        &gConfig.timezone, NULL, 1, -12, 12, NULL );
-            break;
-        case 6: /* set time zone */
-            rb->set_bool("Upload Scrobbles on Export", &gConfig.upload);
-            break;
-        case 7: /* sep */
-            break;
-        case 8: /* view playback log */
-#else
         case 6: /* view playback log */
 #endif
             if (crc != rb->crc_32(&gConfig, sizeof(struct scrobbler_cfg), 0xFFFFFFFF))
@@ -530,26 +510,6 @@ static int sbl_create_entry(struct scrobbler_entry *entry, int output_fd)
     #undef SEP
     #undef EOL
 
-#ifdef INNIOASIS_Y1
-    // upload this scrobble entry
-    if (gConfig.upload){
-        const char *upload_artist = str_chk_valid(artist, UNTAGGED);
-        const char *upload_title = str_chk_valid(id->title, path);
-        const char *upload_album = str_chk_valid(id->album, "");
-        bool ret = rb->upload_scrobble(upload_artist, upload_title, upload_album, timestamp, (long)entry->length);
-        if (ret){
-            return SCROBBLER_LOG_OK;
-        } else {
-            ret = rb->upload_scrobble(upload_artist, upload_title, upload_album, timestamp, (long)entry->length);
-            if (ret){
-                return SCROBBLER_LOG_OK;
-            } else {
-                rb->splash(HZ, "Upload failed.");
-                return SCROBBLER_LOG_SKIPTRACK;
-            }
-        }
-    }
-#endif
     return SCROBBLER_LOG_OK;
 }
 
@@ -664,11 +624,7 @@ static bool pbl_parse_entry(struct scrobbler_entry *entry, const char *begin)
     const char *p_path = rb->strchr(++p_length, ':');
     if (!p_path || *(++p_path) == '\0')
         goto failure;
-#ifdef INNIOASIS_Y1
-    entry->timestamp = pbl_parse_atoul(p_time) + (3600 * gConfig.timezone);
-#else
     entry->timestamp = pbl_parse_atoul(p_time);
-#endif
     entry->elapsed = pbl_parse_atoul(p_elapsed);
     entry->length = pbl_parse_atoul(p_length);
     entry->path = p_path;
