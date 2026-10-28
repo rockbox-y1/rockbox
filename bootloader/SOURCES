@@ -60,7 +60,7 @@ show_logo.c
 mpio_hd200_hd300.c
 #elif defined(SONY_NWZ_LINUX)
 nwz_linux.c
-#elif defined(HIBY_LINUX) || defined(FIIO_M3K_LINUX)
+#elif defined(HIBY_LINUX)
 hibyos_linux.c
 #elif defined(RK27_GENERIC) || defined(SAMSUNG_YPCP3) || defined(HM60X) || defined(HM801) \
       || defined(MA9) || defined(MA9C) || defined(MA8) || defined(MA8C) \
@@ -73,12 +73,20 @@ sansaconnect.c
 show_logo.c
 #elif defined(FIIO_M3K) || defined(SHANLING_Q1) || defined(EROS_QN) || \
       defined(AGPTEK_ROCKER_NATIVE)
+ingenic/gui-ingenic.c
 x1000/boot.c
 x1000/gui.c
 x1000/install.c
 x1000/main.c
 x1000/recovery.c
 x1000/utils.c
+#elif defined(HIBY_R1_NATIVE)
+ingenic/gui-ingenic.c
+x1600/boot.c
+x1600/gui.c
+x1600/main.c
+x1600/recovery.c
+x1600/utils.c
 #elif defined(ECHO_R1)
 echoplayer.c
 #elif defined(SONY_PSP)

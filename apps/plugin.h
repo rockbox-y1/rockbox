@@ -180,7 +180,7 @@ int plugin_open(const char *plugin, const char *parameter);
  * when this happens please take the opportunity to sort in
  * any new functions "waiting" at the end of the list.
  */
-#define PLUGIN_API_VERSION 285
+#define PLUGIN_API_VERSION 286
 
 /* 239 Marks the removal of ARCHOS HWCODEC and CHARCELL */
 
@@ -1051,6 +1051,11 @@ struct plugin_api {
 #ifdef HAVE_HW_H264
     const struct hw_h264_api *hw_h264;
 #endif
+#ifdef HAVE_JPEG
+    int (*clip_jpeg_fd)(int fd, int flags, unsigned long jpeg_size,
+                        struct bitmap *bm, int maxsize, int format,
+                        const struct custom_format *cformat);
+#endif
 
     /* new stuff at the end, sort into place next time
        the API gets incompatible */
@@ -1066,11 +1071,7 @@ struct plugin_api {
     int (*android_podcast_disconnect_wifi)(void);
     void (*free_array)(char** array);
 #endif
-#ifdef HAVE_TOUCHSCREEN
-    int (*gesture_flick_get_in_vp)(const struct gesture_event *gevt,
-                                   const struct viewport *vp);
-    int (*gesture_flick_get)(const struct gesture_event *gevt);
-#endif
+    void (*settings_apply)(bool read_disk);
 };
 struct plugin_header {
     struct lc_header lc_hdr; /* must be the first */

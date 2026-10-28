@@ -901,6 +901,9 @@ static const struct plugin_api rockbox_api = {
 #ifdef HAVE_HW_H264
     &target_hw_h264_api,
 #endif
+#ifdef HAVE_JPEG
+    clip_jpeg_fd,
+#endif
 
     /* new stuff at the end, sort into place next time
        the API gets incompatible */
@@ -916,10 +919,7 @@ static const struct plugin_api rockbox_api = {
     .android_podcast_disconnect_wifi = android_podcast_disconnect_wifi,
     .free_array = free_array,
 #endif
-#ifdef HAVE_TOUCHSCREEN
-    gesture_flick_get_in_vp,
-    gesture_flick_get,
-#endif
+    settings_apply,
 };
 
 static int plugin_buffer_handle;

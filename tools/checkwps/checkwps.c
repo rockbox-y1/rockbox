@@ -34,6 +34,7 @@
 #include "file.h"
 #include "font.h"
 #include "misc.h"
+#include "rbversion.h"
 
 bool debug_wps = false;
 int wps_verbose_level = 0;
@@ -102,17 +103,21 @@ unsigned int htole32(unsigned int x)
 
 int recalc_dimension(struct dim *dst, struct dim *src)
 {
+    (void) dst;
+    (void) src;
     return 0;
 }
 
 #ifdef HAVE_ALBUMART
 int playback_claim_aa_slot(struct dim *dim)
 {
+    (void) dim;
     return 0;
 }
 
 void playback_release_aa_slot(int slot)
 {
+    (void) slot;
     return;
 }
 #endif
@@ -125,6 +130,16 @@ int resize_on_load(struct bitmap *bm, bool dither,
                    struct img_part* (*store_part)(void *args),
                    void *args)
 {
+    (void) bm;
+    (void) dither;
+    (void) src;
+    (void) tmp_row;
+    (void) buf;
+    (void) len;
+    (void) cformat;
+    IF_PIX_FMT((void) format_index);
+    (void) store_part;
+    (void) args;
     return 0;
 }
 
@@ -143,6 +158,7 @@ void* plugin_get_buffer(size_t *buffer_size)
 
 static struct viewport* init_viewport(struct viewport* vp)
 {
+    (void) vp;
     return NULL;
 }
 
@@ -240,8 +256,6 @@ static struct font _font;
 */
 static int checkwps_loader(const char *path, const char *search, int mode, const char *def_ext)
 {
-    char buf[2048];
-
     if (!path)
         return -1;
     if (!path[0])
@@ -258,11 +272,52 @@ static int checkwps_loader(const char *path, const char *search, int mode, const
     if (fd >= 0)
         goto done;
 
+    /* Strip ROCKBOX_DIR from search path */
+    if (search) {
+        search += strlen(ROCKBOX_DIR);
+    }
+
+    const char *rbdir = ROCKBOX_DIR;
+    int rbdir_replaced = 0;
+    if (rbdir[0] == '/')
+        rbdir++; /* Strip leading '/' */
+
+    /* Check for existance of correct ROCKBOX_DIR */
+    fd = open(rbdir, O_RDONLY|O_DIRECTORY);
+    if (fd > 0)
+    {
+        close(fd);
+    }
+    else
+    {
+        /* If it is not present, try ".rockbox" instead */
+        fd = open(".rockbox", O_RDONLY|O_DIRECTORY);
+        if (fd >= 0)
+        {
+            rbdir = ".rockbox";
+            rbdir_replaced = 1;
+            close(fd);
+        }
+    }
+
+    /* Strip off anything leading up to .rockbox and try again */
+    const char *tmp = strstr(path, ".rockbox");
+    if (tmp && tmp != path)
+    {
+        fd = open(tmp, O_RDONLY);
+        if (fd >= 0)
+            goto done;
+        if (rbdir_replaced)
+            path = tmp;
+    }
+
     /* See if file has an extension */
-    char *has_ext = strrchr(buf, '.');
+    const char *has_ext = strrchr(path, '.');
     /* if path starts with '.rockbox' we can get a false positive */
-    if (has_ext == buf)
+    if (has_ext && (has_ext == path || !strncmp(has_ext, rbdir, strlen(rbdir))))
         has_ext = NULL;
+
+    char buf[2048];
 
     /* Next, try to append the default extension */
     if (!has_ext && def_ext)
@@ -271,15 +326,17 @@ static int checkwps_loader(const char *path, const char *search, int mode, const
         fd = open(buf, O_RDONLY);
         if (fd >= 0)
             goto done;
+    } else {
+        strcpy(buf, path);
     }
 
     /* At this point, buf is guaranteed to have an extension, so use it
        instead of 'path' going forward */
-    char buf2[2048];
-    if (!mode)
+    char buf2[2500];
+    if (!absolute && !mode)
     {
         /* WPS paths are relative to ROCKBOX_DIR */
-        sprintf(buf2, ".rockbox/%s", buf);
+        snprintf(buf2, sizeof(buf2), "%s/%s", rbdir, buf);
         fd = open(buf2, O_RDONLY);
         if (fd >= 0)
             goto done;
@@ -287,7 +344,7 @@ static int checkwps_loader(const char *path, const char *search, int mode, const
     else if (!absolute && search)
     {
         /* Don't prepend a search path if we have an absolute path */
-        sprintf(buf2, ".rockbox/%s/%s", search, buf);
+        snprintf(buf2, sizeof(buf2), "%s/%s/%s", rbdir, search, buf);
         fd = open(buf2, O_RDONLY);
         if (fd >= 0)
             goto done;
@@ -296,7 +353,6 @@ static int checkwps_loader(const char *path, const char *search, int mode, const
     /* Ok, doesn't appear to exist in theme. Find basename. */
     strcpy(buf2, buf);
     char *basename = strrchr(buf2, '/');
-    int missing = 1;
 
     if (basename)
         basename++;
@@ -311,23 +367,21 @@ static int checkwps_loader(const char *path, const char *search, int mode, const
     {
         if (!strcmp(basename, themeassets[i]))
         {
-            missing = 0;
-            break;
+            goto done;
         }
     }
+
+    int missing = 1;
 
     if (mode == 0 || mode == 1) /* not found and it's a font */
     {
         /* Check if font is included in the bundle */
-        if (missing)
+        for (int i = 0 ; bundledfonts[i] != NULL ; i++)
         {
-            for (int i = 0 ; bundledfonts[i] != NULL ; i++)
+            if (!strcmp(basename, bundledfonts[i]))
             {
-                if (!strcmp(basename, bundledfonts[i]))
-                {
-                    missing = 2;
-                    break;
-                }
+                missing = 2;
+                break;
             }
         }
 
@@ -373,6 +427,7 @@ void font_unload(int font_id)
 
 struct font* font_get(int font)
 {
+    (void)font;
     return &_font;
 }
 
@@ -589,7 +644,7 @@ int main(int argc, char **argv)
         strcmp(argv[1],"-h") == 0 ||
         strcmp(argv[1],"--help") == 0 )
     {
-        printf("Usage: checkwps [OPTIONS] [filename1] [filename2] ...\n");
+        printf("Usage: checkwps.%s [OPTIONS] [filename1] [filename2] ...\n", TARGET_NAME);
         printf("  supported file types: wps, sbs, fms, wrs, cfg, "
                "rwps, rsbs, rfms, rwrs\n");
         printf("\nOPTIONS:\n");
@@ -618,9 +673,12 @@ int main(int argc, char **argv)
 
     skin_buffer_init(skin_buffer, SKIN_BUFFER_SIZE);
 
-    /* Go through every skin that was thrown at us, error out at the first
-     * flawed wps */
-    while (argv[filearg]) {
+    printf(">>checkwps.%s revision %s\n", TARGET_NAME, RBVERSION);
+
+    /* Go through every skin that was thrown at us.
+       Don't error out until we have checked everything */
+    while (argv[filearg])
+    {
         const char* name = argv[filearg++];
         const char *ext = strrchr(name, '.');
         struct skin_stats stats;
@@ -629,7 +687,7 @@ int main(int argc, char **argv)
         {
             printf("Invalid extension\n");
             ret = 2;
-            goto done;
+            continue;
         }
         ext++;
 
@@ -638,7 +696,7 @@ int main(int argc, char **argv)
         {
             printf("Invalid extension\n");
             ret = 2;
-            goto done;
+            continue;
         }
         else if (valid == 2)
         {
@@ -646,7 +704,7 @@ int main(int argc, char **argv)
             {
                 printf("Bad configuration\n");
                 ret = 3;
-                goto done;
+                continue;
             }
             printf("%s parsed OK\n\n", ext);
             continue;
@@ -654,13 +712,14 @@ int main(int argc, char **argv)
         else if (valid > 0)
             continue; /* skip (unsupported by this target but not an error) */
 
+        loaded_fonts = 0;
         res = skin_data_load(skin, screen, &wps, name, true, &stats);
 
         if (!res) {
             printf("%s parsing failure\n", ext);
             skin_error_format_message();
             ret = 4;
-            goto done;
+            continue;
         }
 
         printf("%s parsed OK\n\n", ext);
@@ -668,7 +727,6 @@ int main(int argc, char **argv)
             skin_debug_tree(SKINOFFSETTOPTR(skin_buffer, wps.tree));
     }
 
-done:
     if (skin_buffer)
         free(skin_buffer);
     return ret;

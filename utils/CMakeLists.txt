@@ -75,6 +75,12 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
     add_compile_definitions(USE_LIBUSBAPI)
 
     # optional system libs.
+    pkg_check_modules(libmtp QUIET IMPORTED_TARGET libmtp)
+    if (${libmtp_FOUND})
+        message("-- Found libmtp: ${libmtp_LINK_LIBRARIES}")
+    else()
+        message("-- Could not find libmtp, Gigabeat S bootloader install disabled.")
+    endif()
     pkg_check_modules(speex QUIET IMPORTED_TARGET speex speexdsp)
     if (${speex_FOUND})
         message("-- Found speex: ${speex_LINK_LIBRARIES}")
@@ -375,6 +381,15 @@ target_include_directories(mks5lboot PUBLIC ${CMAKE_CURRENT_LIST_DIR}/mks5lboot)
 if(WIN32)
 target_link_libraries(mks5lboot PRIVATE setupapi)
 endif()
+
+add_library(mknkboot
+    MTP/beastpatcher/md5.c
+    MTP/beastpatcher/md5.h
+    MTP/beastpatcher/mknkboot.c
+    MTP/beastpatcher/mknkboot.h
+    )
+target_include_directories(mknkboot PUBLIC ${CMAKE_CURRENT_LIST_DIR}/MTP/beastpatcher)
+target_compile_definitions(mknkboot PRIVATE MKNKBOOT_LIBRARY)
 
 add_library(bspatch
     bspatch/bspatch.c

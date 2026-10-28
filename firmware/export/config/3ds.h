@@ -7,7 +7,7 @@
 #define HAVE_FPU
 
 /* For Rolo and boot loader */
-#define MODEL_NUMBER  100s
+#define MODEL_NUMBER  122
 #define MODEL_NAME    "N3DS"
 
 #define USB_NONE
@@ -65,7 +65,7 @@
 #define HAVE_SW_POWEROFF
 
 /* The number of bytes reserved for loadable codecs */
-#define CODEC_SIZE 0x100000
+#define CODEC_SIZE 0x80000
 
 /* The number of bytes reserved for loadable plugins */
 #define PLUGIN_BUFFER_SIZE 0x80000
@@ -128,4 +128,3 @@
 /* No special storage */
 #define CONFIG_STORAGE STORAGE_HOSTFS
 #define HAVE_STORAGE_FLUSH
-

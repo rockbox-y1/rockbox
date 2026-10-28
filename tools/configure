@@ -8,7 +8,7 @@
 #
 
 # global CC options for all platforms
-CCOPTS="-W -Wall -Wextra -Wundef -Os -nostdlib -ffreestanding -Wstrict-prototypes -pipe -std=gnu11 -funit-at-a-time -fno-delete-null-pointer-checks -fno-strict-overflow -fno-common"
+CCOPTS="-W -Wall -Wextra -Wundef -Wno-format-security -Os -nostdlib -ffreestanding -Wstrict-prototypes -pipe -std=gnu11 -funit-at-a-time -fno-delete-null-pointer-checks -fno-strict-overflow -fno-common"
 
 # LD options for the core
 LDOPTS=""
@@ -589,7 +589,8 @@ arm1136jfscc () {
 
 arm1176jzscc () {
  findarmgcc
- GCCOPTS="$CCOPTS -mcpu=arm1176jz-s"
+ # Rockbox runs with SCTLR.U clear, so no unaligned accesses (as arm1176jzlinuxcc)
+ GCCOPTS="$CCOPTS -mcpu=arm1176jz-s -mno-unaligned-access"
  GCCOPTIMIZE="-fomit-frame-pointer"
  endian="little"
 }
@@ -992,7 +993,6 @@ pspsdkcc () {
     ARG_PREFIX=""
 
     extradefines="-D__PSP__"
-    rbdir="/.rockbox"
 }
 
 
@@ -1261,7 +1261,7 @@ voiceconfig () {
         DEFAULT_TTS_OPTS=$GTTS_OPTS
         DEFAULT_CHOICE="g"
     fi
-    if [ -n "`findtool piper`" ]; then
+    if python3 -m piper -h > /dev/null ; then
         PIPER="(p)iper "
         PIPER_OPTS=""
         DEFAULT_TTS="piper"
@@ -1367,6 +1367,7 @@ voiceconfig () {
 	fi
 	models=`(cd $PIPER_MODEL_DIR ; ls -1 *onnx)`
 	for model in $models; do
+	    model=`basename "$model" .onnx`
 	    PIPER_MODEL="$model"  # Default
 	    break;
         done
@@ -1375,6 +1376,7 @@ voiceconfig () {
         else
 	    i=1
 	    for model in $models; do
+		model=`basename "$model" .onnx`
 		printf "%3d. %s\n" "$i" "$model"
                 i=`expr $i + 1`
             done
@@ -1383,6 +1385,7 @@ voiceconfig () {
 	fi
         i=1
         for model in $models; do
+	    model=`basename "$model" .onnx`
             if [ "$i" = "$CHOICE" -o "$model" = "$CHOICE" ]; then
                 PIPER_MODEL="$model"
 		break;
@@ -1390,7 +1393,7 @@ voiceconfig () {
             i=`expr $i + 1`
         done
 
-	TTS_OPTS="$TTS_OPTS --model $PIPER_MODEL_DIR/$PIPER_MODEL"
+	TTS_OPTS="$TTS_OPTS -m $PIPER_MODEL"
         advopts="$advopts --voice=$PIPER_MODEL"
         echo "Piper model set to $PIPER_MODEL"
     elif [ "$TTS_ENGINE" = "mimic" ]; then
@@ -1453,7 +1456,7 @@ voiceconfig () {
 picklang() {
     # figure out which languages that are around
     for file in $rootdir/apps/lang/*.lang; do
-        clean=`basename $file .lang`
+        clean=`basename "$file" .lang`
         langs="$langs $clean"
     done
 
@@ -1761,19 +1764,18 @@ cat <<EOF
  229) NWZ-S750 series      251) DX90                  (hw1/hw2 bl, all hw rb)
  303) PSP (WIP)                                  248) Eros Q / K native
                            ==xDuoo==                  (hw3 bl only)
-                           241) X3               249) Eros Q / K native
- ==FiiO==                  242) X3II                  (hw4 bl only)
- 244) M3K Linux            243) X20
- 246) M3K baremetal                              ==HiBy==
-                           ==Surfans==           300) R3 Pro II
- ==Shanling==              280) F28 (WIP)        301) R1
- 260) Q1
-                           ==Nintendo==          ==Hidizs==
- ==Echo project==          290) 3DS (WIP)        302) AP80 Pro Max (WIP)
- 270) Echo R1 (WIP)
+ ==FiiO==                  241) X3               249) Eros Q / K native
+ 246) M3K                  242) X3II                  (hw4 bl only)
+                           243) X20
+ ==Shanling==                                    ==HiBy==
+ 260) Q1                   ==Surfans==           300) R3 Pro II
+                           280) F28 (WIP)        301) R1
+ ==Echo project==
+ 270) Echo R1 (WIP)       ==Nintendo==          ==Hidizs==
+                          290) 3DS (WIP)        302) AP80 Pro Max (WIP)
+
                                                  ==Innioasis==
                                                  310) Innioasis Y1 (WIP)
-
 EOF
 
   buildfor=`input`;
@@ -2559,7 +2561,7 @@ fi
     ;;
 
    64|sansafuzeplus)
-    target_id=80
+    target_id=72
     modelname="sansafuzeplus"
     target="SANSA_FUZEPLUS"
     memory=64
@@ -2578,7 +2580,7 @@ fi
     ;;
 
    65|sansaclipzip)
-    target_id=68
+    target_id=76
     modelname="sansaclipzip"
     target="SANSA_CLIPZIP"
     memory=8 # not sure
@@ -2597,7 +2599,7 @@ fi
     ;;
 
    66|sansaconnect)
-    target_id=81
+    target_id=75
     modelname="sansaconnect"
     target="SANSA_CONNECT"
     memory=64
@@ -2767,7 +2769,7 @@ fi
     ;;
 
    95|creativezenv)
-    target_id=92
+    target_id=77
     modelname="creativezenv"
     target="CREATIVE_ZENV"
     memory=32
@@ -3071,7 +3073,7 @@ fi
     ;;
 
    146|samsungypcp3)
-    target_id=117
+    target_id=132
     modelname="samsungypcp3"
     target="SAMSUNG_YPCP3"
     memory=16 # always
@@ -3161,7 +3163,7 @@ fi
     ;;
 
    180|rk27generic)
-    target_id=78
+    target_id=73
     modelname="rk27generic"
     target="RK27_GENERIC"
     memory=16 # always
@@ -3228,7 +3230,7 @@ fi
 
    200|sdlapp)
     application="yes"
-    target_id=73
+    target_id=25
     modelname="sdlapp"
     target="SDLAPP"
     app_set_paths
@@ -3301,7 +3303,7 @@ fi
 
    145|samsungypr1)
     application="yes"
-    target_id=93
+    target_id=42
     modelname="samsungypr1"
     target="SAMSUNG_YPR1"
     memory=24
@@ -3516,7 +3518,7 @@ fi
 
    223|sonynwze460)
     application="yes"
-    target_id=97
+    target_id=56
     modelname="sonynwze460"
     target="SONY_NWZE460"
     memory=16
@@ -3560,7 +3562,7 @@ fi
 
    225|sonynwze580)
     application="yes"
-    target_id=98
+    target_id=108
     modelname="sonynwze580"
     target="SONY_NWZE580"
     memory=16
@@ -3714,7 +3716,7 @@ fi
 
    250|ibassodx50)
     application="yes"
-    target_id=94
+    target_id=44
     modelname="ibassodx50"
     target="DX50"
     app_type="android_ndk"
@@ -3764,7 +3766,7 @@ fi
     ;;
 
    239|agptekrockernative)
-    target_id=126
+    target_id=133
     modelname="agptekrockernative"
     target="AGPTEK_ROCKER_NATIVE"
     memory=32
@@ -3790,7 +3792,7 @@ fi
    240|agptekrocker)
     application="yes"
     app_type="hibyos"
-    target_id=97
+    target_id=107
     modelname="agptekrocker"
     target="AGPTEK_ROCKER"
     memory=8
@@ -3874,29 +3876,6 @@ fi
     t_cpu="hosted"
     t_manufacturer="xduoo"
     t_model="xduoo_x20"
-    sysfontbl="16-Terminus"
-    ;;
-
-   244|fiiom3klinux)
-    application="yes"
-    app_type="fiio"
-    target_id=112
-    modelname="fiiom3klinux"
-    target="FIIO_M3K_LINUX"
-    memory=16 # XXX Can probably go over 32?
-    tool="cp "
-    boottool="cp "
-    bmp2rb_mono="$rootdir/tools/bmp2rb -f 0"
-    bmp2rb_native="$rootdir/tools/bmp2rb -f 4"
-    output="rockbox.m3k"
-    bootoutput="bootloader.m3k"
-    appextra=""
-    plugins="yes"
-    # architecture, manufacturer and model for the target-tree build
-    t_cpu="hosted"
-    t_manufacturer="fiio"
-    t_model="m3k"
-    mipsellinuxcc
     sysfontbl="16-Terminus"
     ;;
 
@@ -4035,7 +4014,7 @@ fi
     ;;
 
    232|ihifi770c)
-    target_id=107
+    target_id=97
     modelname="ihifi770c"
     target="IHIFI770C"
     memory=16
@@ -4057,7 +4036,7 @@ fi
     ;;
 
    231|ihifi770)
-    target_id=108
+    target_id=98
     modelname="ihifi770"
     target="IHIFI770"
     memory=16
@@ -4079,7 +4058,7 @@ fi
     ;;
 
    233|ihifi800)
-    target_id=109
+    target_id=99
     modelname="ihifi800"
     target="IHIFI800"
     memory=16

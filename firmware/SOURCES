@@ -147,13 +147,13 @@ target/hosted/sonynwz/nwzlinux-codec.c
 #endif
 
 #if !defined(BOOTLOADER)
-#if ((defined(HIBY_LINUX) || defined(FIIO_M3K_LINUX) || defined(SAMSUNG_YPR0) || defined(SAMSUNG_YPR1) || defined(SONY_NWZ_LINUX)) && !defined(SIMULATOR))
+#if ((defined(HIBY_LINUX) || defined(SAMSUNG_YPR0) || defined(SAMSUNG_YPR1) || defined(SONY_NWZ_LINUX)) && !defined(SIMULATOR))
 target/hosted/pcm-alsa.c
 target/hosted/alsa-controls.c
 #endif
 #endif
 
-#if ((defined(HIBY_LINUX) || defined(FIIO_M3K_LINUX)) && !defined(SIMULATOR))
+#if defined(HIBY_LINUX) && !defined(SIMULATOR)
 drivers/lcd-memframe.c
 target/hosted/backtrace-glibc.c
 target/hosted/filesystem-unix.c
@@ -236,18 +236,6 @@ target/hosted/button-devinput.c
 
 #if defined(HIBY_LINUX) && !defined(HIBY_R3PROII) && !defined(HIBY_R1) && !defined(HIDIZS_AP80MAX) && !defined(SIMULATOR)
 target/hosted/usb-hiby.c
-#endif
-
-#if defined(FIIO_M3K_LINUX) && !defined(SIMULATOR)
-target/hosted/fiio/buttonlight-fiio.c
-target/hosted/fiio/button-fiio.c
-target/hosted/fiio/debug-fiio.c
-target/hosted/fiio/powermgmt-fiio.c
-target/hosted/fiio/system-fiio.c
-target/hosted/fiio/usb-fiio.c
-#if !defined(BOOTLOADER)
-target/hosted/fiio/fiiolinux_codec.c
-#endif
 #endif
 
 #if defined(EROS_Q) && !defined(SIMULATOR)
@@ -501,8 +489,8 @@ drivers/rtc/rtc_mc13783.c
 drivers/rtc/rtc_jz4740.c
 #elif (CONFIG_RTC == RTC_JZ4760)
 drivers/rtc/rtc_jz4760.c
-#elif (CONFIG_RTC == RTC_X1000)
-drivers/rtc/rtc_x1000.c
+#elif (CONFIG_RTC == RTC_X1000) || (CONFIG_RTC == RTC_X1600)
+drivers/rtc/rtc_ingenic.c
 #elif (CONFIG_RTC == RTC_S35390A)
 drivers/rtc/rtc_s35390a.c
 #elif (CONFIG_RTC == RTC_S35380A)
@@ -620,6 +608,8 @@ drivers/audio/cs42l51.c
 drivers/audio/es9018.c
 #elif defined (HAVE_ES9218)
 drivers/audio/es9218.c
+#elif defined (HAVE_CS43131)
+drivers/audio/cs43131.c
 #endif /* defined(HAVE_*) */
 #else /* PLATFORM_HOSTED */
 #if defined(HAVE_SDL_AUDIO) || defined(SIMULATOR)
@@ -914,6 +904,8 @@ target/mips/system-mips.c
 target/mips/ingenic_jz47xx/crt0.S
 #elif CONFIG_CPU==X1000
 target/mips/ingenic_x1000/crt0.S
+#elif CONFIG_CPU==X1600
+target/mips/ingenic_x1600/crt0.S
 #endif
 
 #else
@@ -1555,6 +1547,7 @@ target/arm/as3525/sansa-fuzev2/button-fuzev2.c
 target/arm/as3525/dbop-as3525.c
 #ifndef BOOTLOADER
 target/arm/as3525/sansa-fuzev2/powermgmt-fuzev2.c
+target/arm/as3525/sansa-fuzev2/dock-fuzev2.c
 target/arm/as3525/lcd-as-e200v2-fuze-fuzev2.S
 #endif /* !BOOTLOADER */
 #endif /* SANSA_FUZEV2 */
@@ -1821,7 +1814,7 @@ target/mips/ingenic_x1000/uart-x1000.c
 target/mips/ingenic_x1000/usb-x1000.c
 #endif
 #if (CONFIG_STORAGE & (STORAGE_SD|STORAGE_MMC|STORAGE_ATA))
-target/mips/ingenic_x1000/msc-x1000.c
+target/mips/ingenic/msc-ingenic.c
 #endif
 #ifdef BOOTLOADER
 target/mips/ingenic/installer-ingenic.c
@@ -1834,6 +1827,40 @@ common/ucl_decompress.c
 drivers/audio/x1000-codec.c
 #endif
 #endif /* CONFIG_CPU == X1000 */
+
+#if CONFIG_CPU == X1600
+target/mips/ingenic_x1600/aic-x1600.c
+target/mips/ingenic_x1600/boot-x1600.c
+target/mips/ingenic_x1600/clk-x1600.c
+target/mips/ingenic_x1600/debug-x1600.c
+target/mips/ingenic/dma-ingenic.c
+target/mips/ingenic/gpio-ingenic.c
+target/mips/ingenic/i2c-ingenic.c
+target/mips/ingenic/kernel-ingenic.c
+target/mips/ingenic/nand-ingenic.c
+target/mips/ingenic_x1600/dpu-x1600.c
+target/mips/ingenic_x1600/pcm-x1600.c
+target/mips/ingenic_x1600/sadc-x1600.c
+target/mips/ingenic_x1600/sfc-x1600.c
+target/mips/ingenic_x1600/system-x1600.c
+target/mips/ingenic_x1600/timer-x1600.c
+target/mips/ingenic_x1600/uart-x1600.c
+#ifndef USB_NONE
+target/mips/ingenic_x1600/usb-x1600.c
+#endif
+#if (CONFIG_STORAGE & (STORAGE_SD|STORAGE_MMC|STORAGE_ATA))
+target/mips/ingenic/msc-ingenic.c
+target/mips/ingenic_x1600/hibyr1/sdmmc-hibyr1.c
+#endif
+#ifdef BOOTLOADER
+target/mips/ingenic/installer-ingenic.c
+target/mips/ingenic_x1600/spl-start.S
+target/mips/ingenic_x1600/spl-x1600.c
+target/mips/ingenic_x1600/usbstage1-x1600.c
+target/mips/ingenic_x1600/ddr-x1600.c
+common/ucl_decompress.c
+#endif
+#endif /* CONFIG_CPU == X1600 */
 
 #if defined(ONDA_VX747) || defined(ONDA_VX747P) || defined(ONDA_VX777)
 target/mips/ingenic_jz47xx/onda_vx747/backlight-onda_vx7X7.c
@@ -1897,6 +1924,17 @@ target/mips/ingenic_x1000/agptekrocker/power-agptekrocker.c
 target/mips/ingenic_x1000/sdmmc-x1000-common.c
 target/mips/ingenic/spl-nand-ingenic.c
 #endif /* AGPTEK_ROCKER_NATIVE */
+
+#if defined(HIBY_R1_NATIVE)
+/* The codec uses software I2C. */
+drivers/generic_i2c.c
+target/mips/ingenic_x1600/hibyr1/audiohw-hibyr1.c
+target/mips/ingenic_x1600/hibyr1/backlight-hibyr1.c
+target/mips/ingenic_x1600/hibyr1/button-hibyr1.c
+target/mips/ingenic_x1600/hibyr1/lcd-hibyr1.c
+target/mips/ingenic_x1600/hibyr1/power-hibyr1.c
+target/mips/ingenic/spl-nand-ingenic.c
+#endif /* HIBY_R1_NATIVE */
 
 #if defined(SAMSUNG_YH820) || defined(SAMSUNG_YH920) || defined(SAMSUNG_YH925)
 target/arm/samsung/akcodec-yh82x_yh92x.c
@@ -2194,11 +2232,14 @@ drivers/i2c-async.c
 #ifdef HAVE_AXP_PMU
 drivers/axp-pmu.c
 #endif
-#ifdef HAVE_AXP2101_ADDON
+#ifdef HAVE_AXP2101
 drivers/axp-2101.c
 #endif
 #ifdef HAVE_FT6x06
 drivers/ft6x06.c
+#endif
+#ifdef HAVE_CST8XX
+drivers/cst8xx.c
 #endif
 #ifdef HAVE_CW2015
 drivers/cw2015.c
