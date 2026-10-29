@@ -34,9 +34,6 @@ rbcodec_helpers.c
 menus/main_menu.c
 menus/playback_menu.c
 menus/playlist_menu.c
-#ifdef INNIOASIS_Y1
-menus/fm_radio_app.c
-#endif
 #ifdef HAVE_RECORDING
 menus/recording_menu.c
 #endif
