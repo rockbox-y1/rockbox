@@ -2104,7 +2104,6 @@ target/hosted/android/telephony-android.c
 target/hosted/android/android-codec.c
 #if defined(INNIOASIS_Y1)
 target/hosted/android/brightness-android.c
-target/hosted/android/screen-timeout-android.c
 target/hosted/android/shutdown-android.c
 #endif
 #ifdef APPLICATION

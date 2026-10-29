@@ -945,9 +945,6 @@ struct user_settings
     int hp_lo_select; /* indicates automatic, headphone-only, or lineout-only operation */
 #endif
     bool playback_log; /* ROCKBOX_DIR/playback.log for tracks played */
-#ifdef INNIOASIS_Y1
-    int android_screen_timeout; /* Android screen timeout in seconds (0=never) */
-#endif
 #if defined(HAVE_GENERAL_PURPOSE_LED)
     bool use_led_indicators;
 #endif

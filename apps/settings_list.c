@@ -80,10 +80,6 @@
 #include "governor-ibasso.h"
 #endif
 
-#ifdef INNIOASIS_Y1
-#include "../firmware/target/hosted/android/screen-timeout-android.h"
-#endif
-
 #define UNUSED {.RESERVED=NULL}
 #define INT(a) {.int_ = a}
 #define UINT(a) {.uint_ = a}
@@ -1077,41 +1073,6 @@ static void hp_lo_select_apply(int arg)
 }
 #endif
 
-#ifdef INNIOASIS_Y1
-void android_screen_timeout_callback(int timeout)
-{
-    /* Convert choice index to actual timeout value */
-    int timeout_seconds;
-    switch (timeout) {
-        case 0: /* 15 seconds */
-            timeout_seconds = 15;
-            break;
-        case 1: /* 30 seconds */
-            timeout_seconds = 30;
-            break;
-        case 2: /* 1 minute */
-            timeout_seconds = 60;
-            break;
-        case 3: /* 2 minutes */
-            timeout_seconds = 120;
-            break;
-        case 4: /* 5 minutes */
-            timeout_seconds = 300;
-            break;
-        case 5: /* 10 minutes */
-            timeout_seconds = 600;
-            break;
-        case 6: /* 30 minutes */
-            timeout_seconds = 1800;
-            break;
-        default:
-            timeout_seconds = 30;
-            break;
-    }
-
-    android_screen_timeout_set(timeout_seconds);
-}
-#endif
 #endif /* __PCTOOL__ */
 
 const struct settings_list settings[] = {
@@ -2640,11 +2601,6 @@ const struct settings_list settings[] = {
     ID2P(LANG_AUTO), ID2P(LANG_HEADPHONE), ID2P(LANG_LINEOUT)),
 #endif
     OFFON_SETTING(0, playback_log, LANG_LOGGING, false, "play log", NULL),
-#ifdef INNIOASIS_Y1
-    CHOICE_SETTING(0, android_screen_timeout, LANG_TIMEOUT, -1,
-                   "android screen timeout", "15,30,60,120,300,600,1800", android_screen_timeout_callback, 7,
-                   "15 seconds", "30 seconds", "1 minute", "2 minutes", "5 minutes", "10 minutes", "30 minutes"),
-#endif
 #if defined(HAVE_GENERAL_PURPOSE_LED)
     OFFON_SETTING(0, use_led_indicators, LANG_USE_LED_INDICATORS, false, "LED indicators", NULL),
 #endif
