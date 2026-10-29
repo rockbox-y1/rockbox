@@ -2106,8 +2106,6 @@ target/hosted/android/android-codec.c
 target/hosted/android/brightness-android.c
 target/hosted/android/screen-timeout-android.c
 target/hosted/android/shutdown-android.c
-target/hosted/android/reset-bluetooth-android.c
-target/hosted/android/update-android.c
 #endif
 #ifdef APPLICATION
 target/hosted/android/app/button-application.c
