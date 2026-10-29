@@ -208,15 +208,15 @@
   user: core
   <source>
     *: none
-    radio,innioasisy1: "FM Radio"
+    radio: "FM Radio"
   </source>
   <dest>
     *: none
-    raradio,innioasisy1dio: "收聽 FM 廣播"
+    radio: "收聽 FM 廣播"
   </dest>
   <voice>
     *: none
-    radio,innioasisy1: "收聽 FM 廣播"
+    radio: "收聽 FM 廣播"
   </voice>
 </phrase>
 <phrase>

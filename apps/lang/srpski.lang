@@ -398,15 +398,15 @@
   user: core
   <source>
     *: none
-    radio,innioasisy1: "FM Radio"
+    radio: "FM Radio"
   </source>
   <dest>
     *: none
-    radio,innioasisy1: "FM радио"
+    radio: "FM радио"
   </dest>
   <voice>
     *: none
-    radio,innioasisy1: "Еф Ем радио"
+    radio: "Еф Ем радио"
   </voice>
 </phrase>
 <phrase>

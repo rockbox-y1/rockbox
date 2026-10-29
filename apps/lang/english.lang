@@ -470,15 +470,15 @@
   user: core
   <source>
     *: none
-    radio,innioasisy1: "FM Radio"
+    radio: "FM Radio"
   </source>
   <dest>
     *: none
-    radio,innioasisy1: "FM Radio"
+    radio: "FM Radio"
   </dest>
   <voice>
     *: none
-    radio,innioasisy1: "FM Radio"
+    radio: "FM Radio"
   </voice>
 </phrase>
 <phrase>
@@ -17024,90 +17024,6 @@
   </dest>
   <voice>
     *: "Wheel vibration intensity"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_RESTART_ROCKBOX
-  desc: Main menu item to restart Rockbox on Android
-  user: core
-  <source>
-    *: "Restart Rockbox"
-  </source>
-  <dest>
-    *: "Restart Rockbox"
-  </dest>
-  <voice>
-    *: "Restart Rockbox"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_UPDATE_ROCKBOX
-  desc: Main menu item to update the firmware on Android
-  user: core
-  <source>
-    *: "Firmware Update"
-  </source>
-  <dest>
-    *: "Firmware Update"
-  </dest>
-  <voice>
-    *: "Firmware Update"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_SYSTEM_SETTINGS
-  desc: Menu item to launch system settings
-  user: core
-  <source>
-    *: "Android System Settings"
-  </source>
-  <dest>
-    *: "Android System Settings"
-  </dest>
-  <voice>
-    *: "Android System Settings"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_BLUETOOTH_SETTINGS
-  desc: Bluetooth menu item
-  user: core
-  <source>
-    *: "Bluetooth Settings"
-  </source>
-  <dest>
-    *: "Bluetooth Settings"
-  </dest>
-  <voice>
-    *: "Bluetooth Settings"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_BLUETOOTH_RESET
-  desc: Reset Bluetooth menu item
-  user: core
-  <source>
-    *: "Reset Bluetooth Devices"
-  </source>
-  <dest>
-    *: "Reset Bluetooth Devices"
-  </dest>
-  <voice>
-    *: "Reset Bluetooth Devices"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_SWITCH_FIRMWARE
-  desc: Switch to Stock item
-  user: core
-  <source>
-    *: "Switch to Stock Firmware"
-  </source>
-  <dest>
-    *: "Switch to Stock Firmware"
-  </dest>
-  <voice>
-    *: "Switch to Stock Firmware"
   </voice>
 </phrase>
 <phrase>

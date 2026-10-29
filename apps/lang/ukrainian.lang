@@ -399,15 +399,15 @@
   user: core
   <source>
     *: none
-    radio,innioasisy1: "FM Radio"
+    radio: "FM Radio"
   </source>
   <dest>
     *: none
-    radio,innioasisy1: "ФМ Радiо"
+    radio: "ФМ Радiо"
   </dest>
   <voice>
     *: none
-    radio,innioasisy1: "ФМ Радiо"
+    radio: "ФМ Радiо"
   </voice>
 </phrase>
 <phrase>

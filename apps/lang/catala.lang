@@ -405,15 +405,15 @@
   user: core
   <source>
     *: none
-    radio,innioasisy1: "FM Radio"
+    radio: "FM Radio"
   </source>
   <dest>
     *: none
-    radio,innioasisy1: "Ràdio FM"
+    radio: "Ràdio FM"
   </dest>
   <voice>
     *: none
-    radio,innioasisy1: "Ràdio F M"
+    radio: "Ràdio F M"
   </voice>
 </phrase>
 <phrase>

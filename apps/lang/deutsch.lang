@@ -420,15 +420,15 @@
   user: core
   <source>
     *: none
-    radio,innioasisy1: "FM Radio"
+    radio: "FM Radio"
   </source>
   <dest>
     *: none
-    radio,innioasisy1: "UKW-Radio"
+    radio: "UKW-Radio"
   </dest>
   <voice>
     *: none
-    radio,innioasisy1: "UKW-Radio"
+    radio: "UKW-Radio"
   </voice>
 </phrase>
 <phrase>

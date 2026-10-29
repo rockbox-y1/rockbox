@@ -209,15 +209,15 @@
   user: core
   <source>
     *: none
-    radio,innioasisy1: "FM Radio"
+    radio: "FM Radio"
   </source>
   <dest>
     *: none
-    radio,innioasisy1: "FM útvarp"
+    radio: "FM útvarp"
   </dest>
   <voice>
     *: none
-    radio,innioasisy1: "FM Radio"
+    radio: "FM Radio"
   </voice>
 </phrase>
 <phrase>
