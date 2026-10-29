@@ -75,6 +75,7 @@
 
 #define HAVE_MULTIMEDIA_KEYS
 #define CONFIG_KEYPAD INNIOASIS_Y1_PAD
+#define HAVE_PITCHCONTROL
 
 /* define this if the target has volume keys which can be used in the lists */
 #define HAVE_VOLUME_IN_LIST

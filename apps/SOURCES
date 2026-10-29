@@ -82,7 +82,9 @@ gui/line.c
 gui/bitmap/list.c
 gui/bitmap/list-skinned.c
 gui/option_select.c
+#ifdef HAVE_PITCHCONTROL
 gui/pitchscreen.c
+#endif
 #ifdef HAVE_QUICKSCREEN
 gui/quickscreen.c
 #endif
