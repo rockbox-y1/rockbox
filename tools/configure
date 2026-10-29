@@ -4104,7 +4104,7 @@ fi
     t_model="shanlingq1"
     ;;
 
-   270|echor1)
+    270|echor1)
     target_id=119
     modelname="echor1"
     target="ECHO_R1"
@@ -4137,7 +4137,7 @@ fi
     USE_ELF="yes"
     ;;
 
-   280|surfansf28)
+    280|surfansf28)
     target_id=120
     application=yes
     app_type="hibyos"
@@ -4182,7 +4182,7 @@ fi
     t_model="3ds"
     ;;
 
-   300|hibyr3proii)
+    300|hibyr3proii)
     target_id=123
     application=yes
     app_type="hibyos"
@@ -4207,7 +4207,7 @@ fi
     sysfont="20-Terminus"
     ;;
 
-   301|hibyr1)
+    301|hibyr1)
     target_id=124
     application=yes
     app_type="hibyos"
@@ -4232,7 +4232,7 @@ fi
     sysfont="20-Terminus"
     ;;
 
-   302|hidizsap80max)
+    302|hidizsap80max)
     target_id=125
     application=yes
     app_type="hibyos"
@@ -4279,7 +4279,7 @@ fi
     t_model="psp"
     ;;
 
-   310|innioasisy1)
+    310|innioasisy1)
     application="yes"
     target_id=125
     modelname="innioasisy1"
