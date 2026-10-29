@@ -411,7 +411,6 @@ struct user_settings
     int  keyclick;          /* keyclick volume */
     int  keyclick_repeats;  /* keyclick on repeats */
 #ifdef INNIOASIS_Y1
-    int  taptic_mode;       /* taptic engine mode */
     int  wheel_vibration_intensity; /* Vibration intensity for Innioasis Y1 scroll wheel (0-50ms) */
 #endif
     bool dithering_enabled;

@@ -341,7 +341,6 @@ MENUITEM_SETTING(volume_adjust_norm_steps, &global_settings.volume_adjust_norm_s
 MENUITEM_SETTING(keyclick, &global_settings.keyclick, NULL);
 MENUITEM_SETTING(keyclick_repeats, &global_settings.keyclick_repeats, NULL);
 #ifdef INNIOASIS_Y1
-MENUITEM_SETTING(taptic_mode, &global_settings.taptic_mode, NULL);
 MENUITEM_SETTING(wheel_vibrations, &global_settings.wheel_vibration_intensity, NULL);
 #endif
 #ifdef HAVE_HARDWARE_CLICK
@@ -352,7 +351,7 @@ MAKE_MENU(keyclick_menu, ID2P(LANG_KEYCLICK), 0, Icon_NOICON,
 MAKE_MENU(keyclick_menu, ID2P(LANG_KEYCLICK), 0, Icon_NOICON,
            &keyclick, &keyclick_repeats
 #ifdef INNIOASIS_Y1
-           ,&taptic_mode, &wheel_vibrations
+           ,&wheel_vibrations
 #endif
         );
 #endif
