@@ -33,10 +33,6 @@
 
 #include "config.h"
 
-#ifdef INNIOASIS_Y1
-#include <pthread.h>
-#endif
-
 void rtc_init(void)
 {
   tzset();
