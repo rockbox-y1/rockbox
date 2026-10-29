@@ -128,26 +128,12 @@ static void tagcache_rebuild_with_splash(void)
 {
     tagcache_rebuild();
     splash(HZ*2, ID2P(LANG_TAGCACHE_FORCE_UPDATE_SPLASH));
-#ifdef INNIOASIS_Y1
-    splash(HZ, "Restarting Rockbox to apply...");
-    list_stop_handler();
-    sleep(1);
-    system("am force-stop org.rockbox");
-    system("monkey -p org.rockbox -c android.intent.category.LAUNCHER 1");
-#endif
 }
 
 static void tagcache_update_with_splash(void)
 {
     tagcache_update();
     splash(HZ*2, ID2P(LANG_TAGCACHE_FORCE_UPDATE_SPLASH));
-#ifdef INNIOASIS_Y1
-    splash(HZ, "Restarting Rockbox to apply...");
-    list_stop_handler();
-    sleep(1);
-    system("am force-stop org.rockbox");
-    system("monkey -p org.rockbox -c android.intent.category.LAUNCHER 1");
-#endif
 }
 
 static int dirs_to_scan(void)
@@ -313,15 +299,7 @@ static int dircache_callback(int action,
             if (global_settings.dircache)
             {
                 if (dircache_enable() < 0)
-            #ifdef INNIOASIS_Y1
-                    splash(HZ, "Restarting Rockbox to apply...");
-                    list_stop_handler();
-                    sleep(1);
-                    system("am force-stop org.rockbox");
-                    system("monkey -p org.rockbox -c android.intent.category.LAUNCHER 1");
-            #else
                     splash(HZ, ID2P(LANG_PLEASE_REBOOT));
-            #endif
             }
             else
             {

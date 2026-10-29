@@ -76,9 +76,6 @@ static int timedate_set(void)
 
     if(tm.tm_year != -1) {
         set_time(&tm);
-#ifdef INNIOASIS_Y1
-        splash(2*HZ, "Setting time and restarting Rockbox...");
-#endif
     }
     return result;
 }
