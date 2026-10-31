@@ -17013,17 +17013,17 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_WHEEL_VIBRATIONS
-  desc: wheel vibration settings 
+  id: LANG_VIBRATIONS
+  desc: vibration settings
   user: core
   <source>
-    *: "Wheel Vibration Intensity"
+    *: "Vibration Intensity"
   </source>
   <dest>
-    *: "Wheel Vibration Intensity"
+    *: "Vibration Intensity"
   </dest>
   <voice>
-    *: "Wheel vibration intensity"
+    *: "vibration intensity"
   </voice>
 </phrase>
 <phrase>
