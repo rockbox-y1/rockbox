@@ -71,7 +71,7 @@ Java_org_rockbox_RockboxFramebuffer_touchHandler(JNIEnv*env, jobject this,
 extern volatile long current_tick;
 
 /* Forward declaration for vibration function */
-JNIEXPORT void JNICALL Java_org_rockbox_RockboxFramebuffer_triggerVibrationNative(JNIEnv* env, jclass class, jint baseDuration, jint boostDuration, jboolean haptic_mode);
+JNIEXPORT void JNICALL Java_org_rockbox_RockboxFramebuffer_triggerVibrationNative(JNIEnv* env, jclass class, jint baseDuration, jint boostDuration);
 
 static long last_wheel_press_time = 0;
 static int wheel_press_count = 0;
@@ -121,7 +121,8 @@ Java_org_rockbox_RockboxFramebuffer_buttonHandler(JNIEnv*env, jclass class,
             boost_duration = 0;
         }
         if (state){
-            Java_org_rockbox_RockboxFramebuffer_triggerVibrationNative(env, class, global_settings.wheel_vibration_intensity, boost_duration, false);
+            DEBUGF("VIBRATION: key=%d base=%d boost=%d count=%ld\n", keycode, global_settings.wheel_vibration_intensity, boost_duration, (long)wheel_press_count);
+            Java_org_rockbox_RockboxFramebuffer_triggerVibrationNative(env, class, global_settings.wheel_vibration_intensity, boost_duration);
         }
     }
 
@@ -154,18 +155,20 @@ Java_org_rockbox_RockboxFramebuffer_buttonHandler(JNIEnv*env, jclass class,
  * Trigger vibration for button feedback
  */
 JNIEXPORT void JNICALL
-Java_org_rockbox_RockboxFramebuffer_triggerVibrationNative(JNIEnv* env, jclass class, jint baseDuration, jint boostDuration, jboolean haptic_mode)
+Java_org_rockbox_RockboxFramebuffer_triggerVibrationNative(JNIEnv* env, jclass class, jint baseDuration, jint boostDuration)
 {
     (void)class;
-    
+
+    DEBUGF("VIBRATION native: base=%dms boost=%dms total=%dms\n", baseDuration, boostDuration, baseDuration + boostDuration);
+
     /* Call the Java method to trigger vibration with base duration and boost */
     if (env && RockboxService_instance) {
         jclass framebuffer_class = (*env)->FindClass(env, "org/rockbox/RockboxFramebuffer");
         if (framebuffer_class) {
             jmethodID trigger_vibration_method = (*env)->GetStaticMethodID(env, framebuffer_class, 
-                "triggerVibration", "(Landroid/content/Context;IIZ)V");
+                "triggerVibration", "(Landroid/content/Context;II)V");
             if (trigger_vibration_method) {
-                (*env)->CallStaticVoidMethod(env, framebuffer_class, trigger_vibration_method, RockboxService_instance, baseDuration, boostDuration, false);
+                (*env)->CallStaticVoidMethod(env, framebuffer_class, trigger_vibration_method, RockboxService_instance, baseDuration, boostDuration);
                 /* Clear any JNI exceptions that might have occurred */
                 if ((*env)->ExceptionCheck(env)) {
                     DEBUGF("JNI exception in triggerVibrationNative: vibration failed\n");
@@ -245,7 +248,8 @@ Java_org_rockbox_RockboxFramebuffer_buttonHandlerRepeat(JNIEnv*env, jclass class
         else if (wheel_press_count >= 20) {
             boost_duration = 0;
         }
-        Java_org_rockbox_RockboxFramebuffer_triggerVibrationNative(env, class, global_settings.wheel_vibration_intensity, boost_duration, false);
+        DEBUGF("VIBRATION: key=%d base=%d boost=%d count=%ld\n", keycode, global_settings.wheel_vibration_intensity, boost_duration, (long)wheel_press_count);
+        Java_org_rockbox_RockboxFramebuffer_triggerVibrationNative(env, class, global_settings.wheel_vibration_intensity, boost_duration);
     }
 
     /* For other keys, use the normal conversion */

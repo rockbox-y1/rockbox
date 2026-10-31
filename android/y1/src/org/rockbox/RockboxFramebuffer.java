@@ -323,18 +323,16 @@ public class RockboxFramebuffer extends SurfaceView
     public native void getVirtualFramebufferDimensions(int[] dimensions);
 
     /* Trigger vibration for button feedback */
-    public static void triggerVibration(Context context, int baseDuration, int boostDuration, boolean hapticImmediate) {
+    public static void triggerVibration(Context context, int baseDuration, int boostDuration) {
         try {
             Vibrator vibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
             if (vibrator != null) {
                 int base_ms = duration_mapping[baseDuration];
                 int boost_ms = boostDuration;
-                int total_ms;
-                if (hapticImmediate){
-                    total_ms = base_ms;
-                } else {
-                    total_ms = base_ms + boost_ms;
-                }
+                int total_ms = base_ms + boost_ms;
+
+                android.util.Log.d("RockboxFramebuffer", "VIBRATION: base_dur_idx=" + baseDuration +
+                    " base_ms=" + base_ms + " boost_ms=" + boost_ms + " total_ms=" + total_ms);
                 vibrator.vibrate(total_ms);
             } else {
                 android.util.Log.e("RockboxFramebuffer", "Vibrator is null");
@@ -342,7 +340,7 @@ public class RockboxFramebuffer extends SurfaceView
         } catch (Exception e) {
             android.util.Log.e("RockboxFramebuffer", "Vibration error: " + e.getMessage());
         }
-        
+
     }
     private final Runnable watchdogRunnable = new Runnable() {
         @Override
