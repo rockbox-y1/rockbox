@@ -35,8 +35,10 @@ int key_to_button(int keyboard_key)
         case KEYCODE_BACK:
 #ifndef INNIOASIS_Y1
             return ignore_back_button ? BUTTON_NONE : BUTTON_BACK;
-        case KEYCODE_MENU:
+#else
+            return ignore_back_button ? BUTTON_NONE : BUTTON_MENU;
 #endif
+        case KEYCODE_MENU:
             return BUTTON_MENU;
         case KEYCODE_ENTER:
             return BUTTON_SELECT;
