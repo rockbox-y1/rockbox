@@ -114,6 +114,13 @@ void handle_auto_poweroff(void);
 static int poweroff_timeout = 0;
 static long last_event_tick = 0;
 
+#ifdef INNIOASIS_Y1
+/* Idle poweroff and sleep timer are only running when in RB.
+ * This way there is no sudden poweroff after adjusting settings 
+ * and returning to RB */
+static bool auto_poweroff_suspended = false;
+#endif
+
 #if BATTERY_CAPACITY_INC > 0
 static int battery_capacity = BATTERY_CAPACITY_DEFAULT;
 #else
@@ -1219,6 +1226,17 @@ static void handle_sleep_timer(void)
 }
 #endif /* BOOTLOADER */
 
+#ifdef INNIOASIS_Y1
+void set_auto_poweroff_suspended(bool suspend)
+{
+    auto_poweroff_suspended = suspend;
+
+    last_event_tick = current_tick;
+    if (sleeptimer_active)
+        set_sleep_timer(sleeptimer_duration);
+}
+#endif /* INNIOASIS_Y1 */
+
 /*
  * We shut off in the following cases:
  * 1) The unit is idle, not playing music
@@ -1254,6 +1272,12 @@ void handle_auto_poweroff(void)
         backlight_on();
         sys_poweroff();
     }
+
+#ifdef INNIOASIS_Y1
+    /* Skip both countdowns if outside of Rockbox, low battery shutdown above is not affected */
+    if (auto_poweroff_suspended)
+        return;
+#endif
 
     if (timeout &&
 #if CONFIG_TUNER

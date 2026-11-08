@@ -205,6 +205,16 @@ Java_org_rockbox_RockboxFramebuffer_keyLock(JNIEnv *env, jclass class, jboolean 
     do_key_lock(state);
 }
 
+/* The Rockbox left (true) or came back (false) */
+JNIEXPORT void JNICALL
+Java_org_rockbox_RockboxActivity_autoPoweroffSuspend(JNIEnv *env, jclass class, jboolean suspend)
+{
+    (void)env;
+    (void)class;
+
+    set_auto_poweroff_suspended(suspend);
+}
+
 /*
  * this handles repeat events from Android's key repeat system
  */

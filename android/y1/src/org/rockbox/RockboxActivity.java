@@ -123,6 +123,8 @@ public class RockboxActivity extends Activity
         setServiceActivity(true);
         /* disable key lock */
         keyLock(false);
+        /* continue timers */
+        autoPoweroffSuspend(false);
     }
     
     /* this is also called when the backlight goes off,
@@ -161,6 +163,7 @@ public class RockboxActivity extends Activity
         boolean screenOn = pm.isScreenOn();
         if (hasFocus) {
             MediaButtonReceiver.setDpadMode(0);
+            autoPoweroffSuspend(false);
             Log.d("RockboxActivity", "back in Rockbox, disable dpad mode");
         }
         /* also check if the screen is on since the activity also loose focus if screen is off while in Rockbox */
@@ -171,6 +174,8 @@ public class RockboxActivity extends Activity
             } else {
                 MediaButtonReceiver.setDpadMode(2); // other menus
             }
+            /* Suspend timers */
+            autoPoweroffSuspend(true);
         }
     }
 
@@ -191,5 +196,7 @@ public class RockboxActivity extends Activity
 
     /* call native method to trigger key lock */
     public native static void keyLock(boolean keyLock);
+
+    public native static void autoPoweroffSuspend(boolean suspend);
 
 }

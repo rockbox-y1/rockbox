@@ -168,6 +168,9 @@ void set_keypress_restarts_sleep_timer(bool enable);
 void handle_auto_poweroff(void);
 void set_car_adapter_mode(bool setting);
 void reset_poweroff_timer(void);
+#ifdef INNIOASIS_Y1
+void set_auto_poweroff_suspended(bool suspend);
+#endif
 void cancel_shutdown(void);
 void shutdown_hw(enum shutdown_type sd_type);
 void sys_poweroff(void);
