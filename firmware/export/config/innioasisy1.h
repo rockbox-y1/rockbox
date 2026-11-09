@@ -57,8 +57,13 @@
 #define HAVE_LCD_ENABLE
 
 /* define this to indicate your device's keypad */
-//#define HAVE_TOUCHSCREEN
 #define HAVE_BUTTON_DATA
+
+/* The Y1 scroll wheel only has 8 button presses per rotation,
+ * to imitate the feeling on the ipod we need to adjust the values here */
+#define HAVE_WHEEL_ACCELERATION
+#define WHEEL_ACCEL_START 450
+#define WHEEL_ACCELERATION 3
 /* define this if you have a real-time clock */
 #define CONFIG_RTC APPLICATION
 
