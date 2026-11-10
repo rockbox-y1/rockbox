@@ -20,7 +20,11 @@
 #ifndef __ANDROID_CODEC_H
 #define __ANDROID_CODEC_H
 
+#if defined(HAVE_RECORDING) && defined(INNIOASIS_Y1)
+#define AUDIOHW_CAPS    (MONO_VOL_CAP | MIC_GAIN_CAP)
+#else
 #define AUDIOHW_CAPS    (MONO_VOL_CAP)
+#endif
 AUDIOHW_SETTING(VOLUME,      "dB",   0,  1, -99,   0,   0)
 
 /* Bass and treble tone controls */

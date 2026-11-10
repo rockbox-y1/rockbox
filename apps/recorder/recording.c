@@ -1291,7 +1291,9 @@ bool recording_screen(bool no_source)
 #ifndef HAVE_RECORDING_WITHOUT_MONITORING
                 listid_to_enum[listi++] = ITEM_VOLUME;
 #endif
+#ifndef NO_REC_GAIN_ITEM
                 listid_to_enum[listi++] = ITEM_GAIN;
+#endif
 #if defined(HAVE_LINE_REC) || defined(HAVE_FMRADIO_REC)
                 if(HAVE_MIC_REC_((global_settings.rec_source != AUDIO_SRC_MIC) || )
                    (global_settings.rec_channels != 1)) {

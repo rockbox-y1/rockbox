@@ -2106,6 +2106,7 @@ target/hosted/android/android-codec.c
 target/hosted/android/brightness-innioasis.c
 target/hosted/android/shutdown-innioasis.c
 target/hosted/android/radio-innioasis.c
+target/hosted/android/recording-android.c
 #endif
 #ifdef APPLICATION
 target/hosted/android/app/button-application.c
