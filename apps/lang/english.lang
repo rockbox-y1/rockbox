@@ -16999,17 +16999,17 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_VIBRATIONS
-  desc: vibration settings
+  id: LANG_WHEEL_HAPTICS_INTENSITY
+  desc: wheel haptics intensity setting
   user: core
   <source>
-    *: "Vibration Intensity"
+    *: "Wheel Haptics Intensity"
   </source>
   <dest>
-    *: "Vibration Intensity"
+    *: "Wheel Haptics Intensity"
   </dest>
   <voice>
-    *: "vibration intensity"
+    *: "wheel haptics intensity"
   </voice>
 </phrase>
 <phrase>

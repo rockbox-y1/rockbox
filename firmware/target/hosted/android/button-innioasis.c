@@ -162,7 +162,7 @@ Java_org_rockbox_RockboxFramebuffer_buttonHandler(JNIEnv*env, jclass class,
         else if (wheel_press_count >= 20) {
             boost_duration = 0;
         }
-        /* immediate = true when intensity is 1-3, false otherwise */
+        /* immediate = true when intensity level is 1-3, false otherwise (better feeling for haptic engine mods) */
         jboolean immediate = (global_settings.vibration_intensity > 0 && global_settings.vibration_intensity <= 3) ? JNI_TRUE : JNI_FALSE;
         if (state){
             Java_org_rockbox_RockboxFramebuffer_triggerVibrationNative(env, class, global_settings.vibration_intensity, boost_duration, immediate);
@@ -302,7 +302,7 @@ Java_org_rockbox_RockboxFramebuffer_buttonHandlerRepeat(JNIEnv*env, jclass class
         else if (wheel_press_count >= 20) {
             boost_duration = 0;
         }
-        /* immediate = true when intensity is 1-5, false otherwise */
+        /* immediate = true when intensity level is 1-3, false otherwise (better feeling for haptic engine mods) */
         jboolean immediate = (global_settings.vibration_intensity > 0 && global_settings.vibration_intensity <= 3) ? JNI_TRUE : JNI_FALSE;
         Java_org_rockbox_RockboxFramebuffer_triggerVibrationNative(env, class, global_settings.vibration_intensity, boost_duration, immediate);
     }

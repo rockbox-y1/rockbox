@@ -340,9 +340,6 @@ MENUITEM_SETTING(volume_adjust_norm_steps, &global_settings.volume_adjust_norm_s
 /* Keyclick menu */
 MENUITEM_SETTING(keyclick, &global_settings.keyclick, NULL);
 MENUITEM_SETTING(keyclick_repeats, &global_settings.keyclick_repeats, NULL);
-#ifdef INNIOASIS_Y1
-MENUITEM_SETTING(wheel_vibrations, &global_settings.vibration_intensity, NULL);
-#endif
 #ifdef HAVE_HARDWARE_CLICK
 MENUITEM_SETTING(keyclick_hardware, &global_settings.keyclick_hardware, NULL);
 MAKE_MENU(keyclick_menu, ID2P(LANG_KEYCLICK), 0, Icon_NOICON,
@@ -350,9 +347,6 @@ MAKE_MENU(keyclick_menu, ID2P(LANG_KEYCLICK), 0, Icon_NOICON,
 #else
 MAKE_MENU(keyclick_menu, ID2P(LANG_KEYCLICK), 0, Icon_NOICON,
            &keyclick, &keyclick_repeats
-#ifdef INNIOASIS_Y1
-           ,&wheel_vibrations
-#endif
         );
 #endif
 
@@ -439,6 +433,10 @@ MAKE_MENU(usb_menu, ID2P(LANG_USB_MENU), 0, Icon_NOICON,
 #endif
          );
 
+#ifdef INNIOASIS_Y1
+MENUITEM_SETTING(wheel_haptics_intensity, &global_settings.vibration_intensity, NULL);
+#endif
+
 MAKE_MENU(system_menu, ID2P(LANG_SYSTEM),
           0, Icon_System_menu,
 #if (BATTERY_CAPACITY_INC > 0) || defined(HAVE_USB_CHARGING_ENABLE)
@@ -477,6 +475,9 @@ MAKE_MENU(system_menu, ID2P(LANG_SYSTEM),
             &buttonlight_brightness,
 #endif
             &keyclick_menu,
+#ifdef INNIOASIS_Y1
+            &wheel_haptics_intensity,
+#endif
 #ifdef HAVE_TOUCHPAD_SENSITIVITY_SETTING
             &touchpad_sensitivity,
 #endif

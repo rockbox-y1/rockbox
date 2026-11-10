@@ -411,7 +411,7 @@ struct user_settings
     int  keyclick;          /* keyclick volume */
     int  keyclick_repeats;  /* keyclick on repeats */
 #ifdef INNIOASIS_Y1
-    int  vibration_intensity; /* Vibration intensity for Innioasis Y1 scroll wheel (0-50ms) */
+    int  vibration_intensity; /* Wheel haptics intensity level for Innioasis Y1 scroll wheel (0=off, 1-14) */
 #endif
     bool dithering_enabled;
 #ifdef HAVE_PITCHCONTROL
