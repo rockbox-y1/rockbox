@@ -115,7 +115,7 @@ static long lasttime = 0;
 #endif
 
 #ifdef INNIOASIS_Y1
-#include "../firmware/target/hosted/android/brightness-android.h"
+#include "../firmware/target/hosted/android/brightness-innioasis.h"
 #endif
 
 #ifdef LOGF_ENABLE

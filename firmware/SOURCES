@@ -2092,7 +2092,7 @@ target/hosted/android/lcd-android.c
 #if (CONFIG_PLATFORM & PLATFORM_ANDROID) && !defined(INNIOASIS_Y1)
 target/hosted/android/button-android.c
 #else
-target/hosted/android/button-innioasis-y1.c
+target/hosted/android/button-innioasis.c
 #endif
 #ifdef DEBUG
 target/hosted/android/debug-android.c
@@ -2103,8 +2103,8 @@ target/hosted/android/system-android.c
 target/hosted/android/telephony-android.c
 target/hosted/android/android-codec.c
 #if defined(INNIOASIS_Y1)
-target/hosted/android/brightness-android.c
-target/hosted/android/shutdown-android.c
+target/hosted/android/brightness-innioasis.c
+target/hosted/android/shutdown-innioasis.c
 #endif
 #ifdef APPLICATION
 target/hosted/android/app/button-application.c

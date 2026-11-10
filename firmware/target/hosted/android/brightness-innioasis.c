@@ -1,7 +1,7 @@
 #include "config.h"
 #include "system.h"
 #include "debug.h"
-#include "brightness-android.h"
+#include "brightness-innioasis.h"
 #include <jni.h>
 
 #ifdef INNIOASIS_Y1

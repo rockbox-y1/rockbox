@@ -46,7 +46,7 @@
 #endif
 
 #ifdef INNIOASIS_Y1
-#include "brightness-android.h"
+#include "brightness-innioasis.h"
 #endif
 
 #ifndef SIMULATOR

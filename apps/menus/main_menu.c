@@ -49,8 +49,8 @@
 #include "skin_buffer.h"
 #include "disk.h"
 #ifdef INNIOASIS_Y1
-#include "../firmware/target/hosted/android/brightness-android.h"
-#include "../firmware/target/hosted/android/shutdown-android.h"
+#include "../firmware/target/hosted/android/brightness-innioasis.h"
+#include "../firmware/target/hosted/android/shutdown-innioasis.h"
 #endif
 
 static const struct browse_folder_info config = {ROCKBOX_DIR, SHOW_CFG};

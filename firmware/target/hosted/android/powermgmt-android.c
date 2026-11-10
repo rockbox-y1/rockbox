@@ -32,7 +32,7 @@
 #include "splash.h"
 #include "lang.h"
 #include "settings.h"
-#include "../firmware/target/hosted/android/shutdown-android.h"
+#include "../firmware/target/hosted/android/shutdown-innioasis.h"
 #endif
 
 extern JNIEnv *env_ptr;
