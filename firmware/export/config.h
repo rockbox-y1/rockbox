@@ -53,6 +53,7 @@
 #define IPOD_REMOTE_TUNER   0x40 /* Apple */
 #define RDA5802    0x80 /* RDA Microelectronics */
 #define STFM1000   0x100 /* Sigmatel */
+#define ANDROID_FM  0x200 /* hosted Android, via /dev/fm ioctls (e.g. MT6572) */
 
 /* CONFIG_CPU */
 #define MCF5249      5249

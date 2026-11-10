@@ -2105,6 +2105,7 @@ target/hosted/android/android-codec.c
 #if defined(INNIOASIS_Y1)
 target/hosted/android/brightness-innioasis.c
 target/hosted/android/shutdown-innioasis.c
+target/hosted/android/radio-innioasis.c
 #endif
 #ifdef APPLICATION
 target/hosted/android/app/button-application.c

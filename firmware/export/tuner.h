@@ -145,6 +145,11 @@ extern int (*tuner_get)(int setting);
 #include "stfm1000.h"
 #endif
 
+/* Hosted Android (via /dev/fm ioctls, e.g. Innioasis Y1 / MT6572) */
+#if (CONFIG_TUNER & ANDROID_FM)
+#include "fmradio-android.h"
+#endif
+
 #if defined(SIMULATOR)
 #undef tuner_set
 int tuner_set(int setting, int value);

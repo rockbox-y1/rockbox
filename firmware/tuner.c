@@ -97,6 +97,12 @@ void tuner_init(void)
                         stfm1000_get,
                         stfm1000_init())
     #endif
+    #if (CONFIG_TUNER & ANDROID_FM)
+        TUNER_TYPE_CASE(ANDROID_FM,
+                        y1_fmradio_set,
+                        y1_fmradio_get,
+                        y1_fmradio_init())
+    #endif
     }
 }
 

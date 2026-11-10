@@ -17299,3 +17299,20 @@
     recording_remote: "remote recording screen skin"
   </voice>
 </phrase>
+<phrase>
+  id: LANG_FM_DISABLE_AIRPLANE_MODE
+  desc: prompt to disable airplane mode before using the FM radio
+  user: core
+  <source>
+    *: none
+    radio: "Airplane mode is on. Disable it to use FM radio?"
+  </source>
+  <dest>
+    *: none
+    radio: "Airplane mode is on. Disable it to use FM radio?"
+  </dest>
+  <voice>
+    *: none
+    radio: "Airplane mode is on. Disable it to use FM radio?"
+  </voice>
+</phrase>

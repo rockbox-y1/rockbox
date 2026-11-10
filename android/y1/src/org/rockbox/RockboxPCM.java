@@ -23,6 +23,7 @@ package org.rockbox;
 
 import java.util.Arrays;
 import org.rockbox.Helper.Logger;
+import org.rockbox.Helper.FMRadio;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -307,6 +308,10 @@ public class RockboxPCM extends AudioTrack
             setstreamvolume = streamvolume;
             audiomanager.setStreamVolume(streamtype, streamvolume, 0);
         }
+
+        /* while the FM radio is on, its audio bypasses this PCM path, so
+           forward the volume to the FM stream as well */
+        FMRadio.setFmVolume(volume);
 
         if (streamvolume > 0) {
             setStereoVolume(curleftvol, currightvol);

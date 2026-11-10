@@ -192,6 +192,17 @@ void radio_start(void)
     /* ensure the frequency is in range otherwise bad things happen --Bilgus */
     curr_freq = snap_freq_to_grid(global_status.last_frequency * fmr->freq_step + fmr->freq_min);
 
+#if (CONFIG_TUNER & ANDROID_FM & defined(INNIOASIS_Y1))
+    /* airplane mode disables wifi/bt/fm chip, ask to activate it */
+    if (y1_fmradio_airplane_mode_on())
+    {
+        if (!yesno_pop(ID2P(LANG_FM_DISABLE_AIRPLANE_MODE)))
+            return;
+        y1_fmradio_set_airplane_mode(false);
+        sleep(HZ/2); /* let the radio stack apply the change */
+    }
+#endif
+
     tuner_set(RADIO_SLEEP, 0); /* wake up the tuner */
 
     if(radio_status == FMRADIO_OFF)

@@ -161,6 +161,18 @@ static const struct button_mapping button_context_listtree_scroll_without_combo[
 };
 
 static const struct button_mapping button_context_radio[]  = {
+    { ACTION_STD_PREV,          BUTTON_LEFT,                        BUTTON_NONE },
+    { ACTION_STD_PREVREPEAT,    BUTTON_LEFT|BUTTON_REPEAT,          BUTTON_NONE },
+    { ACTION_STD_NEXT,          BUTTON_RIGHT,                       BUTTON_NONE },
+    { ACTION_STD_NEXTREPEAT,    BUTTON_RIGHT|BUTTON_REPEAT,         BUTTON_NONE },
+    { ACTION_FM_PRESET,         BUTTON_SELECT|BUTTON_REL,           BUTTON_SELECT },
+    { ACTION_FM_MODE,           BUTTON_SELECT|BUTTON_REPEAT,        BUTTON_SELECT },
+    { ACTION_FM_PLAY,           BUTTON_PLAY|BUTTON_REL,             BUTTON_PLAY },
+    { ACTION_FM_STOP,           BUTTON_PLAY|BUTTON_REPEAT,          BUTTON_PLAY },
+    { ACTION_FM_MENU,           BUTTON_MENU|BUTTON_REL,             BUTTON_MENU },
+    { ACTION_FM_EXIT,           BUTTON_MENU|BUTTON_REPEAT,          BUTTON_MENU },
+    { ACTION_STD_KEYLOCK,       BUTTON_MENU|BUTTON_PLAY,            BUTTON_NONE },
+
     LAST_ITEM_IN_LIST__NEXTLIST(CONTEXT_SETTINGS)
 }; /* button_context_radio */
 

@@ -71,7 +71,7 @@
 #include "power.h"
 
 #if ((CONFIG_PLATFORM & PLATFORM_NATIVE) || defined(SAMSUNG_YPR0) || defined(SAMSUNG_YPR1) \
-        || defined(SONY_NWZ_LINUX)) \
+        || defined(SONY_NWZ_LINUX) || defined(INNIOASIS_Y1)) \
     && CONFIG_TUNER != 0
 #include "tuner.h"
 #include "radio.h"
@@ -2282,6 +2282,16 @@ static int radio_callback(int btn, struct gui_synclist *lists)
         }
     }
 #endif /* TEA5760 */
+#if (CONFIG_TUNER & ANDROID_FM)
+    IF_TUNER_TYPE(ANDROID_FM)
+    {
+        struct y1_fmradio_dbg_info nfo;
+        y1_fmradio_dbg_info(&nfo);
+        simplelist_addline("chipid: 0x%04x", nfo.chip_id);
+        simplelist_addline("RSSI: %d dBm", nfo.rssi);
+        simplelist_addline("powered: %s", nfo.powered ? "yes" : "no");
+    }
+#endif /* ANDROID_FM */
 
 #ifdef HAVE_RDS_CAP
     {

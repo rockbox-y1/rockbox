@@ -39,6 +39,7 @@ import org.rockbox.Helper.RunForegroundManager;
 import org.rockbox.Helper.BrightnessController;
 import org.rockbox.Helper.ScreenTimeoutController;
 import org.rockbox.Helper.Connectivity;
+import org.rockbox.Helper.FMRadio;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Service;
@@ -130,6 +131,7 @@ public class RockboxService extends Service
 
         loadConfig();
         Connectivity.setContext(this);
+        FMRadio.setContext(this);
     }
 
     public static RockboxService getInstance()
@@ -421,6 +423,7 @@ public class RockboxService extends Service
     public void onDestroy()
     {
         super.onDestroy();
+        FMRadio.shutdown();
         /* Don't unregister so we can receive them (and startup the service)
          * after idle power-off. Hopefully it's OK if mMediaButtonReceiver is
          * garbage collected.
