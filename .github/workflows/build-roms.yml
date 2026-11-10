@@ -21,7 +21,7 @@ jobs:
         path: |
           /var/cache/apt
           /var/lib/apt/lists
-        key: ${{ runner.os }}-apt-${{ hashFiles('.github/workflows/build-roms.yml') }}
+        key: ${{ runner.os }}-apt-v1
         restore-keys: |
           ${{ runner.os }}-apt-
 
@@ -30,7 +30,7 @@ jobs:
       with:
         path: |
           ~/android-sdk
-          ~/android-ndk-
+          ~/android-ndk-r10e
         key: ${{ runner.os }}-android-sdk-ndk-${{ hashFiles('android/y1/installToolchain.sh') }}
         restore-keys: |
           ${{ runner.os }}-android-sdk-ndk-
