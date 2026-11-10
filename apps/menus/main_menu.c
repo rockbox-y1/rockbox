@@ -474,7 +474,7 @@ static int show_info(void)
 MENUITEM_FUNCTION(show_info_item, 0, ID2P(LANG_ROCKBOX_INFO),
                   show_info, NULL, Icon_NOICON);
 
-#if CONFIG_RTC
+#if CONFIG_RTC && !defined(INNIOASIS_Y1)
 int time_screen(void* ignored);
 MENUITEM_FUNCTION(timedate_item, MENU_FUNC_CHECK_RETVAL, ID2P(LANG_TIME_MENU),
                   time_screen,  NULL, Icon_Menu_setting );
@@ -518,7 +518,7 @@ MAKE_MENU(main_menu_, ID2P(LANG_SETTINGS), NULL,
 #ifdef HAVE_RECORDING
         &recording_settings,
 #endif
-#if CONFIG_RTC
+#if CONFIG_RTC && !defined(INNIOASIS_Y1)
         &timedate_item,
 #endif
         &main_menu_config_item,

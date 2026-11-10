@@ -42,7 +42,7 @@
 #include "font.h"
 #include "system.h"
 
-#if defined(SAMSUNG_YH820) || defined(INNIOASIS_Y1)
+#ifdef SAMSUNG_YH820
 #include "splash.h"
 #endif
 
