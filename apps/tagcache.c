@@ -1721,6 +1721,8 @@ static bool build_lookup_list(struct tagcache_search *tcs)
     {
         struct master_header tcmh;
         tcs->masterfd = open_master_fd(&tcmh, false);
+        if (tcs->masterfd < 0)
+            return false;
     }
 
     lseek(tcs->masterfd, tcs->seek_pos * sizeof(struct index_entry) +
@@ -1779,11 +1781,11 @@ bool tagcache_search(struct tagcache_search *tcs, int tag)
     struct master_header   master_hdr;
     int i;
 
-    while (read_lock)
-        sleep(1);
-
+    /* Refuse rather than wait while a commit holds read_lock: that lasts
+     * the whole commit, and the caller may be the audio thread. Callers
+     * treat false as the database being busy. */
     memset(tcs, 0, sizeof(struct tagcache_search));
-    if (tc_stat.commit_step > 0 || !tc_stat.ready)
+    if (read_lock || tc_stat.commit_step > 0 || !tc_stat.ready)
         return false;
 
     tcs->position = sizeof(struct tagcache_header);
@@ -1818,7 +1820,11 @@ bool tagcache_search(struct tagcache_search *tcs, int tag)
         {
             tcs->idxfd[tcs->type] = open_tag_fd(&tag_hdr, tcs->type, false);
             if (tcs->idxfd[tcs->type] < 0)
+            {
+                close(tcs->masterfd);
+                tcs->masterfd = -1;
                 return false;
+            }
 
             tcs->entry_count = tag_hdr.entry_count;
         }
@@ -3643,8 +3649,13 @@ static void command_queue_sync_callback(void)
 
     mutex_lock(&command_queue_mutex);
 
-    if ( (masterfd = open_master_fd(&myhdr, true)) < 0)
+    /* A commit rewrites the master, so the queue waits for the next flush
+     * after it rather than writing into it. */
+    if (read_lock || (masterfd = open_master_fd(&myhdr, true)) < 0)
+    {
+        mutex_unlock(&command_queue_mutex);
         return;
+    }
 
     while (command_queue_ridx != command_queue_widx)
     {
@@ -3659,7 +3670,10 @@ static void command_queue_sync_callback(void)
 
                 /* Re-open the masterfd. */
                 if ( (masterfd = open_master_fd(&myhdr, true)) < 0)
+                {
+                    mutex_unlock(&command_queue_mutex);
                     return;
+                }
 
                 break;
             }
@@ -3722,6 +3736,16 @@ static void queue_command(int cmd, long idx_id, int tag, long data)
 
         /* Queue is full, try again later... */
         mutex_unlock(&command_queue_mutex);
+
+        /* ...unless a commit is running: the queue isn't flushed until it
+         * ends, and the caller may be the audio thread. Drop the command
+         * rather than stall it for the whole commit. */
+        if (read_lock)
+        {
+            logf("queue full during commit, dropping command %d", cmd);
+            break;
+        }
+
         sleep(1);
     }
 }
@@ -3733,9 +3757,9 @@ long tagcache_increase_serial(void)
     if (!tc_stat.ready)
         return -2;
 
-    while (read_lock)
-        sleep(1);
-
+    /* No wait for a commit: the audio thread calls this at every track end.
+     * An increment made during a commit can be lost, so two plays may share
+     * a serial. */
     old = current_tcmh.serial++;
     queue_command(CMD_UPDATE_MASTER_HEADER, 0, 0, 0);
 
@@ -5028,9 +5052,24 @@ void do_tagcache_build(const char *path[])
     cachefd = open_db_fd(TAGCACHE_FILE_TEMP, O_RDONLY);
     if (cachefd >= 0)
     {
-        logf("skipping, cache already waiting for commit");
+        /* An interrupted build left its entries waiting. Commit them now,
+         * as the next boot would, rather than skipping this update. */
         close(cachefd);
-        return ;
+        logf("committing cache waiting from an interrupted build");
+#ifdef __PCTOOL__
+        allocate_tempbuf();
+#endif
+        commit();
+#ifdef __PCTOOL__
+        free_tempbuf();
+#endif
+        cachefd = open_db_fd(TAGCACHE_FILE_TEMP, O_RDONLY);
+        if (cachefd >= 0)
+        {
+            logf("skipping, cache already waiting for commit");
+            close(cachefd);
+            return ;
+        }
     }
 
     cachefd = open_db_fd(TAGCACHE_FILE_TEMP, O_RDWR | O_CREAT | O_TRUNC);

@@ -37,9 +37,19 @@
 #include "settings.h"
 #include "metadata.h"
 #include "playback.h"
+#include "sound.h"
 #if CONFIG_TUNER
 #include "ipod_remote_tuner.h"
 #endif
+
+/* Apply the accessory's volume byte, which maps onto -90..+6 dB.
+ * sound_set_volume() keeps it within the codec's range and the volume
+ * limit, and stores it in global_status.volume.
+ */
+static void set_remote_volume(const unsigned char raw)
+{
+    sound_set_volume((int) (raw/2.65625)-90);
+}
 
 /*
  * This macro is meant to be used inside an IAP mode message handler.
@@ -511,6 +521,14 @@ void iap_handlepkt_mode3(const unsigned int len, const unsigned char *buf)
                             IAP_TX_PUT(0x02);
                             break;
                         }
+
+                        default:
+                        {
+                            /* REPEAT_SHUFFLE and REPEAT_AB, see the
+                             * repeat notification in iap_periodic() */
+                            IAP_TX_PUT(0x02);
+                            break;
+                        }
                     }
 
                     iap_send_tx();
@@ -524,8 +542,8 @@ void iap_handlepkt_mode3(const unsigned int len, const unsigned char *buf)
                 {
                     tm = get_time();
 
-                    /* Year */
-                    IAP_TX_PUT_U16(tm->tm_year);
+                    /* Year, tm_year counts from 1900 */
+                    IAP_TX_PUT_U16(tm->tm_year + 1900);
 
                     /* Month */
                     IAP_TX_PUT(tm->tm_mon+1);
@@ -706,6 +724,13 @@ void iap_handlepkt_mode3(const unsigned int len, const unsigned char *buf)
 
                     CHECKLEN(7);
                     index = get_u32(&buf[0x03]);
+                    /* Same guard as SetCurrentPlayingTrack below: an
+                     * out-of-range offset locks up audio_skip(). */
+                    if (index >= (uint32_t)playlist_amount())
+                    {
+                        cmd_ack(cmd, IAP_ACK_BAD_PARAM);
+                        break;
+                    }
                     audio_skip(index-iap_get_trackindex());
 
                     cmd_ok(cmd);
@@ -765,7 +790,7 @@ void iap_handlepkt_mode3(const unsigned int len, const unsigned char *buf)
                     CHECKLEN(5);
                     if (buf[0x03]==0x00){
                         /* Not Muted */
-                        global_status.volume = (int) (buf[0x04]/2.65625)-90;
+                        set_remote_volume(buf[0x04]);
                         device.mute = false;
                     }
                     else {
@@ -939,7 +964,7 @@ void iap_handlepkt_mode3(const unsigned int len, const unsigned char *buf)
                     CHECKLEN(7);
                     if (buf[0x03]==0x00){
                         /* Not Muted */
-                        global_status.volume = (int) (buf[0x04]/2.65625)-90;
+                        set_remote_volume(buf[0x04]);
                         device.mute = false;
                     }
                     else {
@@ -1281,6 +1306,7 @@ void iap_handlepkt_mode3(const unsigned int len, const unsigned char *buf)
             IAP_TX_PUT_U32(playlist_amount());
 
             iap_send_tx();
+            break;
         }
 
         /* RetNumPlayingTracks (0x15)

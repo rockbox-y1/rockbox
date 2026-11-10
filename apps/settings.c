@@ -27,6 +27,7 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <limits.h>
+#include <string.h>
 #include "inttypes.h"
 #include "config.h"
 #include "rbpaths.h"
@@ -330,7 +331,17 @@ bool string_to_cfg(const char *name, char* value, bool *theme_changed)
 #endif
             if (setting_get_cfgvals(setting) == NULL)
             {
-                *(int*)setting->setting = atoi(value);
+                int v = atoi(value);
+                /* A hand-edited .cfg isn't trusted: callers divide and loop
+                 * on these. Some ranges are declared high to low. */
+                if (flags & F_INT_SETTING)
+                {
+                    const struct int_setting *info = setting->int_setting;
+                    int lo = MIN(info->min, info->max);
+                    int hi = MAX(info->min, info->max);
+                    v = MIN(MAX(v, lo), hi);
+                }
+                *(int*)setting->setting = v;
                 logf("Val: %s\r\n",value);
             }
             else
@@ -381,11 +392,11 @@ bool string_to_cfg(const char *name, char* value, bool *theme_changed)
     case F_T_BOOL:
     {
         int temp;
-        if (cfg_string_to_int(setting, &temp, value))
-        {
-            *(bool*)setting->setting = !!temp;
-            logf("Val: %s\r\n", value);
-        }
+        /* An unparsed value leaves the setting alone, and temp unset. */
+        if (!cfg_string_to_int(setting, &temp, value))
+            return false;
+        *(bool*)setting->setting = !!temp;
+        logf("Val: %s\r\n", value);
         if (setting->bool_setting->option_callback)
         {
             setting->bool_setting->option_callback(!!temp);
@@ -417,6 +428,29 @@ bool settings_load_config(const char* file, bool apply)
     fd = open_utf8(file, O_RDONLY);
     if (fd < 0)
         return false;
+
+    /* if this config is inside the themes dir,
+     * reset all settings to avoid keeping
+     * settings from previous theme cfg */
+    if (apply && strstr(file, THEME_DIR))
+    {
+        for (int i = 0; i < nb_settings; i++)
+        {
+            if (!(settings[i].flags & F_THEMESETTING))
+                continue;
+            else if (settings[i].flags & F_THEMERESET)
+            {
+                if ((settings[i].flags & F_T_MASK) == F_T_CHARPTR ||
+                    (settings[i].flags & F_T_MASK) == F_T_UCHARPTR)
+                {
+                    ((char *) settings[i].setting)[0] = '-';
+                    ((char *) settings[i].setting)[1] = '\0';
+                }
+            }
+            else
+                reset_setting(&settings[i], settings[i].setting);
+        }
+    }
 
     while (read_line(fd, line, sizeof line) > 0)
     {

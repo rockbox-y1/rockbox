@@ -128,6 +128,12 @@ void iap_handlepkt_mode0(const unsigned int len, const unsigned char *buf)
             iap_interface_state_change(IST_STANDARD);
             iap_reset_device(&device);
 
+            /* Legacy Identify has no authentication at all, so grant
+             * access, or CHECKAUTH blocks every lingo command that
+             * needs it.
+             */
+            device.auth.state = AUST_AUTH;
+
             switch (lingo) {
                 case 0x04:
                 {
@@ -432,9 +438,10 @@ void iap_handlepkt_mode0(const unsigned int len, const unsigned char *buf)
             CHECKLEN(3);
 
             /* Supported lingos and versions are read from the lingo_versions
-             * array
+             * array. It only covers lingoes 0-31, and LINGO_SUPPORTED()
+             * masks the index, so check the range first.
              */
-            if (LINGO_SUPPORTED(lingo)) {
+            if ((lingo < 32) && LINGO_SUPPORTED(lingo)) {
                 IAP_TX_INIT(0x00, 0x10);
                 IAP_TX_PUT(lingo);
                 IAP_TX_PUT(LINGO_MAJOR(lingo));
@@ -586,6 +593,11 @@ void iap_handlepkt_mode0(const unsigned int len, const unsigned char *buf)
             if (deviceid && (options & 0x03) && !DEVICE_AUTH_RUNNING) {
                 device.auth.state = AUST_INIT;
             } else {
+                /* No authentication requested: grant access now, or
+                 * CHECKAUTH rejects every lingo command that needs it
+                 * and the accessory retries forever.
+                 */
+                device.auth.state = AUST_AUTH;
                 device.accinfo = ACCST_INIT;
             }
 
@@ -1074,7 +1086,14 @@ void iap_handlepkt_mode0(const unsigned int len, const unsigned char *buf)
 
                 iap_send_tx();
             } else {
-                cmd_ack(cmd, IAP_ACK_BAD_PARAM);
+                /* Report setting 0 for the classes we do not implement.
+                 * Accessories may query a preference before setting it,
+                 * and some disconnect when the query is rejected.
+                 */
+                IAP_TX_PUT(buf[2]);
+                IAP_TX_PUT(0x00);
+
+                iap_send_tx();
             }
 
             break;
@@ -1123,7 +1142,11 @@ void iap_handlepkt_mode0(const unsigned int len, const unsigned char *buf)
                     cmd_ok(cmd);
                 }
             } else {
-                cmd_ack(cmd, IAP_ACK_BAD_PARAM);
+                /* Accept the classes we do not implement, such as video
+                 * out, as Apple's firmware does. Accessories that get
+                 * Bad Parameter here disconnect and retry in a loop.
+                 */
+                cmd_ok(cmd);
             }
 
             break;

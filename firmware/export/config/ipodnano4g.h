@@ -128,10 +128,8 @@
 /* Define this if you do software codec */
 #define CONFIG_CODEC SWCODEC
 
-// TODO
-/* define this if you have a real-time clock */
-//#define CONFIG_RTC RTC_NANO3G
-#define CONFIG_RTC  0
+/* Dialog D1759 RTC, BCD, same field order as the Nano 3G reader */
+#define CONFIG_RTC RTC_NANO4G
 
 /* Define if the device can wake from an RTC alarm */
 //#define HAVE_RTC_ALARM
@@ -188,8 +186,10 @@
 /* The exact type of CPU */
 #define CONFIG_CPU S5L8720
 
-/* Define this to the CPU frequency */
-#define CPU_FREQ        266000000           // TODO: TBC
+/* PLL0 output with the bootloader's PMS (0x06008501) and CPU divisor 1.
+ * (OSC0 * 133 / PDIV) / 2. OSC0 is 24 MHz with PDIV 6, or 12 MHz with
+ * PDIV 3; both lock at 266 MHz. */
+#define CPU_FREQ        266000000
 
 /* Define this if you have adjustable CPU frequency */
 #define HAVE_ADJUSTABLE_CPU_FREQ
@@ -208,7 +208,6 @@
 
 #define BOOTFILE_EXT "ipod"
 #define BOOTFILE "rockbox." BOOTFILE_EXT
-#define BOOTDIR "/.rockbox"
 
 #define HAVE_HARDWARE_CLICK
 

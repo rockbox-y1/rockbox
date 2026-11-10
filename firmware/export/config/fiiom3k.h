@@ -3,7 +3,6 @@
 #define MODEL_NUMBER    114
 #define BOOTFILE_EXT    "m3k"
 #define BOOTFILE        "rockbox." BOOTFILE_EXT
-#define BOOTDIR         "/.rockbox"
 
 /* CPU defines */
 #define CONFIG_CPU          X1000
@@ -97,7 +96,7 @@
 #define HAVE_SW_POWEROFF
 
 #ifndef SIMULATOR
-#define HAVE_AXP_PMU 192
+#define HAVE_AXP192
 #define HAVE_POWEROFF_WHILE_CHARGING
 #endif
 

@@ -410,7 +410,8 @@ static int update_control_unlocked(struct playlist_info* playlist,
     int fd = playlist->control_fd;
     int result;
 
-    lseek(fd, 0, SEEK_END);
+    if (lseek(fd, 0, SEEK_END) < 0)
+        return -1;
 
     switch (command)
     {
@@ -423,7 +424,13 @@ static int update_control_unlocked(struct playlist_info* playlist,
                           command == PLAYLIST_COMMAND_ADD ? 'A' : 'Q', i1, i2);
         if (result > 0)
         {
-            *seekpos = lseek(fd, 0, SEEK_CUR);
+            /* The track's index is built from where its name starts, so
+             * don't record -1 there. */
+            off_t position = lseek(fd, 0, SEEK_CUR);
+
+            if (position < 0)
+                return -1;
+            *seekpos = position;
             result = fdprintf(fd, "%s\n", s1);
         }
         break;
@@ -1059,14 +1066,18 @@ static int get_track_filename(struct playlist_info* playlist, int index,
     int max = -1;
     char tmp_buf[MAX_PATH+1];
     char dir_buf[MAX_PATH+1];
-    bool utf8 = playlist->utf8;
+    bool utf8;
     if (buf_length > 0)
         buf[0] = '\0';
 
-    if (index < 0 || index >= playlist->amount)
-        return -1;
-
     playlist_write_lock(playlist);
+    utf8 = playlist->utf8;
+
+    if (index < 0 || index >= playlist->amount)
+    {
+        playlist_write_unlock(playlist);
+        return -1;
+    }
 
     bool control_file = playlist->indices[index] & PLAYLIST_INSERT_TYPE_MASK;
     unsigned long seek = playlist->indices[index] & PLAYLIST_SEEK_MASK;
@@ -1135,13 +1146,11 @@ static int get_track_filename(struct playlist_info* playlist, int index,
         }
     }
 
+    max = format_track_path(buf, tmp_buf, buf_length,
+                            playlist->filename, playlist->dirlen);
     playlist_write_unlock(playlist);
 
-    if (format_track_path(buf, tmp_buf, buf_length,
-                          playlist->filename, playlist->dirlen) < 0)
-        return -1;
-
-    return 0;
+    return max < 0 ? -1 : 0;
 }
 
 /*
@@ -2098,16 +2107,23 @@ int playlist_create(const char *dir, const char *file)
 {
     struct playlist_info* playlist = &current_playlist;
     int status = 0;
+    size_t buflen = 0;
+    int handle = 0;
 
     dc_thread_stop(playlist);
+
+    /* Allocate before taking the lock, as playlist_resume() does: making
+     * room can stop playback, which takes the lock to save the resume
+     * point. */
+    if (file)
+        handle = alloc_tempbuf(&buflen);
+
     playlist_write_lock(playlist);
 
     new_playlist_unlocked(playlist, dir, file);
 
     if (file)
     {
-        size_t buflen;
-        int handle = alloc_tempbuf(&buflen);
         if (handle > 0)
         {
             /* align for faster load times */
@@ -2395,12 +2411,21 @@ int playlist_get_seed(const struct playlist_info* playlist)
 int playlist_get_track_info(struct playlist_info* playlist, int index,
                             struct playlist_track_info* info)
 {
+    int result = -1;
+
     if (!playlist)
         playlist = &current_playlist;
 
+    /* Before the lock: on an error it shows a splash, and the lock would
+     * keep the audio thread waiting through it. */
     if (get_track_filename(playlist, index,
                            info->filename, sizeof(info->filename)) != 0)
         return -1;
+
+    playlist_read_lock(playlist);
+    /* The playlist may have shrunk since */
+    if (index >= playlist->amount)
+        goto out;
 
     info->attr = 0;
 
@@ -2417,8 +2442,11 @@ int playlist_get_track_info(struct playlist_info* playlist, int index,
 
     info->index = index;
     info->display_index = rotate_index(playlist, index) + 1;
+    result = 0;
 
-    return 0;
+out:
+    playlist_read_unlock(playlist);
+    return result;
 }
 
 /*
@@ -2433,8 +2461,16 @@ int playlist_insert_context_create(struct playlist_info* playlist,
     if (!playlist)
         playlist = &current_playlist;
 
+    /* Everything release() reads is set before the first way out below,
+     * because both of those ways out keep the lock and the caller's only
+     * means of giving it back is release(). `initialized` stays false, so
+     * release() skips the sync and unlocks. */
     context->playlist = playlist;
     context->initialized = false;
+    context->count = 0;
+    context->progress = progress;
+    context->count_langid = queue ? LANG_PLAYLIST_QUEUE_COUNT
+                                  : LANG_PLAYLIST_INSERT_COUNT;
 
     dc_thread_stop(playlist);
     playlist_write_lock(playlist);
@@ -2455,17 +2491,9 @@ int playlist_insert_context_create(struct playlist_info* playlist,
         }
     }
 
-    context->playlist = playlist;
     context->position = position;
     context->queue = queue;
-    context->count = 0;
-    context->progress = progress;
     context->initialized = true;
-
-    if (queue)
-        context->count_langid = LANG_PLAYLIST_QUEUE_COUNT;
-    else
-        context->count_langid = LANG_PLAYLIST_INSERT_COUNT;
 
     return 0;
 }
@@ -2682,6 +2710,8 @@ int playlist_insert_track(struct playlist_info* playlist, const char *filename,
     if (check_control(playlist) < 0)
     {
         notify_control_access_error();
+        playlist_write_unlock(playlist);
+        dc_thread_start(playlist, false);
         return -1;
     }
 
@@ -3249,6 +3279,7 @@ int playlist_resume(void)
         int count;
         enum playlist_command current_command = PLAYLIST_COMMAND_COMMENT;
         int last_newline = 0;
+        bool newline_seen = false;
         int str_count = -1;
         bool newline = true;
         bool exit_loop = false;
@@ -3478,6 +3509,7 @@ int playlist_resume(void)
 
                 /* save last_newline in case we need to load more data */
                 last_newline = count;
+                newline_seen = true;
                 newline = true;
 
                 /* to ignore any extra newlines */
@@ -3538,6 +3570,41 @@ int playlist_resume(void)
         {
             if ((total_read + count) >= control_file_size)
             {
+                /* A power cut mid-append leaves a last line with no newline:
+                 * a command that never finished being written. Offer to clear
+                 * the playlist; otherwise, or if nobody answers, drop the line
+                 * and cut it from the file so the next append starts a line.
+                 * The line starts after the chunk's last newline, or at the
+                 * start of the chunk if it has none. */
+                if (!newline && !exit_loop && pl_cmd == &pl_cmds_run)
+                {
+                    static const char *lines[] = {
+                        ID2P(LANG_PLAYLIST_CONTROL_INVALID),
+                        ID2P(LANG_CLEAR_ALL)
+                    };
+                    static const struct text_message message = {lines, 2};
+
+                    if (gui_syncyesno_run_w_tmo(HZ * 5, YESNO_NO, NULL,
+                                                &message, NULL, NULL)
+                        == YESNO_YES)
+                    {
+                        /* keep the file as .old, and leave nothing to
+                         * resume rather than an empty control file */
+                        empty_playlist_unlocked(playlist, true);
+                        rename(PLAYLIST_CONTROL_FILE,
+                               PLAYLIST_CONTROL_FILE".old");
+                        playlist_update_resume_info(NULL);
+                        result = -1;
+                        goto out;
+                    }
+
+                    if (ftruncate(playlist->control_fd, total_read +
+                                  (newline_seen ? last_newline + 1 : 0)) == 0)
+                    {
+                        break;
+                    }
+                }
+
                 /* no newline at end of control file */
                 splashf(HZ*2, "Err: EOF, %s", str(LANG_PLAYLIST_CONTROL_INVALID));
                 result = -15;

@@ -6,10 +6,7 @@
  *   Firmware   |____|_  /\____/ \___  >__|_ \|___  /\____/__/\_ \
  *                     \/            \/     \/    \/            \/
  *
- * Copyright (C) 2026 Michael McAllister
- *
- * Based on firmware/target/mips/ingenic_x1000/gpio-x1000.h,
- * Copyright (C) 2021 Aidan MacDonald
+ * Copyright (C) 2026 by Michael McAllister
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -21,19 +18,37 @@
  *
  ****************************************************************************/
 
-#ifndef __GPIO_X1600_H__
-#define __GPIO_X1600_H__
+#include <SDL.h>
+#include "button.h"
+#include "buttonmap.h"
 
-/* Register definitions first: gpio-ingenic.h is written against these names
- * and checks that they are present. */
-#include "x1600/gpio.h"
-#include "gpio-ingenic.h"
+int key_to_button(int keyboard_button)
+{
+    switch (keyboard_button)
+    {
+        case SDLK_KP_PLUS:
+        case SDLK_EQUALS:
+            return BUTTON_VOL_UP;
+        case SDLK_KP_MINUS:
+        case SDLK_MINUS:
+            return BUTTON_VOL_DOWN;
+        case SDLK_n:
+            return BUTTON_NEXT;
+        case SDLK_RETURN:
+        case SDLK_SPACE:
+            return BUTTON_PLAY;
+        case SDLK_ESCAPE:
+            return BUTTON_POWER;
+        default:
+            return BUTTON_NONE;
+    }
+}
 
-/* Register offsets differ from X1000 but use the same names in the shared
- * GPIO driver. Pull direction is fixed: PC24-PC26 pull down; other pads
- * pull up (PM 21.4.2.19). */
-
-/* PxEDG supports dual-edge interrupts. Shared code instead uses
- * gpio_flip_edge_irq(), which also works on X1000. */
-
-#endif /* __GPIO_X1600_H__ */
+struct button_map bm[] = {
+    { SDLK_ESCAPE, 628, 183, 35, "Power" },
+    { SDLK_EQUALS, 628, 331, 35, "Volume +" },
+    { SDLK_MINUS,  628, 425, 35, "Volume -" },
+    { SDLK_SPACE,  628, 574, 35, "Play" },
+    { SDLK_n,      628, 666, 35, "Next" },
+    { 0, 0, 0, 0, "None" }
+};

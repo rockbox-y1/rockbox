@@ -66,6 +66,25 @@ static void cmd_ack(const unsigned int cmd, const unsigned char status)
 
 #define cmd_ok(cmd) cmd_ack((cmd), IAP_ACK_OK)
 
+/* Copy at most max bytes of src plus a NUL, cutting before a UTF-8
+ * sequence that would not fit whole, and return the length copied.
+ * dest may be src, to truncate a string in place.
+ */
+static size_t copy_utf8(unsigned char *dest, const char *src, size_t max)
+{
+    size_t len = strlen(src);
+
+    if (len > max)
+    {
+        len = max;
+        while (len > 0 && ((unsigned char)src[len] & 0xC0) == 0x80)
+            len--;
+    }
+    memmove(dest, src, len);
+    dest[len] = '\0';
+    return len;
+}
+
 static void get_playlist_name(unsigned char *dest,
                               unsigned long item_offset,
                               size_t max_length)
@@ -1229,12 +1248,31 @@ void iap_handlepkt_mode4(const unsigned int len, const unsigned char *buf)
             uint32_t trackcount;
             index = get_u32(&cur_dbrecord[1]);
             trackcount = playlist_amount();
-            if ((cur_dbrecord[0] == 5) && (index > trackcount))
+            /* An index of -1 is how an accessory undoes a selection and
+             * moves up a category level. The spec makes it invalid only
+             * for Track. There is no selection to undo here, so accept
+             * it without touching playback.
+             */
+            if ((index == 0xFFFFFFFF) &&
+                (cur_dbrecord[0] >= 0x02) && (cur_dbrecord[0] <= 0x06) &&
+                (cur_dbrecord[0] != 0x05))
+            {
+                cmd_ok(cmd);
+                break;
+            }
+            /* Every record type from 0x02 to 0x06 reaches audio_skip()
+             * below, not just Track, and audio_skip() walks an
+             * out-of-range offset back one track at a time without
+             * yielding, locking the device up. A valid index is
+             * 0..count-1.
+             */
+            if ((cur_dbrecord[0] >= 0x02) && (cur_dbrecord[0] <= 0x06) &&
+                (index >= trackcount))
             {
                 cmd_ack(cmd, IAP_ACK_BAD_PARAM);
                 break;
             }
-            if ((cur_dbrecord[0] == 1) && (index > (nbr_total_playlists() + 1)))
+            if ((cur_dbrecord[0] == 1) && (index > nbr_total_playlists()))
             {
                 cmd_ack(cmd, IAP_ACK_BAD_PARAM);
                 break;
@@ -1342,6 +1380,12 @@ void iap_handlepkt_mode4(const unsigned int len, const unsigned char *buf)
                               there are none available. */
                     dbrecordcount = 0;
                     break;
+                default:
+                    /* Reserved category: do not answer with the count
+                     * left over from the previous query */
+                    dbrecordcount = 0;
+                    cmd_ack(cmd, IAP_ACK_UNKNOWN_DB);
+                    return;
             }
             put_u32(&data[3], dbrecordcount);
             iap_send_pkt(data, sizeof(data));
@@ -1437,15 +1481,49 @@ void iap_handlepkt_mode4(const unsigned int len, const unsigned char *buf)
             uint32_t trackcount;
             trackcount = playlist_amount();
 
-            if ((buf[3] == 0x05) && ((start_index + read_count ) > trackcount))
+            /* Bound the request by the same record counts that
+             * GetNumberCategorizedDBRecords reports. Categories without a
+             * bound used to run the loop below with the count as
+             * received, so the spec's way of asking for every record,
+             * count = -1, re-sent one packet 4.3 billion times and wedged
+             * the iAP thread. Clamp by subtraction so start + count
+             * cannot wrap.
+             */
             {
-                cmd_ack(cmd, IAP_ACK_BAD_PARAM);
-                break;
-            }
-            if ((buf[3] == 0x01) && ((start_index + read_count) > (number_of_playlists + 1)))
-            {
-                cmd_ack(cmd, IAP_ACK_BAD_PARAM);
-                break;
+                uint32_t total;
+
+                switch(buf[3])
+                {
+                    case 0x01: /* Playlists, plus the On-The-Go playlist */
+                        total = number_of_playlists + 1;
+                        break;
+                    case 0x02: /* Artists */
+                    case 0x03: /* Albums  */
+                    case 0x05: /* Tracks  */
+                        total = trackcount;
+                        break;
+                    case 0x04: /* Genres     */
+                    case 0x06: /* Composers  */
+                    case 0x07: /* Audiobooks */
+                    case 0x08: /* Podcasts   */
+                        total = 0;
+                        break;
+                    default:
+                        total = 0xFFFFFFFF;
+                        break;
+                }
+                if (total == 0xFFFFFFFF)
+                {
+                    cmd_ack(cmd, IAP_ACK_UNKNOWN_DB);
+                    break;
+                }
+                if (start_index >= total)
+                {
+                    cmd_ack(cmd, IAP_ACK_BAD_PARAM);
+                    break;
+                }
+                if (read_count > total - start_index)
+                    read_count = total - start_index;
             }
             for (counter=0;counter<read_count;counter++)
             {
@@ -1470,13 +1548,16 @@ void iap_handlepkt_mode4(const unsigned int len, const unsigned char *buf)
                         switch(buf[3])
                         {
                             case 0x05:
-                                strmemccpy((char *)&data[7], id3.title,64);
+                                copy_utf8(&data[7],
+                                          id3.title ? id3.title : "", 63);
                                 break;
                             case 0x02:
-                                strmemccpy((char *)&data[7], id3.artist,64);
+                                copy_utf8(&data[7],
+                                          id3.artist ? id3.artist : "", 63);
                                 break;
                             case 0x03:
-                                strmemccpy((char *)&data[7], id3.album,64);
+                                copy_utf8(&data[7],
+                                          id3.album ? id3.album : "", 63);
                                 break;
                             case 0x04:
                             case 0x06:
@@ -1486,7 +1567,15 @@ void iap_handlepkt_mode4(const unsigned int len, const unsigned char *buf)
                         break;
                 }
                 put_u32(&data[3], start_index+counter);
-                iap_send_pkt(data, 7 + strlen(data+7) + 1);
+                {
+                    /* get_playlist_name() may fill the name up to
+                     * MAX_PATH, but the packet has to fit TX_BUFLEN or
+                     * iap_send_pkt() overruns the TX buffer. Truncate to
+                     * the same 63 bytes as the other string replies.
+                     */
+                    size_t nlen = copy_utf8(&data[7], (char *)&data[7], 63);
+                    iap_send_pkt(data, 7 + nlen + 1);
+                }
                 yield();
             }
             break;
@@ -1664,6 +1753,17 @@ void iap_handlepkt_mode4(const unsigned int len, const unsigned char *buf)
             cmd_ack(cmd, IAP_ACK_BAD_PARAM);
             break;
         }
+        /* 0x0021 and 0x0023 are replies sent by the iPod. They are
+         * refused here, because 0x0020, 0x0022 and 0x0024 below share one
+         * body and a body between them would divert 0x0020 and 0x0022.
+         */
+        case 0x0021: /* ReturnIndexedPlayingTrackTitle */
+        case 0x0023: /* ReturnIndexedPlayingTrackArtistName */
+        {
+            /* We should NEVER receive this command so ERROR if we do */
+            cmd_ack(cmd, IAP_ACK_BAD_PARAM);
+            break;
+        }
         case 0x0020: /* GetIndexedPlayingTrackTitle. See 0x0024 below */
             /* The following is the description for the Apple Firmware
              *
@@ -1690,7 +1790,7 @@ void iap_handlepkt_mode4(const unsigned int len, const unsigned char *buf)
              * 10   0xNN  Telegram payload checksum byte
              *
              */
-        case 0x0021: /* ReturnIndexedPlayingTrackTitle. See 0x0024 Below */
+        /* 0x0021 ReturnIndexedPlayingTrackTitle is refused above */
             /* The following is the description for the Apple Firmware
              *
              * Returns the title of the indexed playing track in response to
@@ -1739,7 +1839,7 @@ void iap_handlepkt_mode4(const unsigned int len, const unsigned char *buf)
              * 10   0xNN  Telegram payload checksum byte
              *
              */
-        case 0x0023: /* ReturnIndexedPlayingTrackArtistName. See 0x0024 Below */
+        /* 0x0023 ReturnIndexedPlayingTrackArtistName is refused above */
             /* The following is the description for the Apple Firmware
              *
              * Returns the artist name of the indexed playing track in response
@@ -1813,16 +1913,23 @@ void iap_handlepkt_mode4(const unsigned int len, const unsigned char *buf)
             /* Return the requested track data */
             switch(cmd)
             {
+                /* The length sent must be what was copied: at most 63
+                 * bytes plus the NUL fit data[70], and the full tag can
+                 * be longer than the TX buffer.
+                 */
                 case 0x20:
-                    len = strlcpy((char *)&data[3], id3.title, 64);
+                    len = copy_utf8(&data[3],
+                                    id3.title ? id3.title : "", 63);
                     iap_send_pkt(data, 4+len);
                     break;
                 case 0x22:
-                    len = strlcpy((char *)&data[3], id3.artist, 64);
+                    len = copy_utf8(&data[3],
+                                    id3.artist ? id3.artist : "", 63);
                     iap_send_pkt(data, 4+len);
                     break;
                 case 0x24:
-                    len = strlcpy((char *)&data[3], id3.album, 64);
+                    len = copy_utf8(&data[3],
+                                    id3.album ? id3.album : "", 63);
                     iap_send_pkt(data, 4+len);
                     break;
             }
@@ -1974,6 +2081,11 @@ void iap_handlepkt_mode4(const unsigned int len, const unsigned char *buf)
          * 11   0xNN  Telegram payload checksum byte
          *
          */
+        {
+            /* We should NEVER receive this command so ERROR if we do */
+            cmd_ack(cmd, IAP_ACK_BAD_PARAM);
+            break;
+        }
         case 0x0028: /* PlayCurrentSelection */
             /* The following is the description for the Apple Firmware
              *
@@ -2825,6 +2937,16 @@ void iap_handlepkt_mode4(const unsigned int len, const unsigned char *buf)
             int paused = !!(audio_status() & AUDIO_STATUS_PAUSE);
             long tracknum = get_u32(&buf[3]);
 
+            /* audio_skip() walks an out-of-range offset back one track at
+             * a time, holding id3_mutex and never yielding, so a wild
+             * index locks the device up rather than being rejected.
+             */
+            if (tracknum < 0 || tracknum >= playlist_amount())
+            {
+                cmd_ack(cmd, IAP_ACK_BAD_PARAM);
+                break;
+            }
+
             audio_pause();
             audio_skip(tracknum - playlist_next(0));
             if (!paused)
@@ -2984,12 +3106,12 @@ void iap_handlepkt_mode4(const unsigned int len, const unsigned char *buf)
             uint32_t trackcount;
             index = get_u32(&cur_dbrecord[1]);
             trackcount = playlist_amount();
-            if ((cur_dbrecord[0] == 0x05) && (index > trackcount))
+            if ((cur_dbrecord[0] == 0x05) && (index >= trackcount))
             {
                 cmd_ack(cmd, IAP_ACK_BAD_PARAM);
                 break;
             }
-            if ((cur_dbrecord[0] == 0x01) && (index > (number_of_playlists + 1)))
+            if ((cur_dbrecord[0] == 0x01) && (index > number_of_playlists))
             {
                 cmd_ack(cmd, IAP_ACK_BAD_PARAM);
                 break;
@@ -3141,6 +3263,7 @@ void iap_handlepkt_mode4(const unsigned int len, const unsigned char *buf)
                     break;
                 }
             }
+            break;
         }
         default:
         {

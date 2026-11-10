@@ -280,6 +280,7 @@ typedef fb_data pix_t;
 #define ERROR_BUFFER_FULL   -2
 #define ERROR_NO_ARTISTS    -3
 #define ERROR_USER_ABORT    -4
+#define ERROR_DB_BUSY       -5 /* a search was refused during a commit */
 
 /* current version for cover cache */
 #define CACHE_VERSION 4
@@ -505,7 +506,7 @@ static struct configdata config[] =
       NULL },
     { TYPE_INT, 0, MAX_SLIDES_COUNT, { .int_p = &pf_cfg.num_slides }, "slides count",
       NULL },
-    { TYPE_INT, 0, 300, { .int_p = &pf_cfg.zoom }, "zoom", NULL },
+    { TYPE_INT, 10, 300, { .int_p = &pf_cfg.zoom }, "zoom", NULL },
     { TYPE_BOOL, 0, 1, { .bool_p = &pf_cfg.show_fps }, "show fps", NULL },
     { TYPE_BOOL, 0, 1, { .bool_p = &pf_cfg.resize }, "resize", NULL },
     { TYPE_INT, 0, 100, { .int_p = &pf_cfg.cache_version }, "cache version", NULL },
@@ -1294,6 +1295,8 @@ static int create_album_untagged(struct tagcache_search *tcs,
             }
         }
     }
+    else
+        ret = ERROR_DB_BUSY;
 
     return ret;
 }
@@ -1312,7 +1315,8 @@ static int build_artist_index(struct tagcache_search *tcs,
     /* artist names starts at beginning of buf */
     pf_idx.artist_names = *buf;
 
-    rb->tagcache_search(tcs, tag_albumartist);
+    if (!rb->tagcache_search(tcs, tag_albumartist))
+        return ERROR_DB_BUSY;
     res = get_tcs_search_res(ePFS_ARTIST, tcs, &(*buf), bufsz);
     rb->tagcache_search_finish(tcs);
     if (res < SUCCESS)
@@ -1369,6 +1373,8 @@ static int assign_album_year(void)
                     album_year = track_year;
             }
         }
+        else
+            return ERROR_DB_BUSY;
         rb->tagcache_search_finish(&tcs);
 
         pf_idx.album_index[album_idx].year = album_year;
@@ -1410,7 +1416,8 @@ static int create_album_index(void)
     /* album_names starts at the beginning of buf */
     pf_idx.album_names = buf;
 
-    rb->tagcache_search(&tcs, tag_album);
+    if (!rb->tagcache_search(&tcs, tag_album))
+        return ERROR_DB_BUSY;
     res = get_tcs_search_res(ePFS_ALBUM, &tcs, &buf, &buf_size);
     rb->tagcache_search_finish(&tcs);
     if (res < SUCCESS)
@@ -1445,7 +1452,8 @@ static int create_album_index(void)
 
         if (pf_idx.album_index[j].artist_seek >= 0) { continue; }
 
-        rb->tagcache_search(&tcs, tag_albumartist);
+        if (!rb->tagcache_search(&tcs, tag_albumartist))
+            return ERROR_DB_BUSY;
         rb->tagcache_search_add_filter(&tcs, tag_album, pf_idx.album_index[j].seek);
 
         last = 0;
@@ -1657,7 +1665,7 @@ static int load_album_index(void){
     }
 
 failure:
-    rb->splash(HZ/2, "Failed to load index");
+    rb->splashf(HZ/2, ID2P(LANG_ERROR_FORMATSTR), "Failed to load index");
     if (fr >= 0)
         rb->close(fr);
 
@@ -1854,7 +1862,7 @@ static int id3_get_index(struct mp3entry *id3)
         }
 
     }
-    rb->splash(HZ/2, "Album Not Found!");
+    rb->splashf(HZ/2, ID2P(LANG_ERROR_FORMATSTR), "Album Not Found!");
     return pf_cfg.last_album;
 }
 
@@ -2364,7 +2372,7 @@ static bool incremental_albumart_cache(bool verbose)
 
     if (!save_pfraw(aa_cache.pfraw_file, &aa_cache.input_bmp))
     {
-        if (verbose) { rb->splash(HZ, "Could not write bmp"); }
+        if (verbose) { rb->splashf(HZ, ID2P(LANG_ERROR_FORMATSTR), "Could not write bmp"); }
         goto aa_failure;
     }
     aa_cache.slides++;
@@ -2551,8 +2559,8 @@ static void initialize_slide_cache(void)
         ind_ = next_; \
         next_ = pf_sldcache.cache[ind_].next; \
         i_++; \
-    } while (next_ != pf_sldcache.used && (cond) && i_ < SLIDE_CACHE_SIZE); \
-    if (i_ >= SLIDE_CACHE_SIZE) \
+    } while (next_ != pf_sldcache.used && (cond) && i_ <= SLIDE_CACHE_SIZE); \
+    if (i_ > SLIDE_CACHE_SIZE) \
     /* TODO: Not supposed to happen */ \
         ind_ = -1; \
     ind_; \
@@ -2566,8 +2574,8 @@ static void initialize_slide_cache(void)
         ind_ = next_; \
         next_ = pf_sldcache.cache[ind_].prev; \
         i_++; \
-    } while (ind_ != pf_sldcache.used && (cond) && i_ < SLIDE_CACHE_SIZE); \
-    if (i_ >= SLIDE_CACHE_SIZE) \
+    } while (ind_ != pf_sldcache.used && (cond) && i_ <= SLIDE_CACHE_SIZE); \
+    if (i_ > SLIDE_CACHE_SIZE) \
     /* TODO: Not supposed to happen */ \
         ind_ = -1; \
     ind_; \
@@ -2868,7 +2876,7 @@ bool load_new_slide(void)
             pf_sldcache.cache[ind_].index - 1 == pf_sldcache.cache[next_].index);
 
         pf_sldcache.right_idx = _SEEK_RIGHT_WHILE(pf_sldcache.right_idx,
-            pf_sldcache.cache[ind_].index - 1 == pf_sldcache.cache[next_].index);
+            pf_sldcache.cache[ind_].index + 1 == pf_sldcache.cache[next_].index);
         if (pf_sldcache.right_idx == -1 || pf_sldcache.left_idx == -1)
             goto fatal_fail;
 
@@ -2880,7 +2888,7 @@ bool load_new_slide(void)
 
         int prio_l = center - left + 1;
         int prio_r = right - center + 1;
-        if ((prio_l < prio_r || right >= number_of_slides) && left > 0)
+        if ((prio_l < prio_r || right >= number_of_slides - 1) && left > 0)
         {
             if (pf_sldcache.free == -1 && !free_slide_prio(prio_l))
             {
@@ -3158,7 +3166,7 @@ static void render_slide(struct slide_data *slide, const int alpha)
     int x;
     int dy = PFREAL_ONE;
     for (x = xi; x < w; x++) {
-        int column = (xs - slide_left) / PFREAL_ONE;
+        int column = MAX(0, xs - slide_left) / PFREAL_ONE;
         if (column >= sw)
             break;
         if (zo || slide->angle)
@@ -4467,6 +4475,7 @@ static void draw_album_text(void)
         return;
 
     static int prev_albumtxt_index = -1;
+    static int prev_artisttxt_index = -1;
     static bool prev_show_year = false;
     int albumtxt_index;
     int char_height;
@@ -4478,7 +4487,7 @@ static void draw_album_text(void)
     int c;
     /* Draw album text */
     if ( pf_state == pf_scrolling ) {
-        c = ((slide_frame & 0xffff )/ 255);
+        c = fade;
         if (step < 0) c = 255-c;
         if (c > 128 ) { /* half way to next slide .. still not perfect! */
             albumtxt_index = center_index+step;
@@ -4534,7 +4543,10 @@ static void draw_album_text(void)
             mylcd_putsxy(albumtxt_x, albumtxt_y, album_and_year);
 
         artisttxt = get_album_artist(albumtxt_index);
-        set_scroll_line(artisttxt, PF_SCROLL_ARTIST);
+        if (albumtxt_index != prev_artisttxt_index) {
+            set_scroll_line(artisttxt, PF_SCROLL_ARTIST);
+            prev_artisttxt_index = albumtxt_index;
+        }
         artisttxt_x = get_scroll_line_offset(PF_SCROLL_ARTIST);
         int y_offset = char_height + char_height/2;
         mylcd_putsxy(artisttxt_x, albumtxt_y + y_offset, artisttxt);
@@ -4548,7 +4560,7 @@ static void draw_album_text(void)
 */
 static void error_wait(const char *message)
 {
-    rb->splashf(0, "%s. Press any button to continue.", message);
+    rb->splashf(0, "%s. Press any button to continue.", message); // FIXME
     while (rb->get_action(CONTEXT_STD, 1) == ACTION_NONE)
         rb->yield();
     rb->sleep(2 * HZ);
@@ -4630,7 +4642,7 @@ static bool init(void)
         {
             pf_cfg.cache_version = CACHE_REBUILD;
             if (save_album_index() < 0)
-                rb->splash(HZ, "Could not write index");
+                rb->splashf(HZ, ID2P(LANG_ERROR_FORMATSTR), "Could not write index");
         }
     }
 
@@ -4646,6 +4658,11 @@ static bool init(void)
     }
     else if (ret == ERROR_USER_ABORT)
         return false;
+    else if (ret == ERROR_DB_BUSY)
+    {
+        error_wait(rb->str(LANG_TAGCACHE_BUSY));
+        return false;
+    }
 
     number_of_slides = pf_idx.album_ct;
 
@@ -4680,8 +4697,7 @@ static bool init(void)
         error_wait("Could not create album art cache");
     }
     else if(aa_cache.inspected < pf_idx.album_ct)
-        rb->splash(HZ * 2, "Updating album art cache in background");
-
+        rb->splash(HZ * 2, ID2P(LANG_TAGCACHE_FORCE_UPDATE_SPLASH));
     if (pf_cfg.cache_version != CACHE_VERSION)
         config_save(CACHE_VERSION, pf_cfg.update_albumart);
 

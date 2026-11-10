@@ -51,8 +51,20 @@ void rmt_tuner_freq(unsigned int len, const unsigned char *buf)
     /* length currently unused */
     (void)len;
 
-    unsigned int khz = (buf[2] << 24) | (buf[3] << 16) |
-                       (buf[4] << 8) | buf[5];
+    /* Widen before shifting, a top byte of 0x80 or more overflows an
+     * int */
+    unsigned int khz = ((unsigned int)buf[2] << 24) |
+                       ((unsigned int)buf[3] << 16) |
+                       ((unsigned int)buf[4] << 8) | buf[5];
+
+    /* A seek that found no station reports 0xFFFFFFFF */
+    if (khz == 0xFFFFFFFF)
+    {
+        radio_tuned = false;
+        tuner_signal_power = 0;
+        return;
+    }
+
     tuner_frequency = khz *1000 ;
     radio_tuned = true;
     rmt_tuner_signal_power(buf[6]);
@@ -104,7 +116,7 @@ static void rmt_tuner_sleep(int state)
         iap_send_pkt(data1, sizeof(data1));
         /* tuner mode */
         const unsigned char data4[] = {0x07, 0x0E, 0x00 };
-        iap_send_pkt(data4, sizeof(data3));
+        iap_send_pkt(data4, sizeof(data4));
         /* set volume */
         unsigned char data2[] = {0x03, 0x09, 0x04, 0x00, 0x00 };
         data2[4] = (char)((global_status.volume+58) * 4);
@@ -258,8 +270,6 @@ static void set_deemphasis(int deemphasis)
 
 static void set_mono(int value)
 {
-    tuner_param &= 0xEF;
-
     if (value != mono_mode)
     {
         tuner_param &= 0xEF;
@@ -288,9 +298,14 @@ static bool reply_timeout(void)
 
 void rmt_tuner_rds_data(unsigned int len, const unsigned char *buf)
 {
+    /* The data starts at buf+4, and rds_push_info() clamps the size
+     * only to its destination, so never ask for more than arrived */
+    if (len < 4)
+        return;
+
     if (buf[2] == 0x1E)
     {
-        rds_push_info(RDS_INFO_PS, (uintptr_t)(buf+4), 8);
+        rds_push_info(RDS_INFO_PS, (uintptr_t)(buf+4), MIN(len-4, 8u));
     }
     else if(buf[2] == 0x04)
     {
@@ -336,17 +351,23 @@ int ipod_rmt_tuner_set(int setting, int value)
             /* scan through frequencies */
             if (radio_tuned)
             {
+                /* Take the direction before a re-tune moves
+                   tuner_frequency to value */
+                int dir = (value < tuner_frequency) ? -1 : 1;
+
+                /* at or past either end of the band */
                 if ((tuner_frequency <= fmr->freq_min)
-                    && (tuner_frequency >= fmr->freq_max))
+                    || (tuner_frequency >= fmr->freq_max))
                 {
                     tuner_set(RADIO_FREQUENCY,value);
+                    /* A step that wrapped around the band lands on the
+                       other end: seek inwards from there */
+                    if (value <= fmr->freq_min)
+                        dir = 1;
+                    else if (value >= fmr->freq_max)
+                        dir = -1;
                 }
-                /* scan down */
-                if(value < tuner_frequency)
-                    rmt_tuner_scan(-1);
-                /* scan up */
-                else
-                    rmt_tuner_scan(1);
+                rmt_tuner_scan(dir);
 
                 sleep(HZ/10);
                 if (reply_timeout())

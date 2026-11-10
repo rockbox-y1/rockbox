@@ -44,6 +44,10 @@ static int16_t predictor_coef_table[32] IBSS_ATTR;
 static int16_t predictor_coef_table_a[32] IBSS_ATTR;
 static int16_t predictor_coef_table_b[32] IBSS_ATTR;
 
+/* the uncompressed low bytes of a frame's samples, kept apart from the
+ * output buffers which the entropy decoder writes */
+static uint16_t shift_buffer[ALAC_MAX_CHANNELS][ALAC_BLOCKSIZE];
+
 
 /* Endian/aligment safe functions - only used in alac_set_info() */
 static uint32_t get_uint32be(unsigned char* p)
@@ -168,7 +172,13 @@ static inline void unreadbits(alac_file *alac, int bits)
         alac->input_buffer_bitaccumulator *= -1;
 }
 
-#define count_leading_zeros(x) bs_generic(x, BS_CLZ|BS_SHORT)
+#define count_leading_zeros(x) bs_generic(x, BS_CLZ)
+
+/* Without a CLZ instruction, bs_generic() is a table lookup and its
+   16-bit form (BS_SHORT) is cheaper; use it when the argument fits. */
+#if !defined(CPU_ARM) || ARM_ARCH < 5
+#define CLZ_BY_TABLE
+#endif
 
 #define RICE_THRESHOLD 8 // maximum number of bits for a rice prefix.
 
@@ -245,11 +255,23 @@ static void entropy_rice_decode(alac_file* alac,
         int32_t        decoded_value;
         int32_t        final_value;
         int32_t        k;
+        uint32_t       x = (history >> 9) + 3;
         
-        k = 31 - rice_kmodifier - count_leading_zeros((history >> 9) + 3);
-        
-        if (k < 0) k += rice_kmodifier;
-        else k = rice_kmodifier;
+#ifdef CLZ_BY_TABLE
+        if (x < 0x10000)
+        {
+            /* the same k as below, for 16-bit x */
+            k = 31 - bs_generic(x, BS_CLZ|BS_SHORT);
+            if (k > rice_kmodifier)
+                k = rice_kmodifier;
+        }
+        else
+#endif
+        {
+            k = 31 - rice_kmodifier - count_leading_zeros(x);
+            if (k < 0) k += rice_kmodifier;
+            else k = rice_kmodifier;
+        }
         
         decoded_value = entropy_decode_value(alac, readsamplesize, k);
         
@@ -281,16 +303,18 @@ static void entropy_rice_decode(alac_file* alac,
             // note: block_size is always 16bit
             block_size = entropy_decode_value(alac, 16, k) & rice_kmodifier_mask;
             
-            // got block_size 0s
+            if (block_size > 0xFFFF)
+                sign_modifier = 0;
+
+            // got block_size 0s, no more than the frame has left
+            if (block_size > output_size - output_count - 1)
+                block_size = output_size - output_count - 1;
             if (block_size > 0)
             {
                 memset(&output_buffer[output_count + 1], 0, 
                        block_size * sizeof(*output_buffer));
                 output_count += block_size;
             }
-            
-            if (block_size > 0xFFFF)
-                sign_modifier = 0;
             
             history = 0;
         }
@@ -621,15 +645,15 @@ static void deinterlace_16(int32_t* buffer0,
 
 static void deinterlace_24(int32_t *buffer0, int32_t *buffer1,
                            int uncompressed_bytes,
-                           int32_t *uncompressed_bytes_buffer0,
-                           int32_t *uncompressed_bytes_buffer1,
+                           uint16_t *uncompressed_bytes_buffer0,
+                           uint16_t *uncompressed_bytes_buffer1,
                            int numsamples,
                            uint8_t interlacing_shift,
                            uint8_t interlacing_leftweight) ICODE_ATTR_ALAC;
 static void deinterlace_24(int32_t *buffer0, int32_t *buffer1,
                            int uncompressed_bytes,
-                           int32_t *uncompressed_bytes_buffer0,
-                           int32_t *uncompressed_bytes_buffer1,
+                           uint16_t *uncompressed_bytes_buffer0,
+                           uint16_t *uncompressed_bytes_buffer1,
                            int numsamples,
                            uint8_t interlacing_shift,
                            uint8_t interlacing_leftweight)
@@ -647,10 +671,10 @@ static void deinterlace_24(int32_t *buffer0, int32_t *buffer1,
             midright = buffer0[i];
             difference = buffer1[i];
             
-            buffer0[i] = ((midright - ((difference * interlacing_leftweight)
-                            >> interlacing_shift)) + difference) << SCALE24;
-            buffer1[i] = (midright - ((difference * interlacing_leftweight) 
-                            >> interlacing_shift)) << SCALE24;
+            buffer0[i] = (midright - ((difference * interlacing_leftweight)
+                            >> interlacing_shift)) + difference;
+            buffer1[i] = midright - ((difference * interlacing_leftweight)
+                            >> interlacing_shift);
             
             if (uncompressed_bytes)
             {
@@ -662,6 +686,8 @@ static void deinterlace_24(int32_t *buffer0, int32_t *buffer1,
                 buffer1[i] |= uncompressed_bytes_buffer1[i] & mask;
             }
 
+            buffer0[i] = buffer0[i] << SCALE24;
+            buffer1[i] = buffer1[i] << SCALE24;
         }
         
         return;
@@ -721,6 +747,9 @@ static inline int decode_frame_mono(
          * as a 32bit integer */
         outputsamples = readbits(alac, 32);
     }
+    /* the output buffers hold ALAC_BLOCKSIZE */
+    if (outputsamples < 0 || outputsamples > ALAC_BLOCKSIZE)
+        return -1;
 
     readsamplesize = infosamplesize - (uncompressed_bytes * 8);
 
@@ -753,8 +782,7 @@ static inline int decode_frame_mono(
             int i;
             for (i = 0; i < outputsamples; i++)
             {
-                outputbuffer[0][i] = readbits(alac, uncompressed_bytes * 8);
-                outputbuffer[1][i] = outputbuffer[0][i];
+                shift_buffer[0][i] = readbits(alac, uncompressed_bytes * 8);
             }
         }
 
@@ -854,7 +882,7 @@ static inline int decode_frame_mono(
                 uint32_t mask;
                 sample = sample << (uncompressed_bytes * 8);
                 mask = ~(0xFFFFFFFF << (uncompressed_bytes * 8));
-                sample |= outputbuffer[0][i] & mask;
+                sample |= shift_buffer[0][i] & mask;
             }
             
             outputbuffer[0][i] = sample << SCALE24;
@@ -908,6 +936,9 @@ static inline int decode_frame_stereo(
          * as a 32bit integer */
         outputsamples = readbits(alac, 32);
     }
+    /* the output buffers hold ALAC_BLOCKSIZE */
+    if (outputsamples < 0 || outputsamples > ALAC_BLOCKSIZE)
+        return -1;
 
     readsamplesize = infosamplesize - (uncompressed_bytes * 8) + 1;
 
@@ -961,8 +992,8 @@ static inline int decode_frame_stereo(
             int i;
             for (i = 0; i < outputsamples; i++)
             {
-                outputbuffer[0][i] = readbits(alac, uncompressed_bytes * 8);
-                outputbuffer[1][i] = readbits(alac, uncompressed_bytes * 8);
+                shift_buffer[0][i] = readbits(alac, uncompressed_bytes * 8);
+                shift_buffer[1][i] = readbits(alac, uncompressed_bytes * 8);
             }
         }
 
@@ -1084,8 +1115,8 @@ static inline int decode_frame_stereo(
         deinterlace_24(outputbuffer[0],
                        outputbuffer[1],
                        uncompressed_bytes,
-                       outputbuffer[0],
-                       outputbuffer[1],
+                       shift_buffer[0],
+                       shift_buffer[1],
                        outputsamples,
                        interlacing_shift,
                        interlacing_leftweight);            
@@ -1109,6 +1140,11 @@ int alac_decode_frame(alac_file *alac,
     int channels;
     int outputsamples;
     unsigned char *input_buffer_start;
+
+    /* the rice limit sizes reads and shifts in the entropy decoder;
+     * encoders write 14 */
+    if (alac->setinfo_rice_kmodifier < 1 || alac->setinfo_rice_kmodifier > 25)
+        return -1;
 
     /* setup the stream */
     alac->input_buffer = inbuffer;

@@ -138,6 +138,10 @@ static bool parse_dff(int fd, struct mp3entry *id3)
         else if (!memcmp(chunk, "DST ", 4))
             return false;
 
+        /* A size past the end would wrap the 32-bit offset back onto this
+         * chunk, and the walk would never end */
+        if (size > (uint64_t)(end - data))
+            return false;
         if (lseek(fd, data + size + (size & 1), SEEK_SET) < 0)
             return false;
     }
@@ -154,9 +158,12 @@ static bool read_iso_sector(int fd, uint32_t lsn, unsigned char *sector)
     return lseek(fd, offset, SEEK_SET) >= 0 && read(fd, sector, 2048) == 2048;
 }
 
-static bool parse_iso_area(int fd, struct mp3entry *id3, uint32_t lsn)
+/* area is scratch for one sector; parse_iso() lends the master TOC's buffer,
+ * whose fields it has already read, so that only one 2 KB sector buffer is
+ * on the stack of whichever thread reads the tags. */
+static bool parse_iso_area(int fd, struct mp3entry *id3, uint32_t lsn,
+                           unsigned char *area)
 {
-    unsigned char area[2048];
     if (!lsn || !read_iso_sector(fd, lsn, area) ||
         memcmp(area, "TWOCHTOC", 8) || area[32] != 2)
         return false;
@@ -182,7 +189,8 @@ static bool parse_iso(int fd, struct mp3entry *id3)
 
     uint32_t area1 = be32(master + 64);
     uint32_t area2 = be32(master + 72);
-    return parse_iso_area(fd, id3, area1) || parse_iso_area(fd, id3, area2);
+    return parse_iso_area(fd, id3, area1, master)
+        || parse_iso_area(fd, id3, area2, master);
 }
 
 bool get_dsd_metadata(int fd, struct mp3entry *id3)

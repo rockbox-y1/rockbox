@@ -175,23 +175,40 @@
 #define CLKCON0_SDR_DISABLE_BIT (1 << 31)
 #if CONFIG_CPU == S5L8720
 #define CLKCON0_UNK30_BIT       (1 << 30)
+/* EFI clock id 0 clears this before a CPU divisor write and leaves it
+ * clear. Bits 30:25 of CLKCON0 move during that write and are the
+ * completion flag. */
+#define CLKCON0_CPU_DIV_BIT     (1 << 15)
+#define CLKCON0_CPU_DIV_BUSY    0x7e000000u
 #endif
 
 /* CPU/AHB/APB real_divisor =
-   xDIV_EN_BIT ? 2*(reg_value+1) : 1 */
+   xDIV_EN_BIT ? 2*(reg_value+1) : 1
+   On the S5L8702 the 5-bit value is bits 4:0 of each byte and the
+   enable is bit 6. EFI on the S5L8720 shifts the value up by one
+   (bits 5:1); the enable stays at bit 6. The low byte is a third
+   bus divisor there (EFI clock 18), not the 8702 HCLK/PCLK ratio. */
+#if CONFIG_CPU == S5L8720
+#define CLKCON1_CDIV_POS        25
+#define CLKCON1_HDIV_POS        17
+#define CLKCON1_PDIV_POS        9
+#define CLKCON1_LDIV_POS        1
+#define CLKCON1_LDIV_EN_BIT     (1 << 6)
+#else
 #define CLKCON1_CDIV_POS        24
+#define CLKCON1_HDIV_POS        16
+#define CLKCON1_PDIV_POS        8
+#endif
 #define CLKCON1_CDIV_MSK        0x1f
 #define CLKCON1_CDIV_EN_BIT     (1 << 30)
 
-#define CLKCON1_HDIV_POS        16
 #define CLKCON1_HDIV_MSK        0x1f
 #define CLKCON1_HDIV_EN_BIT     (1 << 22)
 
-#define CLKCON1_PDIV_POS        8
 #define CLKCON1_PDIV_MSK        0x1f
 #define CLKCON1_PDIV_EN_BIT     (1 << 14)
 
-/* AHB/APB ratio: must be written when HDIV and/or PDIV
+/* S5L8702 AHB/APB ratio: must be written when HDIV and/or PDIV
    are modified, real_ratio = reg_value + 1 */
 #define CLKCON1_HPRAT_POS       0
 #define CLKCON1_HPRAT_MSK       0x3f
@@ -1781,6 +1798,7 @@ Information for them was gathered solely by reverse-engineering Apple's firmware
 #define ORSTCON     (*((REG32_PTR_T)(PHYBASE + 0x08)))
 #define OPHYUNK3    (*((REG32_PTR_T)(PHYBASE + 0x18)))
 #define OPHYUNK1    (*((REG32_PTR_T)(PHYBASE + 0x1c)))
+#define OPHYSTAT    (*((REG32_PTR_T)(PHYBASE + 0x28)))  /* S5L8720 */
 #define OPHYUNK2    (*((REG32_PTR_T)(PHYBASE + 0x44)))
 #endif
 
@@ -2058,11 +2076,20 @@ Information for them was gathered solely by reverse-engineering Apple's firmware
  *
  * EIC_GROUP0..6 are connected to EINT6..0 of the VIC.
  */
+#if CONFIG_CPU == S5L8720
+/* 5 groups: GPIO 0..7 = group 0 bits 2..9, then 32 GPIOs per group in
+ * order; groups 0..4 raise VIC sources 33, 32, 31, 3 and 2 */
+#define EIC_N_GROUPS    5
+#define EIC_GROUP(n)    ((n) < 8 ? 0 : 1 + (((n) - 8) >> 5))
+#define EIC_INDEX(n)    ((n) < 8 ? (n) + 2 : ((n) - 8) & 0x1f)
+#define EIC_IRQ(g)      ((g) < 3 ? IRQ_EXT6 - (g) : IRQ_EXT3 + 3 - (g))
+#else
 #define EIC_N_GROUPS    7
 
 /* get EIC group and bit for a given GPIO port */
 #define EIC_GROUP(n)    (6 - ((n) >> 5))
 #define EIC_INDEX(n)    ((0x18 - ((n) & 0x18)) | ((n) & 0x7))
+#endif
 
 /* SoC EINTs uses these 'gpio' numbers */
 #define GPIO_EINT_USB       0xd8
@@ -2162,5 +2189,7 @@ Information for them was gathered solely by reverse-engineering Apple's firmware
 #define ALVTSTAT        (*((REG32_PTR_T)(SYSALV_BASE + 0x7c)))
 
 #endif /* CONFIG_CPU == S5L8702 */
+
+#define HAVE_DBG_PORTS
 
 #endif /* __S5L87XX_H__ */

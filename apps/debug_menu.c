@@ -2048,7 +2048,11 @@ static bool dbg_tagcache_info(void)
     /* info.timeout = TIMEOUT_NOBLOCK; */
     info.timeout = 1;
     tagcache_screensync_enable(true);
-    return simplelist_show_list(&info);
+    /* SELECT and USB leave the list without ACTION_STD_CANCEL; left on,
+     * screensync makes the next scan wait for this screen forever. */
+    bool ret = simplelist_show_list(&info);
+    tagcache_screensync_enable(false);
+    return ret;
 }
 #endif
 
@@ -2951,10 +2955,7 @@ static const struct {
     CONFIG_CPU == AS3525 || CONFIG_CPU == RK27XX
         { "Dump ROM contents", dbg_save_roms },
 #endif
-#if defined(CPU_COLDFIRE) || defined(CPU_PP) \
-    || CONFIG_CPU == S3C2440 || CONFIG_CPU == IMX31L || CONFIG_CPU == AS3525 \
-    || CONFIG_CPU == DM320 || defined(CPU_S5L87XX) || CONFIG_CPU == AS3525v2 \
-    || CONFIG_CPU == RK27XX || CONFIG_CPU == JZ4760B
+#ifdef HAVE_DBG_PORTS
         { "View I/O ports", dbg_ports },
 #endif
 #if (CONFIG_RTC == RTC_PCF50605) && (CONFIG_PLATFORM & PLATFORM_NATIVE)
