@@ -68,7 +68,6 @@ public class RockboxFramebuffer extends SurfaceView
         0, 1, 2, 3, 4, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50
     };
 
-    private static final int CENTER_KEYCODE = KeyEvent.KEYCODE_ENTER;
     private static final int PLAY_KEYCODE = KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE;
     private static final int SCROLL_BACK_KEYCODE = KeyEvent.KEYCODE_MEDIA_PLAY;
     private static final int SCROLL_FWD_KEYCODE = KeyEvent.KEYCODE_MEDIA_PAUSE;
@@ -130,31 +129,28 @@ public class RockboxFramebuffer extends SurfaceView
         }
         return buttonHandlerRepeat(keyCode);
     }
-    private Handler longPressHandler = new Handler(Looper.getMainLooper());
-    private PowerManager powerManager;
-    private long centerPressStartTime = 0;
-    private boolean centerIsHeld = false;
-    private boolean centerSleepTriggered = false;
-    private static final long REPEAT_THRESHOLD_MS = 250;
-    private static final long SLEEP_THRESHOLD_MS = 1000;
-    private static final long SHUTDOWN_THRESHOLD_MS = 5000;
-
     private static long lastScrollPressTime = 0;
     private static final long SCROLL_REPEAT_THRESHOLD_MS = 100;
 
-    private boolean centerRepeat = false;
-    private Runnable centerShutdownRunnable = new Runnable() {
-        @Override
-        public void run() {
-            try {
-                RockboxService s = RockboxService.getInstance();
-                s.shutdownDevice(0);
-                Log.d("RockboxButton", "Shutdown device...");
-            } catch (Exception e) {
-                Log.e("RockboxButton", "Shutdown failed: " + e.getMessage());
-            }
+    public static void screenOff() {
+        try {
+            PowerManager pm = (PowerManager) RockboxService.getInstance()
+                    .getSystemService(Context.POWER_SERVICE);
+            pm.goToSleep(SystemClock.uptimeMillis());
+            Log.d("RockboxButton", "Device put to sleep");
+        } catch (Exception e) {
+            Log.e("RockboxButton", "Failed to put device to sleep: " + e.getMessage());
         }
-    };
+    }
+
+    public static void shutdown() {
+        try {
+            RockboxService.getInstance().shutdownDevice(0);
+            Log.d("RockboxButton", "Shutdown device...");
+        } catch (Exception e) {
+            Log.e("RockboxButton", "Shutdown failed: " + e.getMessage());
+        }
+    }
 
     /* first stage init; needs to run from a thread that has a Looper 
      * setup stuff that needs a Context */
@@ -171,7 +167,6 @@ public class RockboxFramebuffer extends SurfaceView
         /* don't draw until native is ready (2nd stage) */
         setEnabled(false);
         sharpPaint.setFilterBitmap(false);
-        powerManager = (PowerManager) c.getSystemService(Context.POWER_SERVICE);
     }
 
     private void update(ByteBuffer framebuffer)
@@ -253,25 +248,6 @@ public class RockboxFramebuffer extends SurfaceView
     public boolean onKeyDown(final int keyCode, KeyEvent event) {
         long currentTime = System.currentTimeMillis();
         
-        if (keyCode == CENTER_KEYCODE) {
-            if (event.getRepeatCount() == 0) {
-                centerPressStartTime = event.getEventTime();
-                centerIsHeld = false;
-                centerSleepTriggered = false;
-                longPressHandler.postDelayed(centerShutdownRunnable, SHUTDOWN_THRESHOLD_MS);
-                return buttonHandler(keyCode, true);  
-            } else {
-                centerIsHeld = true;
-                long elapsed = event.getEventTime() - centerPressStartTime;
-                if (elapsed >= SLEEP_THRESHOLD_MS && !centerSleepTriggered) {
-                    centerSleepTriggered = true;
-                    Log.d("RockboxButton", "trigger sleep on release");
-                }
-                return true;
-            }
-        }
-        
-        /* Other keys as before */
         if (event.getRepeatCount() > 0) {
             return handleKeyRepeat(keyCode);
         } else {
@@ -303,41 +279,6 @@ public class RockboxFramebuffer extends SurfaceView
 
     public boolean onKeyUp(int keyCode, KeyEvent event) {
         long currentTime = System.currentTimeMillis();
-        if (keyCode == CENTER_KEYCODE) {
-
-            longPressHandler.removeCallbacks(centerShutdownRunnable);
-            
-            long holdDuration = event.getEventTime() - centerPressStartTime;
-            
-            if (centerSleepTriggered) {
-                try {
-                    powerManager.goToSleep(SystemClock.uptimeMillis());
-                    /* goToSleep only requests sleep, this takes some time
-                        So we make sure */
-                    Thread.sleep(1000);
-                    buttonHandler(keyCode, false);
-                    Log.d("RockboxButton", "Device put to sleep");
-                } catch (Exception e) {
-                    Log.e("RockboxButton", "Failed to put device to sleep: " + e.getMessage());
-                }
-            } else if (holdDuration >= REPEAT_THRESHOLD_MS && centerIsHeld) {
-                try {
-                    buttonHandlerRepeat(keyCode);
-                    Thread.sleep(10);
-                    buttonHandler(keyCode, false);
-                } catch (Exception e) {
-                    Log.e("RockboxButton", "Failed to send center repeat + key up: " + e.getMessage());
-                }
-            } else {
-                buttonHandler(keyCode, false);
-            }
-            
-            centerPressStartTime = 0;
-            centerIsHeld = false;
-            centerSleepTriggered = false;
-            return true;
-        }
-        
         /* Other keys */
 
         if ((keyCode == SCROLL_BACK_KEYCODE || keyCode == SCROLL_FWD_KEYCODE) && 

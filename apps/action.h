@@ -382,6 +382,11 @@ enum {
     ACTION_USB_HID_MOUSE_WHEEL_SCROLL_DOWN,
     ACTION_USB_HID_LAST, /* Place holder */
 
+#ifdef INNIOASIS_Y1
+    ACTION_SCREENOFF,
+    ACTION_SHUTDOWN,
+#endif
+
     LAST_ACTION_PLACEHOLDER, /* custom actions should be this + something */
 };
 

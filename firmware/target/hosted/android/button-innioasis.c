@@ -21,6 +21,7 @@
 
 
 #include <jni.h>
+#define _SYSTEM_WITH_JNI
 #include <stdbool.h>
 #include <stdio.h>
 #include "button.h"
@@ -89,6 +90,15 @@ static long last_wheel_event_tick = 0;
 static unsigned int wheel_velocity = 0;
 static int last_wheel_direction = 0;
 static intptr_t last_wheel_data = 0;
+
+/* send synthetic buttons after certain thresholds */
+#define Y1_CENTER_SCREENOFF_TICKS  (1 * HZ)   /* 1 s: screen off */
+#define Y1_CENTER_SHUTDOWN_TICKS   (5 * HZ)   /* 5 s: shutdown */
+static long center_down_tick = 0;
+static bool center_screenoff_sent = false;
+static bool center_shutdown_sent = false;
+/* set when screen was put turned off via center button */
+static bool screen_off_active = false;
 
 static unsigned int wheel_accel_data(unsigned int button)
 {
@@ -195,6 +205,21 @@ Java_org_rockbox_RockboxFramebuffer_buttonHandler(JNIEnv*env, jclass class,
     pthread_mutex_lock(&btn_mutex);
     if (!state)
     {
+        if (button == BUTTON_SELECT)
+        {
+            if (center_down_tick && center_screenoff_sent && !center_shutdown_sent)
+            {
+                /* long center is below shutdown threshold -> screen off */
+                pthread_mutex_unlock(&btn_mutex);
+                wait_rockbox_ready();
+                reset_poweroff_timer();
+                button_queue_post(BUTTON_Y1_SCREENOFF, 0);
+                pthread_mutex_lock(&btn_mutex);
+            }
+            center_down_tick = 0;
+            center_screenoff_sent = false;
+            center_shutdown_sent = false;
+        }
         if (last_btns & button)
         {
             if (!(drv_lastbtn & button))
@@ -214,6 +239,24 @@ Java_org_rockbox_RockboxFramebuffer_buttonHandler(JNIEnv*env, jclass class,
         last_btns |= button;
         if (button == BUTTON_SCROLL_BACK || button == BUTTON_SCROLL_FWD)
             last_wheel_data = wheel_accel_data(button);
+        if (button == BUTTON_SELECT)
+        {
+            if (screen_off_active)
+            {
+                screen_off_active = false;
+                center_down_tick = 0;
+            }
+            else
+            {
+                center_down_tick = current_tick;
+            }
+            center_screenoff_sent = false;
+            center_shutdown_sent = false;
+        }
+        else
+        {
+            screen_off_active = false;
+        }
     }
     pthread_mutex_unlock(&btn_mutex);
 
@@ -262,6 +305,31 @@ Java_org_rockbox_RockboxFramebuffer_isBackButtonIgnored(JNIEnv *env, jclass clas
     (void)env;
     (void)class;
     return android_back_button_ignored() ? JNI_TRUE : JNI_FALSE;
+}
+
+static void y1_call_framebuffer_static(const char *method)
+{
+    JNIEnv *env = getJavaEnvironment();
+    jclass cls = (*env)->FindClass(env, "org/rockbox/RockboxFramebuffer");
+    if (!cls)
+        return;
+    jmethodID m = (*env)->GetStaticMethodID(env, cls, method, "()V");
+    if (m)
+        (*env)->CallStaticVoidMethod(env, cls, m);
+    (*env)->DeleteLocalRef(env, cls);
+}
+
+void y1_screen_off(void)
+{
+    pthread_mutex_lock(&btn_mutex);
+    screen_off_active = true;
+    pthread_mutex_unlock(&btn_mutex);
+    y1_call_framebuffer_static("screenOff");
+}
+
+void y1_shutdown(void)
+{
+    y1_call_framebuffer_static("shutdown");
 }
 
 /* methods to trigger key lock from Java */
@@ -349,6 +417,10 @@ Java_org_rockbox_RockboxFramebuffer_buttonHandlerRepeat(JNIEnv*env, jclass class
         button = key_to_button(keycode);
     if (button && button != BUTTON_NONE)
     {
+        /* ignore center repeats here */
+        if (button == BUTTON_SELECT && (center_screenoff_sent || center_shutdown_sent))
+            return true;
+
         /* Post the repeat event */
         wait_rockbox_ready();
         reset_poweroff_timer();
@@ -384,6 +456,25 @@ int button_read_device(int *data)
     int retval = (btn != drv_last_read) ? drv_lastbtn : btn;
     drv_last_read = btn;
     drv_lastbtn = retval & ~(BUTTON_REL | BUTTON_REPEAT);
+
+    /* long center press: post the synthetic buttons once per hold */
+    if (center_down_tick)
+    {
+        long held = current_tick - center_down_tick;
+        if (held >= Y1_CENTER_SHUTDOWN_TICKS && !center_shutdown_sent)
+        {
+            center_shutdown_sent = true;
+            center_screenoff_sent = true;
+            button_queue_post(BUTTON_Y1_SHUTDOWN, 0);
+            btn &= ~BUTTON_SELECT;
+            last_btns &= ~BUTTON_SELECT;
+        }
+        else if (held >= Y1_CENTER_SCREENOFF_TICKS && !center_screenoff_sent)
+        {
+            /* shutdown pending */
+            center_screenoff_sent = true;
+        }
+    }
 
     pthread_mutex_unlock(&btn_mutex);
     return btn;

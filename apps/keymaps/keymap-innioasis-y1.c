@@ -50,6 +50,8 @@ static const struct button_mapping button_context_standard[]  = {
     { ACTION_STD_CONTEXT,       BUTTON_SELECT|BUTTON_REL,           BUTTON_SELECT|BUTTON_REPEAT },
     { ACTION_STD_CANCEL,        BUTTON_PLAY|BUTTON_REPEAT,          BUTTON_NONE },
     { ACTION_STD_KEYLOCK,       BUTTON_MENU|BUTTON_PLAY,            BUTTON_NONE },
+    { ACTION_SCREENOFF,         BUTTON_Y1_SCREENOFF,                BUTTON_NONE },
+    { ACTION_SHUTDOWN,          BUTTON_Y1_SHUTDOWN,                 BUTTON_NONE },
 
     LAST_ITEM_IN_LIST
 }; /* button_context_standard */

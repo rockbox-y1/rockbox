@@ -1134,6 +1134,20 @@ static int get_action_worker(action_last_t *last, action_cur_t *cur)
 
     action_code_lookup(last, cur);
 
+#ifdef INNIOASIS_Y1
+    /* simulated buttons (long center button) */
+    if (cur->action == ACTION_SCREENOFF)
+    {
+        y1_screen_off();
+        cur->action = ACTION_NONE;
+    }
+    else if (cur->action == ACTION_SHUTDOWN)
+    {
+        y1_shutdown();
+        cur->action = ACTION_NONE;
+    }
+#endif
+
     do_softlock(last, cur);
 
     return update_action_last(last, cur);

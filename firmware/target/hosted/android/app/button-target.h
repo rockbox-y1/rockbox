@@ -77,6 +77,13 @@ bool android_back_button_ignored(void);
 #define BUTTON_MAIN (BUTTON_SELECT|BUTTON_MENU\
                 |BUTTON_LEFT|BUTTON_RIGHT|BUTTON_SCROLL_FWD\
                 |BUTTON_SCROLL_BACK|BUTTON_PLAY)
+
+#define BUTTON_Y1_SCREENOFF  0x00000080
+#define BUTTON_Y1_SHUTDOWN   0x00000100
+
+/* called from the action hook (apps/action.c) to run the host-side part */
+void y1_screen_off(void);
+void y1_shutdown(void);
 #endif
 
 #endif /* _BUTTON_TARGET_H_ */
