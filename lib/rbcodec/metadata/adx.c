@@ -65,6 +65,10 @@ bool get_adx_metadata(int fd, struct mp3entry* id3)
     }
     
     id3->frequency = get_long_be(&buf[8]);
+    if (id3->frequency == 0) {
+        DEBUGF("get_adx_metadata: bad frequency\n");
+        return false;
+    }
     /* 32 samples per 18 bytes */
     id3->bitrate = id3->frequency * channels * 18 * 8 / 32 / 1000;
     id3->length = get_long_be(&buf[12]) / id3->frequency * 1000;
@@ -105,8 +109,8 @@ bool get_adx_metadata(int fd, struct mp3entry* id3)
     
     if (looping) {
         /* 2 loops, 10 second fade */
-        id3->length = (start_adr-chanstart + 2*(end_adr-start_adr))
-                      *8 / id3->bitrate + 10000;
+        id3->length = id3->bitrate ? (start_adr-chanstart + 2*(end_adr-start_adr))
+                      *8 / id3->bitrate + 10000 : 0;
     }
         
     /* try to get the channel header */

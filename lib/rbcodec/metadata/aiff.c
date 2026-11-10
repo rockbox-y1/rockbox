@@ -106,6 +106,9 @@ bool get_aiff_metadata(int fd, struct mp3entry* id3)
             id3->bitrate = ((buf[6]<<8)|buf[7]) * numChannels * id3->frequency;
             id3->bitrate /= 1000;
 
+            if (id3->frequency == 0)
+                return false;
+
             if (!is_aifc || memcmp(&buf[18], AIFC_FORMAT_QT_IMA_ADPCM, 4) != 0)
                 id3->length = ((int64_t) numSampleFrames * 1000) / id3->frequency;
             else

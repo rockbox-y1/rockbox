@@ -162,6 +162,11 @@ bool get_a52_metadata(int fd, struct mp3entry *id3)
     }
 
     /* One A52 frame contains 6 blocks, each containing 256 samples */
+    if (id3->bytesperframe == 0 || id3->frequency == 0)
+    {
+        logf("a52: invalid bytesperframe/frequency");
+        return false;
+    }
     totalsamples = (id3->filesize - offset) / id3->bytesperframe * 6 * 256;
     id3->length = totalsamples / id3->frequency * 1000;
     return true;

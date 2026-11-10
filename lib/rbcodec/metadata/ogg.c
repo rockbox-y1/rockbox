@@ -224,6 +224,11 @@ bool get_ogg_metadata(int fd, struct mp3entry* id3)
         return false;
     }
 
+    if (id3->frequency == 0)
+    {
+        logf("ogg frequency invalid!");
+        return false;
+    }
     id3->length = ((int64_t) id3->samples * 1000) / id3->frequency;
     if (id3->length <= 0)
     {

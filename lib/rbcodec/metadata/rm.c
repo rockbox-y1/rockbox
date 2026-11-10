@@ -436,7 +436,7 @@ static inline int rm_parse_header(int fd, RMContext *rmctx, struct mp3entry *id3
                *   by constructing a partially filled unit out of the few 
                *   remaining samples at the end of decoding.
                ***/
-                if(rmctx->nb_packets % rmctx->sub_packet_h)
+                if(rmctx->sub_packet_h && rmctx->nb_packets % rmctx->sub_packet_h)
                     rmctx->nb_packets += rmctx->sub_packet_h - (rmctx->nb_packets % rmctx->sub_packet_h);
 
                 DEBUGF("    data_nb_packets = %ld\n",rmctx->nb_packets);

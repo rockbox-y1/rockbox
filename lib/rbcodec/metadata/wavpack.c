@@ -142,8 +142,14 @@ bool get_wavpack_metadata(int fd, struct mp3entry* id3)
                     totalsamples /= 2;
             }
 
+            if (id3->frequency == 0)
+                return false;
+
             id3->length = ((int64_t) totalsamples * 1000) / id3->frequency;
-            id3->bitrate = id3->filesize / (id3->length / 8);
+            if (id3->length < 8)
+                id3->bitrate = 0;
+            else
+                id3->bitrate = id3->filesize / (id3->length / 8);
 
             read_ape_tags(fd, id3);
             return true;

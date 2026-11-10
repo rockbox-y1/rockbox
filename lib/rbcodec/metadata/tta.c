@@ -92,6 +92,8 @@ bool get_tta_metadata(int fd, struct mp3entry* id3)
 
     unsigned short channels  = (GET_HEADER(ttahdr, NUM_CHANNELS));
     id3->frequency = (GET_HEADER(ttahdr, SAMPLE_RATE));
+    if (id3->frequency == 0)
+        return false;
     id3->length    = ((GET_HEADER(ttahdr, DATA_LENGTH)) / id3->frequency) * 1000LL;
     bps            = (GET_HEADER(ttahdr, BITS_PER_SAMPLE));
 

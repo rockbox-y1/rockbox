@@ -484,10 +484,13 @@ static void get_vbri_info(struct mp3info *info, unsigned char *buf)
     else
         info->file_time = info->frame_count / info->ft_den * info->ft_num;
 
-    if (info->byte_count <= (ULONG_MAX/8))
-        info->bitrate = info->byte_count * 8 / info->file_time;
-    else
-        info->bitrate = info->byte_count / (info->file_time >> 3);
+    if (info->file_time && info->byte_count)
+    {
+        if (info->byte_count <= (ULONG_MAX/8))
+            info->bitrate = info->byte_count * 8 / info->file_time;
+        else
+            info->bitrate = info->byte_count / (info->file_time >> 3);
+    }
 
     VDEBUGF("Frame size (%dkpbs): %d bytes (0x%x)\n",
            info->bitrate, info->frame_size, info->frame_size);
