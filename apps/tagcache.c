@@ -3470,6 +3470,14 @@ static bool commit(void)
     }
 #endif /*defined(PLUGIN)*/
 
+#ifdef INNIOASIS_Y1
+    /* application targets have no dircache or ramcache buffer to allocate
+     * -> take whatever the core buffer can spare instead of delaying the
+     * commit until the next start */
+    if (tempbuf_size == 0)
+        allocate_tempbuf();
+#endif
+
     /* And finally fail if there are no buffers available. */
     if (tempbuf_size == 0)
     {
@@ -3583,6 +3591,10 @@ commit_error:
         dircache_resume();
     }
 #endif /* HAVE_DIRCACHE */
+
+#ifdef INNIOASIS_Y1
+    free_tempbuf();
+#endif
 
     return rc;
 }
