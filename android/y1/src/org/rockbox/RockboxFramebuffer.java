@@ -24,7 +24,6 @@ package org.rockbox;
 import java.nio.ByteBuffer;
 
 import org.rockbox.RockboxService;
-import org.rockbox.Helper.Connectivity;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;

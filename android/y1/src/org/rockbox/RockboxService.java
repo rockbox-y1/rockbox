@@ -23,12 +23,9 @@ package org.rockbox;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.Enumeration;
 import java.util.zip.ZipEntry;
@@ -38,7 +35,6 @@ import org.rockbox.Helper.MediaButtonReceiver;
 import org.rockbox.Helper.RunForegroundManager;
 import org.rockbox.Helper.BrightnessController;
 import org.rockbox.Helper.ScreenTimeoutController;
-import org.rockbox.Helper.Connectivity;
 import org.rockbox.Helper.FMRadio;
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -71,7 +67,6 @@ import android.app.NotificationManager;
 import android.content.Context;
 import android.widget.Toast;
 import android.app.ProgressDialog;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
@@ -106,16 +101,6 @@ public class RockboxService extends Service
     public static final int RESULT_ROCKBOX_EXIT = 6;
 
     public SharedPreferences prefs;
-    public ArrayList<String[]> podcasts = new ArrayList<String[]>();
-    public String podcastFolder;
-    public String wifiSSID;
-    public String wifiPassword;
-    public String scrobble_url;
-    public String scrobble_protocol;
-    public String scrobble_user;
-    public String scrobble_password;
-    public String scrobble_key;
-    public String scrobble_shared_secret;
     @Override
     public void onCreate()
     {
@@ -129,8 +114,6 @@ public class RockboxService extends Service
         mFgRunner = new RunForegroundManager(this);
         wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "Wakelock");
 
-        loadConfig();
-        Connectivity.setContext(this);
         FMRadio.setContext(this);
     }
 
@@ -498,112 +481,6 @@ public class RockboxService extends Service
             screenTimeoutController = new ScreenTimeoutController();
         }
         return screenTimeoutController.getScreenTimeout();
-    }
-
-    public boolean lastfmScrobbler(String artist, String track, String album, int timestamp, long length){
-        loadConfig();
-        String username = scrobble_user;
-        String password = scrobble_password;
-        String apiKey = scrobble_key;
-        String sharedSecret = scrobble_shared_secret;
-        String apiUrl = scrobble_url;
-        String protocol = scrobble_protocol;
-        boolean listenbrainz = false;
-        if (protocol.equals("lastfm")) {
-            if (apiUrl == null || apiUrl.isEmpty()){
-                apiUrl = "https://ws.audioscrobbler.com/2.0/";
-            }
-        } else if (protocol.equals("listenbrainz")) {
-            listenbrainz = true;
-            if (apiUrl == null || apiUrl.isEmpty()){
-                apiUrl = "https://api.listenbrainz.org/1";
-            }
-        }
-
-        boolean ret = Connectivity.lastFm(listenbrainz, apiUrl, username, password, apiKey, sharedSecret, artist, track, album, timestamp, length);
-        return ret;
-    }
-
-    public String connectWifi(){
-        loadConfig();
-        return Connectivity.connectWifi(wifiSSID, wifiPassword);
-    }
-
-    public void disconnectWifi(){
-        Connectivity.disconnectWifi();
-    } 
-    public void loadConfig() {
-        String configPath = "/sdcard/.rockbox/wifi.cfg";
-        try (BufferedReader reader = new BufferedReader(new FileReader(configPath))) {
-            String line;
-            int i = 0;
-            String[] curPodcast = new String[2];
-            podcasts = new ArrayList<String[]>();
-            while ((line = reader.readLine()) != null) {
-                line = line.trim();
-                if (line.startsWith("folder:")) {
-                    podcastFolder = line.substring(7).trim();
-                } else if (line.startsWith("- name:")) {
-                    curPodcast = new String[2];
-                    curPodcast[0] = line.substring(7).trim();
-                } else if (line.startsWith("url:")) {
-                    curPodcast[1]=line.substring(4).trim();
-                    podcasts.add(curPodcast);
-                } else if (line.startsWith("scrobble-url:")) {
-                    scrobble_url=line.substring(13).trim();
-                } else if (line.startsWith("scrobble-user:")) {
-                    scrobble_user=line.substring(14).trim();
-                } else if (line.startsWith("scrobble-password:")) {
-                    scrobble_password=line.substring(18).trim();
-                } else if (line.startsWith("scrobble-apiKey:")) {
-                    scrobble_key=line.substring(16).trim();
-                } else if (line.startsWith("scrobble-sharedSecret:")) {
-                    scrobble_shared_secret=line.substring(22).trim();
-                } else if (line.startsWith("scrobble-protocol:")) {
-                    scrobble_protocol=line.substring(18).trim();
-                } else if (line.startsWith("wifi-ssid:")) {
-                    wifiSSID=line.substring(10).trim();
-                } else if (line.startsWith("wifi-password:")) {
-                    wifiPassword=line.substring(14).trim();
-                }
-                i++;
-            }
-
-        } catch (IOException e) {
-            Log.d("RockboxService", "Error reading podcast config: " + e.getMessage());
-        }
-    }
-
-    public String getPodcastNames(){
-        return Connectivity.getPodcastNames(podcasts);
-    }
-
-    public String getPodcastUrls(){
-        return Connectivity.getPodcastUrls(podcasts);
-    }
-
-    public String getPodcastFolder(){
-        return podcastFolder;
-    }
-
-    public void startPodcastDownload(int podcastNum, int episode) {
-        Connectivity.startPodcastDownload(podcasts, podcastNum, episode, podcastFolder);
-    }
-
-    public int getNewEpisodes(String podcastUrl, String podcastFolder) {
-        return Connectivity.getNewEpisodes(podcastUrl, podcastFolder);
-    }
-
-    public String getEpisodeList(int podcastNum) {
-        return Connectivity.getEpisodeList(podcasts, podcastNum, podcastFolder);
-    }
-
-    public String getEpisodePath(int podcastNum, int num) {
-        return Connectivity.getEpisodePath(podcasts, podcastNum, num, podcastFolder);
-    }
-
-    public void deleteEpisode(int podcastNum, int episode) {
-        Connectivity.deleteEpisode(podcasts, podcastNum, episode, podcastFolder);
     }
 
     public void shutdownDevice(int show) {
