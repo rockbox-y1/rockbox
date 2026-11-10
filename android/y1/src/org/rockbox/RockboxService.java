@@ -188,8 +188,8 @@ public class RockboxService extends Service
             /* Repeat events are handled by MediaButtonReceiver */
             if (kev.getRepeatCount() == 0)
             {
-                /* Normal press/release event */
-                RockboxFramebuffer.buttonHandler(kev.getKeyCode(),
+                /* Normal press/release event (handles the BACK+PLAY keylock combo) */
+                RockboxFramebuffer.handleKey(kev.getKeyCode(),
                                     kev.getAction() == KeyEvent.ACTION_DOWN);
             }
         }

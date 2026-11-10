@@ -49,6 +49,7 @@ static const struct button_mapping button_context_standard[]  = {
     { ACTION_STD_QUICKSCREEN,   BUTTON_MENU|BUTTON_REPEAT,          BUTTON_MENU },
     { ACTION_STD_CONTEXT,       BUTTON_SELECT|BUTTON_REL,           BUTTON_SELECT|BUTTON_REPEAT },
     { ACTION_STD_CANCEL,        BUTTON_PLAY|BUTTON_REPEAT,          BUTTON_NONE },
+    { ACTION_STD_KEYLOCK,       BUTTON_MENU|BUTTON_PLAY,            BUTTON_NONE },
 
     LAST_ITEM_IN_LIST
 }; /* button_context_standard */
@@ -90,6 +91,7 @@ static const struct button_mapping button_context_wps[]  = {
     { ACTION_WPS_HOTKEY,        BUTTON_SELECT|BUTTON_PLAY,      BUTTON_NONE },
     { ACTION_WPS_MENU,          BUTTON_MENU|BUTTON_REL,         BUTTON_MENU },
     { ACTION_WPS_QUICKSCREEN,   BUTTON_MENU|BUTTON_REPEAT,      BUTTON_MENU },
+    { ACTION_STD_KEYLOCK,       BUTTON_MENU|BUTTON_PLAY,        BUTTON_NONE },
 
     LAST_ITEM_IN_LIST,
 }; /* button_context_wps */

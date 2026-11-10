@@ -26,6 +26,9 @@
 unsigned multimedia_to_button(int keyboard_key);
 unsigned dpad_to_button(int keyboard_key);
 void android_ignore_back_button(bool yes);
+#ifdef INNIOASIS_Y1
+bool android_back_button_ignored(void);
+#endif
 
 /* Main unit's buttons */
 #if (CONFIG_PLATFORM & PLATFORM_ANDROID) && !defined(INNIOASIS_Y1)

@@ -76,6 +76,60 @@ public class RockboxFramebuffer extends SurfaceView
     private static final int SKIP_PREV_KEYCODE = KeyEvent.KEYCODE_MEDIA_PREVIOUS;
 
     private static final int BACK_KEYCODE = 4;
+
+    /* BACK is handled like MENU in Rockbox, but in the main
+     * menu rockbox lets android handle BACK so we can exit the app. When BACK is pressed
+     * together with PLAY we send MENU instead so the MENU+PLAY keylock combo still triggers
+     * All cases this covers:
+     * - Press BACK+PLAY in any menu -> send MENU+PLAY (triggers keylock)
+     * - Press BACK in main menu -> android handles this, exits rockbox back to launcher
+     * - Press BACK anywhere else -> send BACK, which rockbox then translates to MENU */
+    private static boolean playHeld = false;
+    private static boolean backHeld = false;
+    private static boolean backSentAsMenu = false;
+
+    static boolean handleKey(int keyCode, boolean down) {
+        if (keyCode == PLAY_KEYCODE) {
+            playHeld = down;
+            if (down && backHeld && !backSentAsMenu) {
+                backSentAsMenu = true;
+                buttonHandler(KeyEvent.KEYCODE_MENU, true);
+            }
+            return buttonHandler(keyCode, down);
+        }
+        if (keyCode == BACK_KEYCODE) {
+            backHeld = down;
+            if (down) {
+                if (playHeld) {
+                    backSentAsMenu = true;
+                    return buttonHandler(KeyEvent.KEYCODE_MENU, true);
+                }
+                /* solo back press in main menu, exit rockbox */
+                return buttonHandler(keyCode, true);
+            } else {
+                if (backSentAsMenu) {
+                    backSentAsMenu = false;
+                    return buttonHandler(KeyEvent.KEYCODE_MENU, false);
+                }
+                return buttonHandler(keyCode, false);
+            }
+        }
+        return buttonHandler(keyCode, down);
+    }
+
+    private static boolean handleKeyRepeat(int keyCode) {
+        if (keyCode == BACK_KEYCODE && (backSentAsMenu || isBackButtonIgnored())) {
+            /* long-press back: in the main menu the initial down was ignored by
+             * rockbox (so the host can exit on a short press). Send MENU down
+             * event first then forward the repeat as MENU. */
+            if (!backSentAsMenu) {
+                backSentAsMenu = true;
+                buttonHandler(KeyEvent.KEYCODE_MENU, true);
+            }
+            return buttonHandlerRepeat(KeyEvent.KEYCODE_MENU);
+        }
+        return buttonHandlerRepeat(keyCode);
+    }
     private Handler longPressHandler = new Handler(Looper.getMainLooper());
     private PowerManager powerManager;
     private long centerPressStartTime = 0;
@@ -219,7 +273,7 @@ public class RockboxFramebuffer extends SurfaceView
         
         /* Other keys as before */
         if (event.getRepeatCount() > 0) {
-            return buttonHandlerRepeat(keyCode);
+            return handleKeyRepeat(keyCode);
         } else {
             if ((keyCode == SCROLL_BACK_KEYCODE || keyCode == SCROLL_FWD_KEYCODE) && 
                 (currentTime - lastScrollPressTime <= SCROLL_REPEAT_THRESHOLD_MS)){
@@ -242,7 +296,7 @@ public class RockboxFramebuffer extends SurfaceView
                     }).start();
                     return true;
                 }
-                return buttonHandler(keyCode, true);
+                return handleKey(keyCode, true);
             }
         }
     }
@@ -295,9 +349,9 @@ public class RockboxFramebuffer extends SurfaceView
                 lastScrollPressTime = currentTime;
                 return true;
             }
-            return buttonHandler(keyCode, false);
+            return handleKey(keyCode, false);
         }
-    } 
+    }
 
     private int getDpi()
     {
@@ -312,6 +366,7 @@ public class RockboxFramebuffer extends SurfaceView
     private native void touchHandler(boolean down, int x, int y);
     public native static boolean buttonHandler(int keycode, boolean state);
     public native static boolean buttonHandlerRepeat(int keycode);
+    private static native boolean isBackButtonIgnored();
     public native static void triggerVibrationNative(int baseDuration, int boostDuration, boolean immediate);
 
     public native void surfaceCreated(SurfaceHolder holder);

@@ -28,6 +28,13 @@ void android_ignore_back_button(bool yes)
     ignore_back_button = yes;
 }
 
+#ifdef INNIOASIS_Y1
+bool android_back_button_ignored(void)
+{
+    return ignore_back_button;
+}
+#endif
+
 int key_to_button(int keyboard_key)
 {
     switch (keyboard_key)
