@@ -2378,9 +2378,9 @@ const struct settings_list settings[] = {
     OFFON_SETTING(0, keyclick_repeats, LANG_KEYCLICK_REPEATS, false,
                   "keyclick repeats", NULL),
 #ifdef INNIOASIS_Y1
-    CHOICE_SETTING(0, vibration_intensity, LANG_WHEEL_HAPTICS_INTENSITY, 9,
-                   "wheel haptics intensity", "0,1,2,3,4,5,6,7,8,9,10,11,12,13,14", NULL, 15,
-                   ID2P(LANG_OFF), "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14"),
+    CHOICE_SETTING(0, vibration_intensity, LANG_WHEEL_HAPTICS_INTENSITY, 6,
+                   "wheel haptics intensity", "0,1,2,3,4,5,6,7,8,9", NULL, 10,
+                   ID2P(LANG_OFF), "1", "2", "3", "4", "5", "6", "7", "8", "9"),
 #endif
 #endif
     TEXT_SETTING(0, playlist_catalog_dir, "playlist catalog directory",

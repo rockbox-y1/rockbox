@@ -64,7 +64,7 @@ public class RockboxFramebuffer extends SurfaceView
     private static final long WATCHDOG_TIMEOUT_MS = 5000;
 
     private static final int[] duration_mapping = {
-        0, 1, 2, 3, 4, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50
+        0, 1, 2, 3, 5, 10, 15, 20, 30, 50
     };
 
     private static final int PLAY_KEYCODE = KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE;
