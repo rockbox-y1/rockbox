@@ -17003,13 +17003,13 @@
   desc: wheel haptics intensity setting
   user: core
   <source>
-    *: "Wheel Haptics Intensity"
+    *: "Wheel Haptics"
   </source>
   <dest>
-    *: "Wheel Haptics Intensity"
+    *: "Wheel Haptics"
   </dest>
   <voice>
-    *: "wheel haptics intensity"
+    *: "wheel haptics"
   </voice>
 </phrase>
 <phrase>
