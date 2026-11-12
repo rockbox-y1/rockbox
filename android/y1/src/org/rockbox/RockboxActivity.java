@@ -113,6 +113,8 @@ public class RockboxActivity extends Activity
             s.setActivity(set ? this : null);
     }
 
+    private boolean keyLockWasActive = false;
+
     public void onResume()
     {
         super.onResume();
@@ -121,23 +123,23 @@ public class RockboxActivity extends Activity
         fb.requestFocus();
         setVisible(true);
         setServiceActivity(true);
-        /* disable key lock */
-        keyLock(false);
+        /* only disable key lock if it wasn't active before the screen went off */
+        keyLock(keyLockWasActive);
         /* continue timers */
         autoPoweroffSuspend(false);
     }
-    
+
     /* this is also called when the backlight goes off,
-     * which is nice 
+     * which is nice
      */
     @Override
-    protected void onPause() 
+    protected void onPause()
     {
         super.onPause();
         /* this will cause the framebuffer's Surface to be destroyed, enabling
          * us to disable drawing */
         setVisible(false);
-        /* enable key lock */
+        keyLockWasActive = isKeyLocked();
         keyLock(true);
     }
     
@@ -196,6 +198,8 @@ public class RockboxActivity extends Activity
 
     /* call native method to trigger key lock */
     public native static void keyLock(boolean keyLock);
+
+    public native static boolean isKeyLocked();
 
     public native static void autoPoweroffSuspend(boolean suspend);
 
