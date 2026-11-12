@@ -15,6 +15,12 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
+    - name: setup java 17 for toolchain install
+      uses: actions/setup-java@v4
+      with:
+        distribution: temurin
+        java-version: 17
+
     - name: cache apt
       uses: actions/cache@v4
       with:
@@ -38,7 +44,7 @@ jobs:
     - name: prepare build environment
       run: |
         sudo apt update
-        sudo apt install -y lib32z1 openjdk-17-jdk golang-go
+        sudo apt install -y lib32z1 golang-go
         java --version
         cd android/y1
         yes | ./installToolchain.sh
@@ -66,8 +72,16 @@ jobs:
         cd ..
         go build -o poddl
     
+    # jdk 11 is the last javac that still accepts source/target 7
+    - name: setup java 11 for rockbox build
+      uses: actions/setup-java@v4
+      with:
+        distribution: temurin
+        java-version: 11
+
     - name: build rockbox
       run: |
+        java --version
         cd android/y1/build
         ../../../tools/configure --target=310 --lcdwidth=480 --lcdheight=360 --type=n
         make clean
