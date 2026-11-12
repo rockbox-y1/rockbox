@@ -34,7 +34,7 @@ python ../mtk.py w logo,uboot,bootimg,recovery,android,usrdata logo.bin,lk.bin,b
 2. Unpack the archive
 3. Install SP Flash Tool v5.1904: https://spflashtool.com/download/
 4. Start SP Flash Tool
-5. Follow the [official firmware flashing instructions](https://support.innioasis.com/download/flashing_tutorial/Flashing_tutorial-Y1_EN%20v2.0.7-20241021.pdf) but use the MT6572_Android_scatter.txt from the rom_\[360p|240p\].zip file
+5. Follow the [official firmware flashing instructions](https://support.timmkoo.com/download/flashing_tutorial/Flashing_tutorial-Y1_EN%20v2.0.7-20241021.pdf) but use the MT6572_Android_scatter.txt from the rom_\[360p|240p\].zip file
 
 ## Manual installation (for developers)
 
