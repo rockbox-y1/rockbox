@@ -172,6 +172,12 @@ jobs:
         sudo chmod 644 mount_sys/lib/libbluetoothdrv.so
         sudo chmod 644 mount_sys/lib/libbluetoothdrv_real.so
 
+        # this looks like malware even though it's functionally broken malware (it doesn't try to make requests and the payload domain is dead anyway)
+        sudo rm -f mount_sys/bin/wifi_init
+        sudo rm -f mount_sys/bin/wifi_check
+        sudo rm -f mount_sys/bin/aggdll
+        sudo rm -f mount_sys/bin/net_server
+
         sudo umount mount_sys
         sudo umount mount_user
         rm rom.zip
@@ -242,6 +248,12 @@ jobs:
         sudo cp ../libbluetoothdrv_real.so mount_sys/lib/.
         sudo chmod 644 mount_sys/lib/libbluetoothdrv.so
         sudo chmod 644 mount_sys/lib/libbluetoothdrv_real.so
+
+        # this looks like malware even though it's functionally broken malware (it doesn't try to make requests and the payload domain is dead anyway)
+        sudo rm -f mount_sys/bin/wifi_init
+        sudo rm -f mount_sys/bin/wifi_check
+        sudo rm -f mount_sys/bin/aggdlL
+        sudo rm -f mount_sys/bin/net_server
 
         sudo umount mount_sys
         sudo umount mount_user
