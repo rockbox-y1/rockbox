@@ -215,20 +215,6 @@ public class RockboxService extends Service
         {
             public void run()
             {
-                // Disable com.innioasis.y1 if it is still enabled after switching back to Rockbox
-                new Thread(new Runnable() {
-                    public void run() {
-                        try {
-                            Log.d("RockboxService", "Disabling stock firmware...");
-                            java.lang.Process proc = Runtime.getRuntime().exec(new String[]{"pm", "disable", "com.innioasis.y1"});
-                            proc.waitFor();
-                        } catch (Exception e) {
-                            Log.e("RockboxService", "Failed to disable stock firmware: " + e.getMessage());
-                            e.printStackTrace();
-                        }
-                    }
-                }).start();
-
                 final int BUFFER = 8*1024;
                 String rockboxDirPath = "/data/data/org.rockbox/app_rockbox/.rockbox/";
                 String rockboxCreditsPath = "/sdcard/.rockbox/rocks/viewers";
