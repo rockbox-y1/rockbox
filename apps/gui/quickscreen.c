@@ -56,6 +56,9 @@ struct quickscreen
     int button_enter;
     enum quickscreen_return result;
     enum quickscreen_item volume_item;
+#ifdef INNIOASIS_Y1
+    bool prev_ignore_back;
+#endif
 };
 
 /* Skin draws custom Quickscreen UI */
@@ -394,6 +397,9 @@ static int quickscreen_touchscreen_button(void)
 static void cleanup(void *parameter)
 {
     struct quickscreen *qs = (struct quickscreen *) parameter;
+#ifdef INNIOASIS_Y1
+    android_ignore_back_button(qs->prev_ignore_back);
+#endif
     remove_event_ex(GUI_EVENT_NEED_UI_UPDATE, quickscreen_draw_cb, qs);
 
     FOR_NB_SCREENS(i)
@@ -410,6 +416,13 @@ static void cleanup(void *parameter)
 static inline void setup(struct quickscreen *qs)
 {
     push_current_activity(ACTIVITY_QUICKSCREEN);
+
+#ifdef INNIOASIS_Y1
+    /* Handle the BACK button in rockbox while the quickscreen is open,
+       so it cannot close the app from here */
+    qs->prev_ignore_back = android_back_button_ignored();
+    android_ignore_back_button(false);
+#endif
 
     FOR_NB_SCREENS(i)
     {
