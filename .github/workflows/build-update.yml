@@ -1,0 +1,141 @@
+name: Build update.zip
+
+on:
+  push:
+    branches: [ "PLACEHOLDER" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      ANDROID_SDK_PATH: /usr/local/lib/android/sdk
+      ANDROID_NDK_PATH: /home/runner/android-ndk-r10e
+      ANDROID_NDK_ROOT: /home/runner/android-ndk-r10e
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: download AOSP platform keys
+      run: |
+        cd android/y1
+        wget -q 'https://android.googlesource.com/platform/build/+/refs/heads/main/target/product/security/platform.pk8?format=TEXT' -O platform.pk8.b64
+        base64 -d platform.pk8.b64 > platform.pk8
+        rm platform.pk8.b64
+        wget -q 'https://android.googlesource.com/platform/build/+/refs/heads/main/target/product/security/platform.x509.pem?format=TEXT' -O platform.x509.pem.b64
+        base64 -d platform.x509.pem.b64 > platform.x509.pem
+        rm platform.x509.pem.b64
+
+    - name: setup java 17 for toolchain install
+      uses: actions/setup-java@v4
+      with:
+        distribution: temurin
+        java-version: 17
+
+    - name: cache apt
+      uses: actions/cache@v4
+      with:
+        path: |
+          /var/cache/apt
+          /var/lib/apt/lists
+        key: ${{ runner.os }}-apt-v1
+        restore-keys: |
+          ${{ runner.os }}-apt-
+
+    - name: cache android SDK/NDK
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/android-sdk
+          ~/android-ndk-r10e
+        key: ${{ runner.os }}-android-sdk-ndk-${{ hashFiles('android/y1/installToolchain.sh') }}
+        restore-keys: |
+          ${{ runner.os }}-android-sdk-ndk-
+
+    - name: prepare build environment
+      run: |
+        sudo apt update
+        sudo apt install -y lib32z1
+        java --version
+        cd android/y1
+        yes | ./installToolchain.sh
+
+    # jdk 11 is the last javac that still accepts source/target 7
+    - name: setup java 11 for rockbox build
+      uses: actions/setup-java@v4
+      with:
+        distribution: temurin
+        java-version: 11
+
+    - name: build rockbox
+      run: |
+        java --version
+        cd android/y1/build
+        ../../../tools/configure --target=310 --lcdwidth=480 --lcdheight=360 --type=n
+        make clean
+        make
+        make classes
+        make zip
+        make unsigned-apk
+        # Sign APK with AOSP platform keys
+        APKSIGNER=""
+        if command -v apksigner >/dev/null 2>&1; then
+            APKSIGNER="apksigner"
+        elif [ -n "$ANDROID_SDK_PATH" ] && [ -f "$ANDROID_SDK_PATH/build-tools/$(ls -1 "$ANDROID_SDK_PATH/build-tools" | tail -1)/apksigner" ]; then
+            APKSIGNER="$ANDROID_SDK_PATH/build-tools/$(ls -1 "$ANDROID_SDK_PATH/build-tools" | tail -1)/apksigner"
+        fi
+        $APKSIGNER sign --key ../platform.pk8 --cert ../platform.x509.pem rockbox_unsigned.apk
+        cp rockbox_unsigned.apk rockbox.apk
+
+    - name: bundle update.zip
+      run: |
+        cd android/y1/build
+        mkdir update
+        cp rockbox.apk update/rockbox.apk
+        cat > update/update.sh <<'EOF'
+        #!/system/bin/sh
+        # Runs as root on the device (Android 4.2). Installs the bundled
+        # rockbox.apk as a normal app.
+        echo "++++ Starting Rockbox update"
+
+        cd "$(dirname "$0")"
+        pm install -r rockbox.apk
+        echo "++ Installed rockbox.apk"
+
+        echo "++++ Finished update."
+        reboot
+        EOF
+        chmod 755 update/update.sh
+        zip -r update.zip update/*
+        rm -rf update
+
+    # Set release date
+    - name: Set release date
+      id: date
+      run: echo "release_date=$(date +'%d-%m-%Y')" >> $GITHUB_OUTPUT
+
+    # Create single release
+    - name: create release
+      id: create_release
+      uses: shogo82148/actions-create-release@v1
+      with:
+        release_name: Rockbox-Y1 Nightly-${{ steps.date.outputs.release_date }}
+        tag_name: nightly-${{ github.sha }}
+        prerelease: false
+        make_latest: true
+
+    # Upload all assets to single release
+    - name: upload APK
+      uses: shogo82148/actions-upload-release-asset@v1
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./android/y1/build/rockbox.apk
+        asset_name: rockbox.apk
+        asset_content_type: application/vnd.android.package-archive
+
+    - name: upload update.zip
+      uses: shogo82148/actions-upload-release-asset@v1
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./android/y1/build/update.zip
+        asset_name: update.zip
+        asset_content_type: application/zip
